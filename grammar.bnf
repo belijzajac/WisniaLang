@@ -1,0 +1,252 @@
+//----------------------------------------------------------------------
+// Main elements
+//----------------------------------------------------------------------
+
+<PROGRAM> ::= <BODY>
+<BODY>    ::= <DECL> | <BODY> <DECL>
+<DECL>    ::= <FN_DECL> | <CLASS_DECL>
+
+//----------------------------------------------------------------------
+// Class
+//----------------------------------------------------------------------
+
+<CLASS_DECL>         ::= "class" <IDENT> <CLASS_BODY>
+
+<CLASS_BODY>         ::= "{" "}" | "{" <CLASS_STMTS> "}"
+<CLASS_STMTS>        ::= <CLASS_STMT> | <CLASS_STMTS> <CLASS_STMT>
+<CLASS_STMT>         ::= <METHOD_DECLS> | <FIELD_DECLS>
+
+<METHOD_DECLS>       ::= <METHOD_DECL> | <METHOD_DECLS> <METHOD_DECL>
+
+<METHOD_DECL>        ::= <CONSTRUCTOR_DECL> | <FN_DECL>
+<CONSTRUCTOR_DECL>   ::= <PREFIX_SYMBOL> <IDENT> <PARAMS> <STMT_BLOCK>
+
+<FIELD_DECLS>        ::= <FIELD_DECL> | <FIELD_DECLS> <FIELD_DECL>
+<FIELD_DECL>         ::= <VAR_DECL> <STMT_END>
+
+<CLASS_INIT>         ::= "new" <IDENT> <ARGUMENTS>
+
+<CLASS_METHOD_CALL>        ::= <CLASS_METHOD_CALL_SINGLE>
+                            | <CLASS_METHOD_CALL> <CLASS_METHOD_CALL_SYM> <CLASS_METHOD_CALL_SINGLE>
+
+<CLASS_METHOD_CALL_SINGLE> ::= <IDENT> <CLASS_METHOD_CALL_SYM> <VAR> <ARGUMENTS> // obj->func{"lole", 555} ... or obj.func{"lole", 555} ...
+                            | <CLASS_METHOD_CALL_SYM> <VAR> <ARGUMENTS>          // ->func{"lole", 555}
+
+<CLASS_METHOD_CALL_SYM>    ::= "." | "->"
+
+//----------------------------------------------------------------------
+// Functions
+//----------------------------------------------------------------------
+
+<FN_DECL>        ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
+
+<PARAMS>         ::= "(" ")" | "(" <PARAMS_SEQ> ")"
+<PARAMS_SEQ>     ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
+<PARAM>          ::= <IDENT> ":" <TYPE>
+
+<FN_CALL>        ::= <IDENT> <ARGUMENTS>
+
+//----------------------------------------------------------------------
+// Statements
+//----------------------------------------------------------------------
+
+<STMT_BLOCK>      ::= "{" "}" | "{" <STMTS> "}"
+<STMTS>           ::= <STMT> | <STMTS> <STMT>
+
+<STMT>            ::= <FN_RETURN_STMT> <STMT_END>
+                    | <LOOP_BREAK_STMT> <STMT_END> 
+                    | <VAR_DECL> <STMT_END>
+                    | <ASSIGNMENT_STMT> <STMT_END> 
+                    | <EXPRESSION> <STMT_END>
+                    | <IO_STMT> <STMT_END>
+                    | <LOOP_STMT>
+                    | <IF_STMT>
+
+<FN_RETURN_STMT>  ::= <RETURN_SYMB> | <RETURN_SYMB> <EXPRESSION>
+<LOOP_BREAK_STMT> ::= <BREAK_SYMB> | <CONTINUE_SYMB>
+
+<VAR_DECL>        ::= <TYPE> <VAR>
+                    | <TYPE> <VAR> "=" <EXPRESSION>
+                    | <TYPE> <VAR> "{" <EXPRESSION> "}"
+
+<ASSIGNMENT_STMT> ::= <VAR> "=" <EXPRESSION>
+
+//----------------------------------------------------------------------
+// Expression statements
+//----------------------------------------------------------------------
+
+<EXPRESSION>      ::= <AND_EXPR>
+                    | <EXPRESSION> <OR_SYMB> <AND_EXPR>
+                    
+<AND_EXPR>        ::= <EQUAL_EXPR> | <AND_EXPR> <AND_SYMB> <EQUAL_EXPR>
+
+<EQUAL_EXPR>      ::= <COMPARE_EXPR>
+                    | <EQUAL_EXPR> <EQUALITY_SYMB> <COMPARE_EXPR>
+
+<COMPARE_EXPR>    ::= <ADD_EXPR>
+                    | <COMPARE_EXPR> <COMPARISON_SYMB> <ADD_EXPR>
+
+<ADD_EXPR>        ::= <MULT_EXPR> | <ADD_EXPR> <ADD_OP> <MULT_EXPR>
+
+<MULT_EXPR>       ::= <UNARY_EXPR> | <MULT_EXPR> <MULT_OP> <UNARY_EXPR>
+
+<UNARY_EXPR>      ::= <SOME_EXPR> | <UNARY_SYM> <UNARY_EXPR>
+
+<SOME_EXPR>       ::= "(" <EXPRESSION> ")"
+                    | <VAR>
+                    | <FN_CALL>
+                    | <CLASS_METHOD_CALL>
+                    | <CONSTANT_LIT>
+                    | <CLASS_INIT>
+
+//----------------------------------------------------------------------
+// I/O statements
+//----------------------------------------------------------------------
+
+<IO_STMT>     ::= <INPUT_STMT> | <OUTPUT_STMT>
+
+<INPUT_STMT>  ::= "read" <INPUT_SEQ>
+<OUTPUT_STMT> ::= "print" <OUTPUT_SEQ>
+
+<INPUT_SEQ>   ::= <VAR> | <INPUT_SEQ> "," <VAR>
+<OUTPUT_SEQ>  ::= <EXPRESSION> | <OUTPUT_SEQ> "," <EXPRESSION>
+
+//----------------------------------------------------------------------
+// Loop statements
+//----------------------------------------------------------------------
+
+<LOOP_STMT>         ::= <LOOP_TYPE> <STMT_BLOCK>
+<LOOP_TYPE>         ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
+
+<WHILE_LOOP>        ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
+
+<FOR_LOOP>          ::= "for" "(" <FOR_CONDITION> ")" <STMT_BLOCK>
+<FOR_CONDITION>     ::= <VAR_DECL> ";" <EXPRESSION> ";" <EXPRESSION>
+
+<FOREACH_LOOP>      ::= "for_each" "(" <FOREACH_CONDITION> ")" <STMT_BLOCK>
+<FOREACH_CONDITION> ::= <VAR> "in" <EXPRESSION>
+
+//----------------------------------------------------------------------
+// If statements
+//----------------------------------------------------------------------
+
+<IF_STMT>    ::= <IF_BLOCK> | <IF_BLOCK> <ELSE>
+
+<ELSE>       ::= <ELSE_KW> | <ELSE> <ELSE_KW>
+<ELSE_KW>    ::= <ELSE_BLOCK> | <ELIF_BLOCK>
+
+<IF_BLOCK>   ::= "if"   <IF_ELSE_COND_BODY>
+<ELSE_BLOCK> ::= "else" <IF_ELSE_COND_BODY>
+<ELIF_BLOCK> ::= "elif" <IF_ELSE_COND_BODY>
+
+<IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")" <STMT_BLOCK>
+
+//----------------------------------------------------------------------
+// Miscellaneous statements
+//----------------------------------------------------------------------
+
+<ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}"
+
+<EXPR_LIST> ::= <EXPRESSION>
+              | <EXPR_LIST> "," <EXPRESSION>
+
+//----------------------------------------------------------------------
+// Variables
+//----------------------------------------------------------------------
+
+<TYPE>             ::= "void" | "int" | "bool" | "float" | "string"
+
+<VAR>              ::= <IDENT>
+<CONSTANT_LIT>     ::= <BOOL_CONSTANT> | <NUMERIC_CONSTANT> | <STRING>
+
+<IDENT>            ::= <LETTER> | <IDENT> <IDNEY_SYMS>
+<IDNEY_SYMS>       ::= <DIGIT> | <LETTER> | <UNDERSCORE>
+
+<SYMBOL>           ::= <DIGIT> | <LETTER> | <UNDERSCORE>
+
+<BOOL_CONSTANT>    ::= "true" | "false"
+<NUMERIC_CONSTANT> ::= <SIGN> <INTEGER> | <SIGN> <FLOAT> | <INTEGER> | <FLOAT>
+
+<INTEGER>          ::= <DIGITS>
+<FLOAT>            ::= "." <DIGITS>
+                    | <DIGITS> "." <DIGITS>
+                    | <DIGITS> "." <DIGITS> <EXPONENT>
+
+<EXPONENT>         ::= "e" <EXPONENT_INT>
+<EXPONENT_INT>     ::= <INTEGER> | <SIGN> <INTEGER>
+
+<DIGITS>           ::= <DIGIT> <DIGITS> | <DIGIT>
+
+//----------------------------------------------------------------------
+// Strings
+//----------------------------------------------------------------------
+
+<STRING>          ::= <STR_SYM> <STRING_CONTENTS> <STR_SYM>
+                    | <STR_SYM> <STR_SYM>
+
+<STR_SYM>         ::= "\""
+
+<STRING_CONTENTS> ::= <STRING_ITEM> | <STRING_CONTENTS> <STRING_ITEM>
+<STRING_ITEM>     ::= <LETTER> | <DIGIT> | <ASCII_SYMBOL> | <SPECIAL_SYMBOLS>
+
+//----------------------------------------------------------------------
+// Comments
+//----------------------------------------------------------------------
+
+<COMMENT>          ::= <COMMENT_SINGLE> | <COMMENT_MULTIPLE>
+
+<COMMENT_SINGLE>   ::= "#"  <COMMENT_SYMBOLS> <NEWLINE>
+<COMMENT_MULTIPLE> ::= "##" <COMMENT_SYMBOLS> "##" <NEWLINE>
+
+<COMMENT_SYMBOLS>  ::= <STRING_CONTENTS>
+
+//----------------------------------------------------------------------
+// Symbols
+//----------------------------------------------------------------------
+
+<UNDERSCORE>       ::= "_"
+<STMT_END>         ::= ";"
+<L_CURLY_BRACKET>  ::= "{"
+<R_CURLY_BRACKET>  ::= "}"
+<L_BRACKET>        ::= "("
+<R_BRACKET>        ::= ")"
+<L_SQUARE_BRACKET> ::= "["
+<R_SQUARE_BRACKET> ::= "]"
+<OR_SYMB>          ::= "||"
+<AND_SYMB>         ::= "&&"
+<ADD_OP>           ::= "+" | "-"
+<EQUALITY_SYMB>    ::= "!=" | "=="
+<COMPARISON_SYMB>  ::= ">" | "<" | ">=" | "<="
+<UNARY_SYM>        ::= "!" | "-" | "++"
+<ASSIGNMENT_OP>    ::= "="
+<BREAK_SYMB>       ::= "break"
+<CONTINUE_SYMB>    ::= "continue"
+<RETURN_SYMB>      ::= "return"
+<MULT_OP>          ::= "*" | "/"
+<SIGN>             ::= <ADD_OP>
+
+<DIGIT>            ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+                     | "8" | "9"
+
+<LETTER>           ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h"
+                     | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+                     | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x"
+                     | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F"
+                     | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+                     | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
+                     | "W" | "X" | "Y" | "Z"
+
+<ASCII_SYMBOL>     ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "("
+                     | ")" | "*" | "+" | "," | "-" | "." | "/" | ":"
+                     | ";" | ">" | "=" | "<" | "?" | "@" | "[" | "]"
+                     | "^" | "_" | "{" | "}" | "~"
+
+<SPECIAL_SYMBOLS>  ::= <SLASH> "t" | <SLASH> "r" | <SLASH> "n"
+                     | <SLASH> "\"" | <SLASH> "'" | <SLASH> "\"
+
+<SLASH>            ::= "\"
+
+<NEWLINE>          ::= "\n"
+<PREFIX_SYMBOL>    ::= "__"
+
+//----------------------------------------------------------------------
