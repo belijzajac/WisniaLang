@@ -31,5 +31,9 @@
 *.out
 *.app
 
+# CLion files
+.idea/
+cmake-build-debug/
+
 # KDE dolphin stuff
 .directory
