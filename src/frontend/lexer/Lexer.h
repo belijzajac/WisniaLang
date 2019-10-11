@@ -2,9 +2,11 @@
 #define LEXER_H
 
 #include <string>
+#include <vector>
+#include <memory>
 
 class Lexer {
-private:
+    class Token;
     Lexer() = default;
 
 public:
@@ -20,6 +22,9 @@ public:
 
     // Tokenize source file
     void tokenize(const std::string &input);
+
+private:
+    std::vector<std::unique_ptr<Token>> tokens_;
 };
 
 #endif // LEXER_H
