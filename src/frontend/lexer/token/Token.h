@@ -13,13 +13,20 @@ public:
 
     ~PositionInFile() = default;
 
+    // Getter for file information
+    const std::string getFileInfo() const {
+        return fileName_ + ":"
+            + std::to_string(lineNo_) + ":"
+            + std::to_string(charPosition_);
+    }
+
 private:
     std::string fileName_;
     int lineNo_;
     int charPosition_;
 };
 
-using TokenValue = std::variant<int, float, std::string>;
+//using TokenValue = std::variant<int, float, std::string>;
 
 // Move to `class token`
 /*TokenValue getTokenValue() {
@@ -37,6 +44,13 @@ public:
         : type_{type}, value_{value}, pif_{std::move(pif)} {}*/
 
     ~Token() = default;
+
+    // Getters for token
+    const std::string getName() const { return TokenTypeToStr[type_]; }
+    const std::string getValue() const { return value_; }
+
+    // Getters for file information
+    const std::string getFileInfo() const { return pif_->getFileInfo(); }
 
 private:
     TokenType type_;

@@ -3,11 +3,11 @@
 
 #include <array>
 
-// Transition states for Deterministic Finite Automaton
+// Transition states for the Deterministic Finite Automaton
 enum Transitions {
-    REJECT = 0,
+    MAIN = 0,
     INTEGER,
-    REAL,
+    FLOAT,
     OPERATOR,
     IDENT,
     UNKNOWN,
@@ -16,13 +16,14 @@ enum Transitions {
 
 // The Deterministic Finite Automaton
 static constexpr std::array<std::array<int, 7>, 7> transitionTbl = {
-                {{0, INTEGER,  REAL,  OPERATOR,  IDENT,  UNKNOWN,  SPACE},  // is just a placeholder
-/* Trans. 1 */   {INTEGER,  INTEGER,  REAL,   REJECT,   REJECT,  REJECT,  REJECT},
-/* Trans. 2 */   {REAL,      REAL,  UNKNOWN, REJECT,   REJECT,  REJECT,  REJECT},
-/* Trans. 3 */   {OPERATOR,  REJECT, REJECT,  REJECT,   IDENT,  REJECT,  REJECT},
-/* Trans. 4 */   {IDENT,    IDENT,   REJECT,  IDENT,   IDENT,  REJECT,  REJECT},
-/* Trans. 5 */   {UNKNOWN,  UNKNOWN, UNKNOWN, UNKNOWN,  UNKNOWN, UNKNOWN, REJECT},
-/* Trans. 6 */   {SPACE,     REJECT, REJECT,  REJECT,   REJECT,  REJECT,  REJECT}}
+/* Placeholder */ {{MAIN,    INTEGER, FLOAT,   OPERATOR, IDENT,   UNKNOWN, SPACE},
+
+/* Trans. 1 */    {INTEGER,  INTEGER, FLOAT,   MAIN,     MAIN,    MAIN,    MAIN},
+/* Trans. 2 */    {FLOAT,    FLOAT,   UNKNOWN, MAIN,     MAIN,    MAIN,    MAIN},
+/* Trans. 3 */    {OPERATOR, MAIN,    MAIN,    MAIN,     IDENT,   MAIN,    MAIN},
+/* Trans. 4 */    {IDENT,    IDENT,   MAIN,    IDENT,    IDENT,   MAIN,    MAIN},
+/* Trans. 5 */    {UNKNOWN,  UNKNOWN, UNKNOWN, UNKNOWN,  UNKNOWN, UNKNOWN, MAIN},
+/* Trans. 6 */    {SPACE,    MAIN,    MAIN,    MAIN,     MAIN,    MAIN,    MAIN}}
 };
 
 #endif // DFA_H

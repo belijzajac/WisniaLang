@@ -3,68 +3,38 @@
 #include "token/Token.h"
 #include "../../utilities/Exception.h"
 #include <fstream>
-#include <iostream>
-
-#include <cctype>
 #include <string>
 #include <vector>
-using namespace std;
+#include <iostream>
 
-// struct to hold token information
-/*struct TokenType {
-    string token;
-    int lexeme;
-    string lexemeName;
-};*/
-
-// function prototypes
-int Get_FSM_Col(char currentChar);
-string GetLexemeName(int lexeme);
-
-// Determines the state of the type of character being examined.
-int Get_FSM_Col(char currentChar)
-{
+// Determines the following state
+int switchState(char currentChar) {
     // Whitespace
-    if(isspace(currentChar))
+    if(std::isspace(currentChar)) {
         return SPACE;
+    }
 
     // Integer
-    else if(isdigit(currentChar))
+    else if(std::isdigit(currentChar)) {
         return INTEGER;
+    }
 
     // Real number
-    else if(currentChar == '.')
-        return REAL;
+    else if(currentChar == '.') {
+        return FLOAT;
+    }
 
     // Characters
-    else if(isalpha(currentChar))
+    else if(std::isalpha(currentChar)) {
         return IDENT;
+    }
 
     // Operators
-    else if(ispunct(currentChar))
+    else if(std::ispunct(currentChar)){
         return OPERATOR;
+    }
 
     return UNKNOWN;
-}
-
-// Returns the string equivalent of an integer lexeme token type
-string GetLexemeName(int lexeme) {
-    switch(lexeme) {
-        case INTEGER:
-            return "INTEGER";
-        case REAL:
-            return "REAL";
-        case OPERATOR:
-            return "OPERATOR";
-        case IDENT:
-            return "IDENT";
-        case UNKNOWN:
-            return "UNKNOWN";
-        case SPACE:
-            return "SPACE";
-        default:
-            return "ERROR";
-    }
 }
 
 void Lexer::tokenize(const std::string &input) {
@@ -76,56 +46,65 @@ void Lexer::tokenize(const std::string &input) {
     if (data.empty())
         throw Exception{"Empty file " + input};
 
-    // Extracts tokens from the given source file
-    //TokenType access;
-    //vector<TokenType> tokens;
-    char currentChar;
-    int col = REJECT;
-    int currentTransition = REJECT;
-    int prevState = REJECT;
-    string currentToken;
+    char currentChar;       // the current character of the input that is to be analyzed
+    int column    = MAIN;   // column of a DFA state (a.k.a. state type)
+    int currState = MAIN;   // current DFA state
+    int prevState = MAIN;   // previous DFA state
+    std::string tokenBuff;  // buffer in which we (gradually) store the value of a token
 
     // A const iterator to `data`'s content
     std::string::const_iterator lineBegin = data.begin();
 
     // use an FSM to parse the expression
-    for(unsigned index = 0; index < data.length(); ){
-        currentChar = data[index];
+    for(std::size_t index = 0; index < data.length(); ){
+        currentChar = data.at(index);
 
         // Column number for the current character
-        col = Get_FSM_Col(currentChar);
+        column = switchState(currentChar);
 
         // The current transition
-        currentTransition = transitionTbl[currentTransition][col];
+        currState = transitionTbl[currState][column];
 
         // We have successfully parsed a token.
-        if(currentTransition == REJECT){
+        if(currState == MAIN){
             if(prevState != SPACE){ // we don't care about whitespaces
-                /*access.token = currentToken;
-                access.lexeme = prevState;
-                access.lexemeName = GetLexemeName(access.lexeme);
-                tokens.push_back(access);*/
+                TokenType tokenType {TokenType::TOK_INVALID};
+
+                // Determine the right TokenType according to the previous DFA state
+                switch (prevState) {
+                    case IDENT:
+                        auto search = StrToTokenKw.find(tokenBuff);
+                        if (search != StrToTokenKw.end()) {
+                            tokenType = search->second;
+                        } else {
+                            tokenType = TokenType::IDENT;
+                        }
+                        break;
+                    //case ...:
+                }
+
+                // Add a newly found (and recognized) token
+                auto pif   = std::make_unique<PositionInFile>(input, 0, 0);
+                auto token = std::make_shared<Token>(tokenType, tokenBuff, std::move(pif));
+                tokens_.push_back(token);
             }
-            currentToken.clear();
+            tokenBuff.clear();
         } else { // Continue parsing
-            currentToken += currentChar;
+            tokenBuff += currentChar;
             ++index;
         }
-        prevState = currentTransition;
+        prevState = currState;
     }
 
-    // this ensures the last token gets saved when
-    // we reach the end of the loop (if a valid token exists)
-    if(currentTransition != SPACE && !currentToken.empty()){
-        // ^^ we dont care about whitespace
-        /*access.token = currentToken;
-        access.lexeme = currentTransition;
-        access.lexemeName = GetLexemeName(access.lexeme);
-        tokens.push_back(access);*/
+    // Save the last token
+    if(currState != SPACE && !tokenBuff.empty()){
+        auto pif   = std::make_unique<PositionInFile>(input, 0, 0);
+        auto token = std::make_shared<Token>(TokenType::TOK_INVALID, tokenBuff, std::move(pif));
+        tokens_.push_back(token);
     }
 
     // Display the tokens
     for(auto & token : tokens_){
-        /*cout << token.lexemeName << " ==> " << token.token << endl;*/
+        std::cout << token->getName() << " " << token->getValue() << "\n";
     }
 }

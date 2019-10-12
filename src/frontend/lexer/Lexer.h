@@ -5,8 +5,9 @@
 #include <vector>
 #include <memory>
 
+class Token;
+
 class Lexer {
-    class Token;
     Lexer() = default;
 
 public:
@@ -24,7 +25,7 @@ public:
     void tokenize(const std::string &input);
 
 private:
-    std::vector<std::unique_ptr<Token>> tokens_;
+    std::vector<std::shared_ptr<Token>> tokens_;
 };
 
 #endif // LEXER_H
