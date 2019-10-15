@@ -10,29 +10,31 @@
 // Class
 //----------------------------------------------------------------------
 
-<CLASS_DECL>         ::= "class" <IDENT> <CLASS_BODY>
+<CLASS_DECL>          ::= "class" <IDENT> <CLASS_BODY>
 
-<CLASS_BODY>         ::= "{" "}" | "{" <CLASS_STMTS> "}"
-<CLASS_STMTS>        ::= <CLASS_STMT> | <CLASS_STMTS> <CLASS_STMT>
-<CLASS_STMT>         ::= <METHOD_DECLS> | <FIELD_DECLS>
+<CLASS_BODY>          ::= "{" "}" | "{" <CLASS_STMTS> "}"
+<CLASS_STMTS>         ::= <CLASS_STMT> | <CLASS_STMTS> <CLASS_STMT>
+<CLASS_STMT>          ::= <METHOD_DECLS> | <FIELD_DECLS>
 
-<METHOD_DECLS>       ::= <METHOD_DECL> | <METHOD_DECLS> <METHOD_DECL>
+<METHOD_DECLS>        ::= <METHOD_DECL> | <METHOD_DECLS> <METHOD_DECL>
 
-<METHOD_DECL>        ::= <CONSTRUCTOR_DECL> | <FN_DECL>
-<CONSTRUCTOR_DECL>   ::= <PREFIX_SYMBOL> <IDENT> <PARAMS> <STMT_BLOCK>
+<METHOD_DECL>         ::= <CONSTRUCTOR_DECL>
+                        | <DESTRUCTOR_DECL>
+                        | <FN_DECL>
 
-<FIELD_DECLS>        ::= <FIELD_DECL> | <FIELD_DECLS> <FIELD_DECL>
-<FIELD_DECL>         ::= <VAR_DECL> <STMT_END>
+<CONSTRUCTOR_DECL>    ::= <CONSTRUCTOR_DEF> <IDENT> <PARAMS> <STMT_BLOCK>
+<DESTRUCTOR_DECL>     ::= <DESTRUCTOR_DEF>  <IDENT> <PARAMS> <STMT_BLOCK>
 
-<CLASS_INIT>         ::= "new" <IDENT> <ARGUMENTS>
+<FIELD_DECLS>         ::= <FIELD_DECL> | <FIELD_DECLS> <FIELD_DECL>
+<FIELD_DECL>          ::= <VAR_DECL> <STMT_END>
 
-<CLASS_METHOD_CALL>        ::= <CLASS_METHOD_CALL_SINGLE>
-                            | <CLASS_METHOD_CALL> <CLASS_METHOD_CALL_SYM> <CLASS_METHOD_CALL_SINGLE>
+<CLASS_INIT>          ::= "new" <IDENT> <ARGUMENTS>
 
-<CLASS_METHOD_CALL_SINGLE> ::= <IDENT> <CLASS_METHOD_CALL_SYM> <VAR> <ARGUMENTS> // obj->func{"lole", 555} ... or obj.func{"lole", 555} ...
-                            | <CLASS_METHOD_CALL_SYM> <VAR> <ARGUMENTS>          // ->func{"lole", 555}
+<CLASS_M_CALL>        ::= <CLASS_M_CALL_SINGLE>
+                        | <CLASS_M_CALL> <CLASS_M_CALL_SYM> <CLASS_M_CALL_SINGLE>
 
-<CLASS_METHOD_CALL_SYM>    ::= "." | "->"
+<CLASS_M_CALL_SINGLE> ::= <IDENT> <CLASS_M_CALL_SYM> <VAR> <ARGUMENTS>
+                        | <CLASS_M_CALL_SYM> <VAR> <ARGUMENTS>
 
 //----------------------------------------------------------------------
 // Functions
@@ -44,7 +46,8 @@
 <PARAMS_SEQ>     ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
 <PARAM>          ::= <IDENT> ":" <TYPE>
 
-<FN_CALL>        ::= <IDENT> <ARGUMENTS>
+<FN_CALL>        ::= <FN_CALL_SINGLE> | <FN_CALL> "." <FN_CALL_SINGLE>
+<FN_CALL_SINGLE> ::= <IDENT> <ARGUMENTS>
 
 //----------------------------------------------------------------------
 // Statements
@@ -130,15 +133,25 @@
 // If statements
 //----------------------------------------------------------------------
 
-<IF_STMT>    ::= <IF_BLOCK> | <IF_BLOCK> <ELSE>
+//-----------------------.
+// IF  |  ELIF  |  ELSE  |
+//-----------------------.
+// +   |        |        | 1st row
+// +   |        |   +    | 2nd row
+// +   |   +    |        | 3rd row
+// +   |   +    |   +    | 4th row
+//-----------------------.
 
-<ELSE>       ::= <ELSE_KW> | <ELSE> <ELSE_KW>
-<ELSE_KW>    ::= <ELSE_BLOCK> | <ELIF_BLOCK>
+<IF_STMT>    ::= <IF_BLOCK>                              // 1st row
+               | <IF_BLOCK> <ELSE_BLOCK>                 // 2nd row
+               | <IF_BLOCK> <MULTIPLE_ELIF>              // 3rd row
+               | <IF_BLOCK> <MULTIPLE_ELIF> <ELSE_BLOCK> // 4th row
 
 <IF_BLOCK>   ::= "if"   <IF_ELSE_COND_BODY>
-<ELSE_BLOCK> ::= "else" <IF_ELSE_COND_BODY>
 <ELIF_BLOCK> ::= "elif" <IF_ELSE_COND_BODY>
+<ELSE_BLOCK> ::= "else" <IF_ELSE_COND_BODY>
 
+<MULTIPLE_ELIF>     ::= <ELIF_BLOCK> | <MULTIPLE_ELIF> <ELIF_BLOCK>
 <IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")" <STMT_BLOCK>
 
 //----------------------------------------------------------------------
@@ -146,9 +159,19 @@
 //----------------------------------------------------------------------
 
 <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}"
+              | "(" ")" | "(" <EXPR_LIST> ")"
 
 <EXPR_LIST> ::= <EXPRESSION>
               | <EXPR_LIST> "," <EXPRESSION>
+
+//----------------------------------------------------------------------
+// Identifier
+//----------------------------------------------------------------------
+
+<IDENT>        ::= <IDENT_HEAD> | <IDENT> <IDENT_TAIL>
+
+<IDENT_HEAD>   ::= <LETTER> | <UNDERSCORE>
+<IDENT_TAIL>   ::= <LETTER> | <DIGIT> | <UNDERSCORE>
 
 //----------------------------------------------------------------------
 // Variables
@@ -159,18 +182,18 @@
 <VAR>              ::= <IDENT>
 <CONSTANT_LIT>     ::= <BOOL_CONSTANT> | <NUMERIC_CONSTANT> | <STRING>
 
-<IDENT>            ::= <LETTER> | <IDENT> <IDNEY_SYMS>
-<IDNEY_SYMS>       ::= <DIGIT> | <LETTER> | <UNDERSCORE>
-
-<SYMBOL>           ::= <DIGIT> | <LETTER> | <UNDERSCORE>
-
 <BOOL_CONSTANT>    ::= "true" | "false"
-<NUMERIC_CONSTANT> ::= <SIGN> <INTEGER> | <SIGN> <FLOAT> | <INTEGER> | <FLOAT>
+
+<NUMERIC_CONSTANT> ::= <SIGN> <INTEGER>
+                     | <SIGN> <FLOAT>
+                     | <INTEGER>
+                     | <FLOAT>
 
 <INTEGER>          ::= <DIGITS>
+
 <FLOAT>            ::= "." <DIGITS>
-                    | <DIGITS> "." <DIGITS>
-                    | <DIGITS> "." <DIGITS> <EXPONENT>
+                     | <DIGITS> "." <DIGITS>
+                     | <DIGITS> "." <DIGITS> <EXPONENT>
 
 <EXPONENT>         ::= "e" <EXPONENT_INT>
 <EXPONENT_INT>     ::= <INTEGER> | <SIGN> <INTEGER>
@@ -187,7 +210,12 @@
 <STR_SYM>         ::= "\""
 
 <STRING_CONTENTS> ::= <STRING_ITEM> | <STRING_CONTENTS> <STRING_ITEM>
-<STRING_ITEM>     ::= <LETTER> | <DIGIT> | <ASCII_SYMBOL> | <SPECIAL_SYMBOLS>
+
+<STRING_ITEM>     ::= <LETTER>
+                    | <DIGIT>
+                    | <ASCII_WO_HASH>
+                    | <HASH>
+                    | <ESCAPE_SEQ>
 
 //----------------------------------------------------------------------
 // Comments
@@ -195,14 +223,23 @@
 
 <COMMENT>          ::= <COMMENT_SINGLE> | <COMMENT_MULTIPLE>
 
-<COMMENT_SINGLE>   ::= "#"  <COMMENT_SYMBOLS> <NEWLINE>
-<COMMENT_MULTIPLE> ::= "##" <COMMENT_SYMBOLS> "##" <NEWLINE>
+<COMMENT_SINGLE>   ::= "#"  <CMT_SYMS> <NEWLINE>
+<COMMENT_MULTIPLE> ::= "##" <CMT_SYMS> "##" <NEWLINE>
 
-<COMMENT_SYMBOLS>  ::= <STRING_CONTENTS>
+<CMT_SYMS>         ::= <CMT_SYM> | <CMT_SYMS> <CMT_SYM>
+
+<CMT_SYM>          ::= <DIGIT>
+                     | <LETTER>
+                     | <UNDERSCORE>
+                     | <ASCII_WO_HASH>
 
 //----------------------------------------------------------------------
 // Symbols
 //----------------------------------------------------------------------
+
+<CONSTRUCTOR_DEF>  ::= "def"
+<DESTRUCTOR_DEF>   ::= "rem"
+<CLASS_M_CALL_SYM> ::= "." | "->"
 
 <UNDERSCORE>       ::= "_"
 <STMT_END>         ::= ";"
@@ -236,17 +273,13 @@
                      | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
                      | "W" | "X" | "Y" | "Z"
 
-<ASCII_SYMBOL>     ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "("
-                     | ")" | "*" | "+" | "," | "-" | "." | "/" | ":"
-                     | ";" | ">" | "=" | "<" | "?" | "@" | "[" | "]"
-                     | "^" | "_" | "{" | "}" | "~"
+<ASCII_WO_HASH>    ::= " " | "!" | "\"" | 36dec to 255dec in ASCII
+<HASH>             ::= "#"
 
-<SPECIAL_SYMBOLS>  ::= <SLASH> "t" | <SLASH> "r" | <SLASH> "n"
-                     | <SLASH> "\"" | <SLASH> "'" | <SLASH> "\"
+<ESCAPE_SEQ>       ::= <SLASH> <ESCAPED_SYM>
+<ESCAPED_SYM>      ::= "b" | "t" | "n" | "f" | "r" | "\"" | "'" | "\\"
 
-<SLASH>            ::= "\"
-
+<SLASH>            ::= "\\"
 <NEWLINE>          ::= "\n"
-<PREFIX_SYMBOL>    ::= "__"
 
 //----------------------------------------------------------------------
