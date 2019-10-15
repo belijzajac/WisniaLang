@@ -1,7 +1,6 @@
 #ifndef TOKENTYPE_H
 #define TOKENTYPE_H
 
-#include "../dfa/DFA.h"
 #include <unordered_map>
 
 enum class TokenType {
@@ -56,17 +55,18 @@ enum class TokenType {
     OP_NE,
 
     // Separators
-    TOK_COMMA,
+    OP_COMMA,
     TOK_SPC,
     TOK_TAB,
     TOK_NEWLN,
-    TOK_COL,
+    OP_COL,
+    OP_SEMICOLON,
 
     // Parenthesis, Braces, Brackets
-    TOK_PAREN_O,
-    TOK_PAREN_C,
-    TOK_BRACE_O,
-    TOK_BRACE_C,
+    OP_PAREN_O,
+    OP_PAREN_C,
+    OP_BRACE_O,
+    OP_BRACE_C,
 
     // Other
     TOK_INVALID,
@@ -118,16 +118,17 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::OP_GE, "OP_GE"},
     {TokenType::OP_NE, "OP_NE"},
 
-    {TokenType::TOK_COMMA, "TOK_COMMA"},
+    {TokenType::OP_COMMA, "OP_COMMA"},
     {TokenType::TOK_SPC, "TOK_SPC"},
     {TokenType::TOK_TAB, "TOK_TAB"},
     {TokenType::TOK_NEWLN, "TOK_NEWLN"},
-    {TokenType::TOK_COL, "TOK_COL"},
+    {TokenType::OP_COL, "OP_COL"},
+    {TokenType::OP_SEMICOLON, "OP_SEMICOLON"},
 
-    {TokenType::TOK_PAREN_O, "TOK_PAREN_O"},
-    {TokenType::TOK_PAREN_C, "TOK_PAREN_C"},
-    {TokenType::TOK_BRACE_O, "TOK_BRACE_O"},
-    {TokenType::TOK_BRACE_C, "TOK_BRACE_C"},
+    {TokenType::OP_PAREN_O, "OP_PAREN_O"},
+    {TokenType::OP_PAREN_C, "OP_PAREN_C"},
+    {TokenType::OP_BRACE_O, "OP_BRACE_O"},
+    {TokenType::OP_BRACE_C, "OP_BRACE_C"},
 
     {TokenType::TOK_INVALID, "TOK_INVALID"}
 };
@@ -153,6 +154,39 @@ static inline std::unordered_map<std::string, TokenType> StrToTokenKw = {
     {"false", TokenType::KW_FALSE}
 };
 
+// String to TokenType of Operator type
+static inline std::unordered_map<std::string, TokenType> StrToTokenOp = {
+    {"=", TokenType::OP_ASSN},
+    {"->", TokenType::OP_FN_ARROW},
+    {".", TokenType::OP_METHOD_CALL},
+
+    {"+", TokenType::OP_ADD},
+    {"-", TokenType::OP_SUB},
+    {"*", TokenType::OP_MUL},
+    {"/", TokenType::OP_DIV},
+
+    {"++", TokenType::OP_UADD},
+    {"!", TokenType::OP_UNEG},
+
+    {"&&", TokenType::OP_AND},
+    {"||", TokenType::OP_OR},
+    {"==", TokenType::OP_EQ},
+    {"<", TokenType::OP_L},
+    {">", TokenType::OP_G},
+    {"<=", TokenType::OP_LE},
+    {">=", TokenType::OP_GE},
+    {"!=", TokenType::OP_NE},
+
+    {"(", TokenType::OP_PAREN_O},
+    {")", TokenType::OP_PAREN_C},
+    {"{", TokenType::OP_BRACE_O},
+    {"}", TokenType::OP_BRACE_C},
+
+    {",", TokenType::OP_COMMA},
+    {":", TokenType::OP_COL},
+    {";", TokenType::OP_SEMICOLON},
+};
+
 // String value of each of the lexical tokens
 /*const char *TokenStr[_TOK_LAST] = {
     "INT",
@@ -160,43 +194,10 @@ static inline std::unordered_map<std::string, TokenType> StrToTokenKw = {
     "STR",
     "IDEN",
 
-    // Operators
-    "=",
-    "->",
-    ".",
-
-    // Arithmetic
-    "+",
-    "-",
-    "*",
-    "/",
-
-    // Unary
-    "++",
-    "!",
-
-    // Logic
-    "&&",
-    "||",
-    "==",
-    "<",
-    ">",
-    "<=",
-    ">=",
-    "!=",
-
     // Separators
-    ",",
     "SPC",
     "TAB",
     "NEWLN",
-    ";",
-
-    // Parenthesis, Braces, Brackets
-    "(",
-    ")",
-    "{",
-    "}",
 
     "<EOF>",
 };*/
