@@ -31,8 +31,8 @@ int switchState(const std::string::const_iterator &it, int prevState) {
         return FLT;
     }
 
-    // Characters
-    else if(std::isalpha(*it)) {
+    // Identifier
+    else if(std::isalpha(*it) || *(it) == '_') {
         return IDENT;
     }
 
@@ -51,7 +51,7 @@ int switchState(const std::string::const_iterator &it, int prevState) {
         // end of Logical AND (&&)
 
         // 2) Logical OR (||)
-        if (prevState == OP_L_OR_ST) {
+        else if (prevState == OP_L_OR_ST) {
             if (*it == '|')
                 return OP_L_OR;
             else
@@ -60,6 +60,23 @@ int switchState(const std::string::const_iterator &it, int prevState) {
         else if (*it == '|')
             return OP_L_OR_ST;
         // end of Logical OR (||)
+
+        // 3) Either a single operand (!, <, >, =) or (!=, <=, >=, ==)
+        else if (prevState == OP_CMP_ST) {
+            if (*it == '=')
+                return OP_CMP_EN;
+            else
+                return OP_SINGLE;
+        }
+        else if (*it == '!' || *it == '<' || *it == '>' || *it == '=')
+            return OP_CMP_ST;
+        // end of 3)
+
+        // 4) (+, -) or (++, ->)
+        else if (*it == '+' && *(it+1) == '+')
+            return OP_PP;
+        else if (*it == '-' && *(it+1) == '>')
+            return OP_ARROW;
 
         return OP_SINGLE;
     }
@@ -113,28 +130,44 @@ void Lexer::tokenize(const std::string &input) {
                         case FLT: {
                             return TokenType::LIT_FLT;
                         }
-                        // Single operand (',', ')', '=', ...)
-                        case OP_SINGLE: {
+
+                        // Operands
+                        case OP_SINGLE: // Single operand, e.g. (, }, >, =
+                        case OP_CMP_ST: // Any of !, <, >, and =
+                        case OP_CMP_EN: // Any of !=, <=, >=, ==
+                        {
                             if (findInMap(StrToTokenOp, tokenBuff))
                                 return StrToTokenOp[tokenBuff];
                             else
                                 return TokenType::TOK_INVALID;
                         }
-                        // Ampersand (&)
-                        case OP_L_AND_ST: {
+
+                        // Invalid operands for Ampersand and Tilde
+                        case OP_L_AND_ST: // Ampersand (&)
+                        case OP_L_OR_ST:  // Tilde (|)
+                        {
                             return TokenType::TOK_INVALID;
                         }
+
                         // Logic AND (&&)
                         case OP_L_AND: {
                             return TokenType::OP_AND;
                         }
-                        // Tilde (|)
-                        case OP_L_OR_ST: {
-                            return TokenType::TOK_INVALID;
-                        }
                         // Logic OR (||)
                         case OP_L_OR: {
                             return TokenType::OP_OR;
+                        }
+                        // Arrow (->)
+                        case OP_ARROW: {
+                            tokenBuff += *it;
+                            ++it;
+                            return TokenType::OP_FN_ARROW;
+                        }
+                        // Unary add (++)
+                        case OP_PP: {
+                            tokenBuff += *it;
+                            ++it;
+                            return TokenType::OP_UADD;
                         }
                     }
                     return TokenType::TOK_INVALID;
