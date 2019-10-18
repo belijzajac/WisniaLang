@@ -70,6 +70,7 @@ enum class TokenType {
 
     // Other
     TOK_INVALID,
+    TOK_EOF
 };
 
 // A string representations for TokenType`s
@@ -130,7 +131,8 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::OP_BRACE_O, "OP_BRACE_O"},
     {TokenType::OP_BRACE_C, "OP_BRACE_C"},
 
-    {TokenType::TOK_INVALID, "TOK_INVALID"}
+    {TokenType::TOK_INVALID, "TOK_INVALID"},
+    {TokenType::TOK_EOF, "TOK_EOF"}
 };
 
 // String to TokenType of Keyword type
@@ -186,20 +188,5 @@ static inline std::unordered_map<std::string, TokenType> StrToTokenOp = {
     {":", TokenType::OP_COL},
     {";", TokenType::OP_SEMICOLON},
 };
-
-// String value of each of the lexical tokens
-/*const char *TokenStr[_TOK_LAST] = {
-    "INT",
-    "FLT",
-    "STR",
-    "IDEN",
-
-    // Separators
-    "SPC",
-    "TAB",
-    "NEWLN",
-
-    "<EOF>",
-};*/
 
 #endif // TOKENTYPE_H

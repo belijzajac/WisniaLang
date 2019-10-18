@@ -24,6 +24,9 @@ public:
     // Tokenize source file
     void tokenize(const std::string &input);
 
+    // Prints out tokens in a pretty table
+    void prettyPrint();
+
 private:
     std::vector<std::shared_ptr<Token>> tokens_;
 };

@@ -13,12 +13,9 @@ public:
 
     ~PositionInFile() = default;
 
-    // Getter for file information
-    const std::string getFileInfo() const {
-        return fileName_ + ":"
-            + std::to_string(lineNo_) + ":"
-            + std::to_string(charPosition_);
-    }
+    // Getters for file information
+    const std::string getFileName() const { return fileName_; }
+    int getLineNo() const { return lineNo_; }
 
 private:
     std::string fileName_;
@@ -49,8 +46,8 @@ public:
     const std::string getName() const { return TokenTypeToStr[type_]; }
     const std::string getValue() const { return value_; }
 
-    // Getters for file information
-    const std::string getFileInfo() const { return pif_->getFileInfo(); }
+    // Getter for file information
+    const PositionInFile *getFileInfo() const { return pif_.get(); }
 
 private:
     TokenType type_;
