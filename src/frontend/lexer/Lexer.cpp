@@ -84,6 +84,38 @@ int switchState(const std::string::const_iterator &it, int prevState) {
     return ERR;
 }
 
+// Skips single-line comments
+void remSingleLnCmts(std::string::iterator &it, const std::string &data) {
+    // It's a single-line comment opener
+    if(*it == '#') {
+        // Skip everything until the end of the line
+        while(it != data.end() && *it != '\n')
+            ++it;
+    }
+}
+
+// Skips multiple-line comments
+void remMultipleLnCmts(std::string::iterator &it, const std::string &data) {
+    // If it's a comment opener ("/*")
+    if(*it == '/' && it+1 != data.end() && *(it+1) == '*') {
+        // Skip characters as long as we find an occurrence of "*/"
+        while(*it != '*' || it+1 == data.end() || *(it+1) != '/') {
+            ++it;
+
+            // We reached the end of the file and didn't find the "*/"
+            if (it == data.end()) {
+                throw Exception{"The comment wasn't closed"};
+            }
+        }
+        // Take care of the closing comment
+        it += 2;
+    }
+    // Instead of "/*" we found "*/", which shouldn't have happened
+    else if(*it == '*' && it+1 != data.end() && *(it+1) == '/') {
+        throw Exception{"Found a comment closing that wasn't opened"};
+    }
+}
+
 void Lexer::tokenize(const std::string &input) {
     // Opens the `input` file and copies its content into `data`
     std::ifstream sourceFile {input};
@@ -98,8 +130,20 @@ void Lexer::tokenize(const std::string &input) {
     int prevState = MAIN;   // previous DFA state
     std::string tokenBuff;  // buffer in which we (gradually) store the value of a token
 
-    // use an FSM to parse the expression
+    // use an DFA to parse the expression
     for(auto it = data.begin(); it != data.end(); ){
+        // Treat single-line comments
+        remSingleLnCmts(it, data);
+        // Nothing left to read, so break the for-loop
+        if(it == data.end())
+            break;
+
+        // Treat multiple-line comments
+        remMultipleLnCmts(it, data);
+        // Nothing left to read, so break the for-loop
+        if(it == data.end())
+            break;
+
         // Column number for the current character
         column = switchState(it, prevState);
 
@@ -110,6 +154,9 @@ void Lexer::tokenize(const std::string &input) {
         if(currState == MAIN){
             if(prevState != SPACE){ // skip whitespaces
 
+                // TODO: move out of the main loop?
+                // It has gotten pretty big, tbh
+                // TokenType getTokenType(std::string::const_iterator &it, std::string &buff) ??
                 auto getTokenType = [&]() -> TokenType {
                     // Determine the right TokenType according to the previous DFA state
                     switch (prevState) {
@@ -182,9 +229,6 @@ void Lexer::tokenize(const std::string &input) {
         } else { // Continue parsing
             tokenBuff += *it;
             ++it;
-
-            // TODO: Skip comments in this block?
-            // TODO: skip comments every single line if '#' was found
         }
         prevState = currState;
     }
