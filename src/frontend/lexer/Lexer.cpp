@@ -86,21 +86,21 @@ int switchState(const std::string::const_iterator &it, int prevState) {
 }
 
 // Skips single-line comments
-void remSingleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo) {
+bool remSingleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo) {
     // It's a single-line comment opener
     if(*it == '#') {
         // Skip everything until the end of the line
         while(it != data.end() && *it != '\n')
             ++it;
-
-        // We've just skipped a line
-        //if (*it == '\n')
-        //    ++lineNo;
+        return true; // it was a comment
     }
+    return false; // it wasn't a comment
 }
 
 // Skips multiple-line comments
-void remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo) {
+bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo, const std::string &file) {
+    bool reachedNewLn = false;
+
     // If it's a comment opener ("/*")
     if(*it == '/' && it+1 != data.end() && *(it+1) == '*') {
         // Skip characters as long as we find an occurrence of "*/"
@@ -108,12 +108,14 @@ void remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &
             ++it;
 
             // Check if we've reached the following line
-            if (*it == '\n')
+            if (*it == '\n') {
                 ++lineNo;
+                reachedNewLn = true;
+            }
 
             // We've reached the end of the file and didn't find the "*/"
             if (it == data.end()) {
-                throw Exception{"The comment wasn't closed"};
+                throw Exception{"The comment wasn't closed:" + file + ":" + std::to_string(lineNo)};
             }
         }
         // Take care of the closing comment
@@ -121,8 +123,9 @@ void remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &
     }
     // Instead of "/*" we found "*/", which shouldn't have happened
     else if(*it == '*' && it+1 != data.end() && *(it+1) == '/') {
-        throw Exception{"Found a comment closing that wasn't opened"};
+        throw Exception{"Found a comment closing that wasn't opened:" + file + ":" + std::to_string(lineNo)};
     }
+    return reachedNewLn;
 }
 
 // Returns an appropriate TokenType per provided previous state
@@ -203,22 +206,26 @@ void Lexer::tokenize(const std::string &input) {
     if (data.back() != '\n')
         data += '\n';
 
-    int column    = MAIN;   // column of a DFA state (a.k.a. state type)
-    int currState = MAIN;   // current DFA state
-    int prevState = MAIN;   // previous DFA state
-    std::string tokenBuff;  // buffer in which we (gradually) store the value of a token
-    int lineNo = 1;         // Current line number
+    int column    = MAIN;     // column of a DFA state (a.k.a. state type)
+    int currState = MAIN;     // current DFA state
+    int prevState = MAIN;     // previous DFA state
+    std::string tokenBuff;    // buffer in which we (gradually) store the value of a token
+    int lineNo = 1;           // Current line number
+    bool isSingleCmt = false; // Whether we've encountered a single-line comment
+    bool isMultiCmt = false;  // Whether we've encountered a multi-line comment
 
     // use an DFA to parse the expression
     for (auto it = data.begin(); it != data.end(); ) {
         // Treat single-line comments
-        remSingleLnCmts(it, data, lineNo);
+        if (remSingleLnCmts(it, data, lineNo))
+            isSingleCmt = true;
         // Nothing left to read, so break the for-loop
         if (it == data.end())
             break;
 
         // Treat multiple-line comments
-        remMultipleLnCmts(it, data, lineNo);
+        if (remMultipleLnCmts(it, data, lineNo, input))
+            isMultiCmt = true;
         // Nothing left to read, so break the for-loop
         if(it == data.end())
             break;
@@ -237,8 +244,12 @@ void Lexer::tokenize(const std::string &input) {
                 TokenType type = getTokenType(prevState, it, tokenBuff);
                 auto token     = std::make_shared<Token>(type, tokenBuff, std::move(pif));
                 tokens_.push_back(token);
-            } else if (*it == '\n') {
-                ++lineNo; // new line
+            } else if (*it == '\n' && isMultiCmt) { // strictly multi-line comment
+                ++lineNo;
+                isMultiCmt = false;
+            } else if (*it == '\n' || isSingleCmt) { // end-of-line or a single-line comment
+                ++lineNo;
+                isSingleCmt = false;
             }
             tokenBuff.clear();
         } else { // Continue parsing

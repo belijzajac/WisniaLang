@@ -56,9 +56,6 @@ enum class TokenType {
 
     // Separators
     OP_COMMA,
-    TOK_SPC,
-    TOK_TAB,
-    TOK_NEWLN,
     OP_COL,
     OP_SEMICOLON,
 
@@ -120,9 +117,6 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::OP_NE, "OP_NE"},
 
     {TokenType::OP_COMMA, "OP_COMMA"},
-    {TokenType::TOK_SPC, "TOK_SPC"},
-    {TokenType::TOK_TAB, "TOK_TAB"},
-    {TokenType::TOK_NEWLN, "TOK_NEWLN"},
     {TokenType::OP_COL, "OP_COL"},
     {TokenType::OP_SEMICOLON, "OP_SEMICOLON"},
 
