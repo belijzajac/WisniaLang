@@ -22,12 +22,12 @@ int switchState(const std::string::const_iterator &it, int prevState) {
     }
 
     // Integer
-    else if(std::isdigit(*it) || (*it == '-' && std::isdigit(*(it+1)))) {
+    else if(std::isdigit(*it) || (*it == '-' && *(it-1) == ' ' && std::isdigit(*(it+1)))) {
         return INT;
     }
 
     // Real number
-    else if((*it == '.' && std::isdigit(*(it+1))) || (*it == '-' && std::isdigit(*(it+1)))) {
+    else if((*it == '.' && std::isdigit(*(it+1))) || (*it == '-' && *(it-1) == ' ' && std::isdigit(*(it+1)))) {
         return FLT;
     }
 
@@ -124,7 +124,7 @@ bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &
 
             // We've reached the end of the file and didn't find the "*/"
             if (it == data.end()) {
-                throw Exception{"The comment wasn't closed:" + file + ":" + std::to_string(lineNo)};
+                throw Exception{"The comment wasn't closed in " + file + ":" + std::to_string(lineNo)};
             }
         }
         // Take care of the closing comment
@@ -132,7 +132,7 @@ bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &
     }
     // Instead of "/*" we found "*/", which shouldn't have happened
     else if(*it == '*' && it+1 != data.end() && *(it+1) == '/') {
-        throw Exception{"Found a comment closing that wasn't opened:" + file + ":" + std::to_string(lineNo)};
+        throw Exception{"Found a comment closing that wasn't opened in " + file + ":" + std::to_string(lineNo)};
     }
     return reachedNewLn;
 }
@@ -311,7 +311,12 @@ void Lexer::tokenize(const std::string &input) {
                     return std::make_shared<Token>(type, "", std::move(pif));
                 };
 
-                tokens_.push_back(token());
+                // Found invalid token -- don't save it
+                if (type == TokenType::TOK_INVALID)
+                    std::cerr << "Invalid token " << tokenBuff << " in " << input << ":" << std::to_string(lineNo) << "\n";
+                else
+                    tokens_.push_back(token());
+
             } else if (*it == '\n' && isMultiCmt) { // strictly multi-line comment
                 ++lineNo;
                 isMultiCmt = false;
@@ -324,7 +329,7 @@ void Lexer::tokenize(const std::string &input) {
         // Continue appending content when it's a string
         else if (currState == STR_ST) {
             if (it+1 == data.end())
-                throw Exception{"Found a string which was never closed:" + input + ":" + std::to_string(lineNo)};
+                throw Exception{"Found a string which was never closed in " + input + ":" + std::to_string(lineNo)};
 
             // Because we're including spaces when parsing strings
             // And they don't get treated elsewhere
