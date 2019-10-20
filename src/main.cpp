@@ -10,6 +10,9 @@ int main(int argc, char *argv[]) {
         // Tokenize a single file
         auto &lexer = Lexer::get();
         lexer.tokenize(argv[1]);
+
+        // Output the tokens in STDOUT
+        lexer.prettyPrint();
         
     } catch (const Exception &ex) {
         std::cerr << ex.what();

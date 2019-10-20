@@ -28,6 +28,13 @@ enum class TokenType {
     KW_BREAK,
     KW_TRUE,
     KW_FALSE,
+    KW_READ,
+    KW_PRINT,
+    KW_VOID,
+    KW_INT,
+    KW_BOOL,
+    KW_FLOAT,
+    KW_STRING,
 
     // Operators
     OP_ASSN,
@@ -56,9 +63,6 @@ enum class TokenType {
 
     // Separators
     OP_COMMA,
-    TOK_SPC,
-    TOK_TAB,
-    TOK_NEWLN,
     OP_COL,
     OP_SEMICOLON,
 
@@ -70,6 +74,7 @@ enum class TokenType {
 
     // Other
     TOK_INVALID,
+    TOK_EOF
 };
 
 // A string representations for TokenType`s
@@ -96,6 +101,13 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::KW_BREAK, "KW_BREAK"},
     {TokenType::KW_TRUE, "KW_TRUE"},
     {TokenType::KW_FALSE, "KW_FALSE"},
+    {TokenType::KW_READ, "KW_READ"},
+    {TokenType::KW_PRINT, "KW_PRINT"},
+    {TokenType::KW_VOID, "KW_VOID"},
+    {TokenType::KW_INT, "KW_INT"},
+    {TokenType::KW_BOOL, "KW_BOOL"},
+    {TokenType::KW_FLOAT, "KW_FLOAT"},
+    {TokenType::KW_STRING, "KW_STRING"},
 
     {TokenType::OP_ASSN, "OP_ASSN"},
     {TokenType::OP_FN_ARROW, "OP_FN_ARROW"},
@@ -119,9 +131,6 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::OP_NE, "OP_NE"},
 
     {TokenType::OP_COMMA, "OP_COMMA"},
-    {TokenType::TOK_SPC, "TOK_SPC"},
-    {TokenType::TOK_TAB, "TOK_TAB"},
-    {TokenType::TOK_NEWLN, "TOK_NEWLN"},
     {TokenType::OP_COL, "OP_COL"},
     {TokenType::OP_SEMICOLON, "OP_SEMICOLON"},
 
@@ -130,7 +139,8 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::OP_BRACE_O, "OP_BRACE_O"},
     {TokenType::OP_BRACE_C, "OP_BRACE_C"},
 
-    {TokenType::TOK_INVALID, "TOK_INVALID"}
+    {TokenType::TOK_INVALID, "TOK_INVALID"},
+    {TokenType::TOK_EOF, "TOK_EOF"}
 };
 
 // String to TokenType of Keyword type
@@ -151,7 +161,14 @@ static inline std::unordered_map<std::string, TokenType> StrToTokenKw = {
     {"continue", TokenType::KW_CONTINUE},
     {"break", TokenType::KW_BREAK},
     {"true", TokenType::KW_TRUE},
-    {"false", TokenType::KW_FALSE}
+    {"false", TokenType::KW_FALSE},
+    {"read", TokenType::KW_READ},
+    {"print", TokenType::KW_PRINT},
+    {"void", TokenType::KW_VOID},
+    {"int", TokenType::KW_INT},
+    {"bool", TokenType::KW_BOOL},
+    {"float", TokenType::KW_FLOAT},
+    {"string", TokenType::KW_STRING}
 };
 
 // String to TokenType of Operator type
@@ -186,20 +203,5 @@ static inline std::unordered_map<std::string, TokenType> StrToTokenOp = {
     {":", TokenType::OP_COL},
     {";", TokenType::OP_SEMICOLON},
 };
-
-// String value of each of the lexical tokens
-/*const char *TokenStr[_TOK_LAST] = {
-    "INT",
-    "FLT",
-    "STR",
-    "IDEN",
-
-    // Separators
-    "SPC",
-    "TAB",
-    "NEWLN",
-
-    "<EOF>",
-};*/
 
 #endif // TOKENTYPE_H
