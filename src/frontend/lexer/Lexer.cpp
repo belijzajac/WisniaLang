@@ -16,8 +16,7 @@ auto findInMap = [](const std::unordered_map<std::string, TokenType> &map, const
 
 // Determines the following state
 int switchState(const std::string::const_iterator &it, int prevState) {
-    // Whitespace
-    // TODO: \b, \t, ...
+    // Whitespaces (\n, \v, \f, \r), space, and tab (\t)
     if(std::isspace(*it)) {
         return SPACE;
     }
@@ -35,6 +34,16 @@ int switchState(const std::string::const_iterator &it, int prevState) {
     // Identifier
     else if(std::isalpha(*it) || *(it) == '_') {
         return IDENT;
+    }
+
+    // String (ending)
+    else if(prevState == STR_ST && *(it-1) != '\\' && *it == '\"') {
+        return STR_EN;
+    }
+
+    // String (beginning)
+    else if((*it == '\"' && *(it-1) == '\\') || *it == '\"') {
+        return STR_ST;
     }
 
     // TODO: lambda + std::any_of
@@ -128,6 +137,39 @@ bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &
     return reachedNewLn;
 }
 
+// Removes back-slash from string data type
+void removeBackSlash(std::string &buff) {
+    for (auto it = buff.begin(); it != buff.end(); ++it) {
+        if(*it == '\\') {
+            // Nothing to do as we've reaches the end
+            if(it+1 >= buff.end())
+                continue;
+
+            // erase '\\'
+            it = buff.erase(it);
+
+            // Replace to escape characters
+            switch (*it) {
+                case 'f':
+                    *it = '\f';
+                    break;
+                case 'n':
+                    *it = '\n';
+                    break;
+                case 'r':
+                    *it = '\r';
+                    break;
+                case 't':
+                    *it = '\t';
+                    break;
+                case 'v':
+                    *it = '\v';
+                    break;
+            }
+        }
+    }
+}
+
 // Returns an appropriate TokenType per provided previous state
 TokenType getTokenType(int prevState, std::string::iterator &it, std::string &buff) {
     // Determine the right TokenType according to the previous DFA state
@@ -140,6 +182,10 @@ TokenType getTokenType(int prevState, std::string::iterator &it, std::string &bu
             } else {
                 return TokenType::IDENT;
             }
+        }
+        // String
+        case STR_EN: {
+            return TokenType::LIT_STR;
         }
         // Integer number
         case INT: {
@@ -252,7 +298,28 @@ void Lexer::tokenize(const std::string &input) {
                 isSingleCmt = false;
             }
             tokenBuff.clear();
-        } else { // Continue parsing
+        }
+        // Continue appending content when it's a string
+        else if (currState == STR_ST) {
+            if (it+1 == data.end())
+                throw Exception{"Found a string which was never closed:" + input + ":" + std::to_string(lineNo)};
+
+            // Because we're including spaces when parsing strings
+            // And they don't get treated elsewhere
+            if (*it == '\n')
+                ++lineNo;
+
+            tokenBuff += *it;
+            ++it;
+        }
+        // When we're done with the string content, apply a minor fixes to it
+        else if (currState == STR_EN) {
+            tokenBuff.erase(0, 1);      // omit the opening '\"'
+            ++it;                       // omit the closing '\"'
+            removeBackSlash(tokenBuff); // remove back-slashes
+        }
+        // Continue parsing
+        else {
             tokenBuff += *it;
             ++it;
         }
