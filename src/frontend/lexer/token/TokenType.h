@@ -28,6 +28,13 @@ enum class TokenType {
     KW_BREAK,
     KW_TRUE,
     KW_FALSE,
+    KW_READ,
+    KW_PRINT,
+    KW_VOID,
+    KW_INT,
+    KW_BOOL,
+    KW_FLOAT,
+    KW_STRING,
 
     // Operators
     OP_ASSN,
@@ -94,6 +101,13 @@ static inline std::unordered_map<TokenType, std::string> TokenTypeToStr = {
     {TokenType::KW_BREAK, "KW_BREAK"},
     {TokenType::KW_TRUE, "KW_TRUE"},
     {TokenType::KW_FALSE, "KW_FALSE"},
+    {TokenType::KW_READ, "KW_READ"},
+    {TokenType::KW_PRINT, "KW_PRINT"},
+    {TokenType::KW_VOID, "KW_VOID"},
+    {TokenType::KW_INT, "KW_INT"},
+    {TokenType::KW_BOOL, "KW_BOOL"},
+    {TokenType::KW_FLOAT, "KW_FLOAT"},
+    {TokenType::KW_STRING, "KW_STRING"},
 
     {TokenType::OP_ASSN, "OP_ASSN"},
     {TokenType::OP_FN_ARROW, "OP_FN_ARROW"},
@@ -147,7 +161,14 @@ static inline std::unordered_map<std::string, TokenType> StrToTokenKw = {
     {"continue", TokenType::KW_CONTINUE},
     {"break", TokenType::KW_BREAK},
     {"true", TokenType::KW_TRUE},
-    {"false", TokenType::KW_FALSE}
+    {"false", TokenType::KW_FALSE},
+    {"read", TokenType::KW_READ},
+    {"print", TokenType::KW_PRINT},
+    {"void", TokenType::KW_VOID},
+    {"int", TokenType::KW_INT},
+    {"bool", TokenType::KW_BOOL},
+    {"float", TokenType::KW_FLOAT},
+    {"string", TokenType::KW_STRING}
 };
 
 // String to TokenType of Operator type

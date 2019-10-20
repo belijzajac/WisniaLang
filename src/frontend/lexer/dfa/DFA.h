@@ -5,9 +5,9 @@
 
 // Transition states for the Deterministic Finite Automaton
 enum Transitions {
-    MAIN = 0,     // start state
-    INT,          // integer number
-    FLT,          // float number
+    MAIN = 0,     // Start state
+    INT,          // Integer number
+    FLT,          // Float number
 
     OP_SINGLE,    // e.g. (, }, >, =
     OP_L_AND,     // e.g. &&
@@ -22,12 +22,12 @@ enum Transitions {
     OP_PP,        // e.g. ++
 
     IDENT,
-    STR_ST,      // "\""
-    STR_EN,      // Complete the string
-    ERR,         // Erroneous
-    SPACE,       // Whitespace
+    STR_ST,       // "\""
+    STR_EN,       // Complete the string
+    ERR,          // Erroneous
+    SPACE,        // Whitespace
 
-    __LAST  // just to mark the index of `Transitions`
+    __LAST        // Just to mark the index of `Transitions`
 };
 
 // The Deterministic Finite Automaton

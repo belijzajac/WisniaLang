@@ -8,8 +8,8 @@
 
 class PositionInFile {
 public:
-    PositionInFile(const std::string &file, int line, int pos)
-        : fileName_{file}, lineNo_{line}, charPosition_{pos} {}
+    PositionInFile(const std::string &file, int line)
+        : fileName_{file}, lineNo_{line} {}
 
     ~PositionInFile() = default;
 
@@ -20,7 +20,6 @@ public:
 private:
     std::string fileName_;
     int lineNo_;
-    int charPosition_;
 };
 
 //using TokenValue = std::variant<int, float, std::string>;

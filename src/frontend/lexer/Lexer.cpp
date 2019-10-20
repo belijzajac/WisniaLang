@@ -285,11 +285,33 @@ void Lexer::tokenize(const std::string &input) {
         // We have successfully parsed a token
         if (currState == MAIN) {
             if (prevState != SPACE) { // skip whitespaces
-                // Add a newly found (and recognized) token
-                auto pif       = std::make_unique<PositionInFile>(input, lineNo, 0);
+                // Construct PositionInFile and TokenType
+                auto pif = std::make_unique<PositionInFile>(input, lineNo);
                 TokenType type = getTokenType(prevState, it, tokenBuff);
-                auto token     = std::make_shared<Token>(type, tokenBuff, std::move(pif));
-                tokens_.push_back(token);
+
+                // Construct the whole token based on prevState
+                auto token = [&]() -> std::shared_ptr<Token> {
+                    switch (prevState) {
+                        case INT:
+                        case FLT:
+                        case STR_EN:
+                        {
+                            return std::make_shared<Token>(type, tokenBuff, std::move(pif));
+                        }
+                        case IDENT: {
+                            // It's either a known keyword
+                            if (auto search = StrToTokenKw.find(tokenBuff); search != StrToTokenKw.end())
+                                return std::make_shared<Token>(type, "", std::move(pif));
+                            // Or simply an identifier
+                            else
+                                return std::make_shared<Token>(type, tokenBuff, std::move(pif));
+                        }
+                    }
+                    // Default case
+                    return std::make_shared<Token>(type, "", std::move(pif));
+                };
+
+                tokens_.push_back(token());
             } else if (*it == '\n' && isMultiCmt) { // strictly multi-line comment
                 ++lineNo;
                 isMultiCmt = false;
@@ -327,7 +349,7 @@ void Lexer::tokenize(const std::string &input) {
     }
 
     // Add the EOF token to mark the file's ending
-    auto pif   = std::make_unique<PositionInFile>(input, lineNo, 0);
+    auto pif   = std::make_unique<PositionInFile>(input, lineNo);
     auto token = std::make_shared<Token>(TokenType::TOK_EOF, "", std::move(pif));
     tokens_.push_back(token);
 }
