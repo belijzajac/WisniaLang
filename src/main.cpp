@@ -15,13 +15,13 @@ int main(int argc, char *argv[]) {
         lexer.prettyPrint();
         
     } catch (const Exception &ex) {
-        std::cerr << ex.what();
+        std::cerr << ex.what() << "\n";
         return -1;
     } catch (const std::exception &ex) {
-        std::cerr << ex.what();
+        std::cerr << ex.what() << "\n";
         return -1;
     } catch (...) {
-        std::cerr << "Caught an undefined exception";
+        std::cerr << "Caught an undefined exception\n";
         return -1;
     }
 

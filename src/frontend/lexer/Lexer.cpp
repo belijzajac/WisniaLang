@@ -11,18 +11,12 @@
 // Operands of length 1
 static inline std::vector<char> simpleOperands {'.', '*', '/', '(', ')', '{', '}', ',', ':', ';'};
 
-// Searches for string `val` in the provided map, which represents a string-to-TokenType relationship
-auto findInMap = [](const std::unordered_map<std::string, TokenType> &map, const std::string &val) -> bool {
-    auto found {map.find(val)};
-    return found != map.end();
-};
-
 // Skips single-line comments
 bool remSingleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo) {
     // It's a single-line comment opener
-    if(*it == '#') {
+    if (*it == '#') {
         // Skip everything until the end of the line
-        while(it != data.end() && *it != '\n')
+        while (it != data.end() && *it != '\n')
             ++it;
 
         return true; // it was a comment
@@ -32,12 +26,12 @@ bool remSingleLnCmts(std::string::iterator &it, const std::string &data, int &li
 
 // Skips multiple-line comments
 bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo, const std::string &file) {
-    bool reachedNewLn = false;
+    bool reachedNewLn {false};
 
     // If it's a comment opener ("/*")
-    if(*it == '/' && it+1 != data.end() && *(it+1) == '*') {
+    if (*it == '/' && it+1 != data.end() && *(it+1) == '*') {
         // Skip characters as long as we find an occurrence of "*/"
-        while(*it != '*' || it+1 == data.end() || *(it+1) != '/') {
+        while (*it != '*' || it+1 == data.end() || *(it+1) != '/') {
             ++it;
 
             // Check if we've reached the following line
@@ -61,31 +55,36 @@ bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &
     return reachedNewLn;
 }
 
-std::shared_ptr<Token> Lexer::finish_lexem(const TokenType &type_, bool backtrack) {
+// Finish tokenize token
+std::shared_ptr<Token> Lexer::finishTok(const TokenType &type_, bool backtrack) {
     tokenState_.state_ = START;
 
-    // We've over-gone by 1 character further by returning the token earlier
+    // We've over-gone by 1 character further by returning the token earlier,
+    // so step back the iterator
     if (backtrack)
         --tokenState_.it_;
 
+    // Construct token
     auto pif = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.lineNo);
     auto token = std::make_shared<Token>(type_, tokenState_.buff_, std::move(pif));
 
+    // Clear existing token buffer and return parsed token
     tokenState_.buff_.clear();
     return token;
 }
 
-std::shared_ptr<Token> Lexer::finish_ident() {
+// Finish tokenize identifier
+std::shared_ptr<Token> Lexer::finishIdent() {
     // It's either a known keyword
     if (auto search = StrToTokenKw.find(tokenState_.buff_); search != StrToTokenKw.end())
-        return finish_lexem(search->second, true);
+        return finishTok(search->second, true);
     // Or simply an identifier
     else
-        return finish_lexem(TokenType::IDENT, true);
+        return finishTok(TokenType::IDENT, true);
 }
 
 // Tokenize the following character
-std::shared_ptr<Token> Lexer::lex_next(char ch) {
+std::shared_ptr<Token> Lexer::tokNext(char ch) {
     switch (tokenState_.state_) {
 
         /* ~~~ CASE: START ~~~ */
@@ -123,7 +122,7 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
             // Finish the below tokens instantly
             else if (std::any_of(simpleOperands.begin(), simpleOperands.end(), [&](char op){ return ch == op; })) {
                 std::string opToStr {ch};
-                return finish_lexem(StrToTokenOp[opToStr]);
+                return finishTok(StrToTokenOp[opToStr]);
             }
 
             // Skip white-spaces
@@ -141,10 +140,10 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
         /* ~~~ CASE: IDENT ~~~ */
         case IDENT:
             if (isspace(ch))
-                return finish_ident();
+                return finishIdent();
 
             if (!isalpha(ch) && !isdigit(ch) && ch != '_')
-                return finish_ident();
+                return finishIdent();
 
             tokenState_.buff_ += ch;
             return nullptr;
@@ -152,13 +151,13 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
         /* ~~~ CASE: OP_COMPARE ~~~ */
         case OP_COMPARE:
             if (ch == '=') {
-                std::string tokKey = tokenState_.buff_ + '=';
+                std::string tokKey {tokenState_.buff_ + '='};
                 tokenState_.buff_.clear();
-                return finish_lexem(StrToTokenOp[tokKey]); // (!=, <=, >=, ==)
+                return finishTok(StrToTokenOp[tokKey]); // (!=, <=, >=, ==)
             } else {
-                std::string tokKey = tokenState_.buff_;
+                std::string tokKey {tokenState_.buff_};
                 tokenState_.buff_.clear();
-                return finish_lexem(StrToTokenOp[tokKey], true); // (!, <, >, =)
+                return finishTok(StrToTokenOp[tokKey], true); // (!, <, >, =)
             }
 
         /* ~~~ CASE: STRING ~~~ */
@@ -194,7 +193,7 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
             // It's some other symbol
             else {
                 if (ch == '\"')
-                    return finish_lexem(TokenType::LIT_STR);
+                    return finishTok(TokenType::LIT_STR);
 
                 if (ch == '\n')
                     ++tokenState_.lineNo;
@@ -210,7 +209,7 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
         /* ~~~ CASE: INTEGER ~~~ */
         case INTEGER:
             if (isspace(ch))
-                return finish_lexem(TokenType::LIT_INT);
+                return finishTok(TokenType::LIT_INT);
 
             else if (ch == '.')
                 tokenState_.state_ = FLOAT;
@@ -219,7 +218,7 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
                 tokenState_.state_ = ERRONEOUS_NUMBER;
 
             else if(!isdigit(ch))
-                return finish_lexem(TokenType::LIT_INT, true);
+                return finishTok(TokenType::LIT_INT, true);
 
             tokenState_.buff_ += ch;
             return nullptr;
@@ -227,13 +226,13 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
         /* ~~~ CASE: FLOAT ~~~ */
         case FLOAT:
             if (isspace(ch))
-                return finish_lexem(TokenType::LIT_FLT);
+                return finishTok(TokenType::LIT_FLT);
 
             else if (isalpha(ch) || ch == '.')
                 tokenState_.state_ = ERRONEOUS_NUMBER;
 
             else if (!isdigit(ch))
-                return finish_lexem(TokenType::LIT_FLT, true);
+                return finishTok(TokenType::LIT_FLT, true);
 
             tokenState_.buff_ += ch;
             return nullptr;
@@ -241,7 +240,7 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
         /* ~~~ CASE: ERRONEOUS_NUMBER ~~~ */
         case ERRONEOUS_NUMBER:
             if (isspace(ch))
-                return finish_lexem(TokenType::TOK_INVALID);
+                return finishTok(TokenType::TOK_INVALID);
 
             tokenState_.buff_ += ch;
             return nullptr;
@@ -249,26 +248,26 @@ std::shared_ptr<Token> Lexer::lex_next(char ch) {
         /* ~~~ CASE: LOGIC_AND ~~~ */
         case LOGIC_AND:
             if (ch == '&')
-                return finish_lexem(TokenType::OP_AND);
-            return finish_lexem(TokenType::TOK_INVALID, true);
+                return finishTok(TokenType::OP_AND);
+            return finishTok(TokenType::TOK_INVALID, true);
 
         /* ~~~ CASE: LOGIC_OR ~~~ */
         case LOGIC_OR:
             if (ch == '|')
-                return finish_lexem(TokenType::OP_OR);
-            return finish_lexem(TokenType::TOK_INVALID, true);
+                return finishTok(TokenType::OP_OR);
+            return finishTok(TokenType::TOK_INVALID, true);
 
         /* ~~~ CASE: OP_PP ~~~ */
         case OP_PP:
             if (ch == '+')
-                return finish_lexem(TokenType::OP_UADD);
-            return finish_lexem(TokenType::OP_ADD, true);
+                return finishTok(TokenType::OP_UADD);
+            return finishTok(TokenType::OP_ADD, true);
 
         /* ~~~ CASE: OP_ARROW ~~~ */
         case OP_ARROW:
             if (ch == '>')
-                return finish_lexem(TokenType::OP_FN_ARROW);
-            return finish_lexem(TokenType::OP_SUB, true);
+                return finishTok(TokenType::OP_FN_ARROW);
+            return finishTok(TokenType::OP_SUB, true);
 
         /* ~~~ CASE: ERRONEOUS ~~~ */
         default:
@@ -290,10 +289,9 @@ void Lexer::tokenize(const std::string &input) {
     if (tokenState_.data_.back() != '\n')
         tokenState_.data_ += '\n';
 
-    tokenState_.it_ = tokenState_.data_.begin();
-    tokenState_.fileName_ = input;
-
-    std::shared_ptr<Token> result;
+    tokenState_.it_ = tokenState_.data_.begin();    // Set an iterator to the begin of the data
+    tokenState_.fileName_ = input;                  // Set file name for the file being tokenized at the moment
+    std::shared_ptr<Token> result;                  // This is where we temporarily save the token result
 
     while (tokenState_.it_ != tokenState_.data_.end()) {
         // Treat single-line comments
@@ -311,7 +309,7 @@ void Lexer::tokenize(const std::string &input) {
             break;
 
         try {
-            result = lex_next(*tokenState_.it_);
+            result = tokNext(*tokenState_.it_);
         } catch (const Exception &error) {
             std::cerr << "Lexer error: " << error.what() << ": " << *tokenState_.it_ << "\n";
         }
@@ -322,7 +320,6 @@ void Lexer::tokenize(const std::string &input) {
             else
                 tokens_.push_back(result);
         }
-
         ++tokenState_.it_;
     }
 

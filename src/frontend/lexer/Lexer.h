@@ -8,6 +8,7 @@
 
 class Token;
 
+// TODO: hide the implementation of private parts with the PIMPL idiom
 class Lexer {
     Lexer() = default;
 
@@ -26,17 +27,27 @@ class Lexer {
     };
 
     struct TokenState {
+        // Info needed to construct a token and to tokenize a letter
         State state_ {START};
         std::string buff_;
 
-        // Accessors to file data
+        // Accessors to the actual data of the source file
         std::string data_;
         std::string::iterator it_;
 
-        // Vague info about data file
+        // Vague info about the source file
         std::string fileName_;
         int lineNo {1};
     };
+
+    // Having provided the TokenType, it constructs and returns a token
+    std::shared_ptr<Token> finishTok(const TokenType &type_, bool backtrack = false);
+
+    // From an existing token buffer constructs and returns a token of identifier (or keyword) type
+    std::shared_ptr<Token> finishIdent();
+
+    // Continues to tokenize the next letter
+    std::shared_ptr<Token> tokNext(char ch);
 
 public:
     // Prohibit copy ctor
@@ -49,14 +60,8 @@ public:
         return lexer_;
     }
 
-    // Tokenize source file
+    // Tokenize the given source file
     void tokenize(const std::string &input);
-
-    std::shared_ptr<Token> finish_lexem(const TokenType &type_, bool backtrack = false);
-
-    std::shared_ptr<Token> finish_ident();
-
-    std::shared_ptr<Token> lex_next(char ch);
 
     // Prints out tokens in a pretty table
     void prettyPrint();
