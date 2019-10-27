@@ -42,6 +42,7 @@ public:
     ~Token() = default;
 
     // Getters for token
+    const TokenType getType() const { return type_; }
     const std::string getName() const { return TokenTypeToStr[type_]; }
     const std::string getValue() const { return value_; }
 
