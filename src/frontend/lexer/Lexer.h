@@ -23,7 +23,14 @@ class Lexer {
         LOGIC_AND,        // Logical AND: &&
         LOGIC_OR,         // Logical OR: ||
         OP_PP,            // Unary prefix: ++
-        OP_ARROW          // Arrow: ->
+        OP_ARROW,          // Arrow: ->
+
+        ESCAPE_SEQ,
+        CMT_SINGLE,
+
+        CMT_MAYBE_MULTI_CMT,
+        CMT_MULTI,
+        CMT_MAYBE_FINISH_MULTI,
     };
 
     struct TokenState {
@@ -38,6 +45,12 @@ class Lexer {
         // Vague info about the source file
         std::string fileName_;
         int lineNo {1};
+
+        // String info
+        int stringStart {0};
+
+        // Temp info
+        TokenType tempType_;
     };
 
     // Having provided the TokenType, it constructs and returns a token
