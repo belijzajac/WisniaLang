@@ -45,6 +45,8 @@ std::shared_ptr<Token> Lexer::finishIdent() {
 }
 
 // Tokenize the following character
+// TODO: std::optional ?
+// TODO: a vector of possible states of type std::function<void(bool)> tokMyState ???
 std::shared_ptr<Token> Lexer::tokNext(char ch) {
     switch (tokenState_.state_) {
 
@@ -193,7 +195,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
             else if (isalpha(ch)) {
                 tokenState_.state_ = ERRONEOUS_NUMBER;
-                tokenState_.tempType_ = TokenType::LIT_INT;
+                tokenState_.erroneousType_ = "integer";
             }
 
             else if(!isdigit(ch))
@@ -209,8 +211,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
             else if (isalpha(ch) || ch == '.') {
                 tokenState_.state_ = ERRONEOUS_NUMBER;
-                // TODO: vartotojui turi buti atspausdinamas aiskesnis tipas, pvz. float
-                tokenState_.tempType_ = TokenType::LIT_FLT;
+                tokenState_.erroneousType_ = "float";
             }
 
             else if (!isdigit(ch))
@@ -235,12 +236,16 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         case LOGIC_AND:
             if (ch == '&')
                 return finishTok(TokenType::OP_AND);
+
+            tokenState_.erroneousType_ = "ampersand";
             return finishTok(TokenType::TOK_INVALID, true);
 
         /* ~~~ CASE: LOGIC_OR ~~~ */
         case LOGIC_OR:
             if (ch == '|')
                 return finishTok(TokenType::OP_OR);
+
+            tokenState_.erroneousType_ = "tilde";
             return finishTok(TokenType::TOK_INVALID, true);
 
         /* ~~~ CASE: OP_PP ~~~ */
@@ -341,8 +346,8 @@ void Lexer::tokenize(const std::string &input) {
         // Put only valid tokens into the tokens vector
         if (result != nullptr) {
             if (result->getType() == TokenType::TOK_INVALID)
-                // Muh I want user-friendly error messages for the end-users
-                std::cerr << "Lexer error: " << tokenState_.fileName_ << ":" << std::to_string(tokenState_.lineNo) << ": Invalid suffix for " << TokenTypeToStr[tokenState_.tempType_] << "\n";
+                // Muh user-friendly error messages for the end-users
+                std::cerr << "Lexer error: " << tokenState_.fileName_ << ":" << std::to_string(tokenState_.lineNo) << ": Invalid suffix for " << tokenState_.erroneousType_ << "\n";
             else
                 tokens_.push_back(result);
         }

@@ -12,6 +12,7 @@ class Token;
 class Lexer {
     Lexer() = default;
 
+    // TODO: enum class?
     enum State {
         START,            // Start state
         IDENT,            // Identifier
@@ -23,11 +24,12 @@ class Lexer {
         LOGIC_AND,        // Logical AND: &&
         LOGIC_OR,         // Logical OR: ||
         OP_PP,            // Unary prefix: ++
-        OP_ARROW,          // Arrow: ->
+        OP_ARROW,         // Arrow: ->
 
-        ESCAPE_SEQ,
-        CMT_SINGLE,
+        ESCAPE_SEQ,       // Escapes \t, \n, etc.
+        CMT_SINGLE,       // Single line comment: #
 
+        // The following states are just to escape multi-line comments
         CMT_MAYBE_MULTI_CMT,
         CMT_MULTI,
         CMT_MAYBE_FINISH_MULTI,
@@ -50,7 +52,7 @@ class Lexer {
         int stringStart {0};
 
         // Temp info
-        TokenType tempType_;
+        std::string erroneousType_;
     };
 
     // Having provided the TokenType, it constructs and returns a token
