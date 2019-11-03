@@ -1,5 +1,4 @@
 #include "Lexer.h"
-#include "dfa/DFA.h"
 #include "token/Token.h"
 #include "../../utilities/Exception.h"
 #include <fstream>
@@ -7,354 +6,356 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
-// Searches for string `val` in the provided map, which represents a string-to-TokenType relationship
-auto findInMap = [](const std::unordered_map<std::string, TokenType> &map, const std::string &val) -> bool {
-    auto found {map.find(val)};
-    return found != map.end();
-};
+// Operands of length 1
+static inline std::vector<char> simpleOperands {'.', '*', '(', ')', '{', '}', ',', ':', ';'};
 
-// Determines the following state
-int switchState(const std::string::const_iterator &it, int prevState) {
-    // Whitespaces (\n, \v, \f, \r), space, and tab (\t)
-    if(std::isspace(*it)) {
-        return SPACE;
-    }
+// Finish tokenize token
+std::shared_ptr<Token> Lexer::finishTok(const TokenType &type_, bool backtrack) {
+    tokenState_.state_ = START;
 
-    // Integer
-    else if(std::isdigit(*it) || (*it == '-' && *(it-1) == ' ' && std::isdigit(*(it+1)))) {
-        return INT;
-    }
+    // We've over-gone by 1 character further by returning the token earlier,
+    // so step back the iterator
+    if (backtrack)
+        --tokenState_.it_;
 
-    // Real number
-    else if((*it == '.' && std::isdigit(*(it+1))) || (*it == '-' && *(it-1) == ' ' && std::isdigit(*(it+1)))) {
-        return FLT;
-    }
+    std::unique_ptr<PositionInFile> pif_;
+    // Construct token
+    if (type_ == TokenType::LIT_STR)
+        pif_ = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.stringStart);
+    else
+        pif_ = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.lineNo);
 
-    // Identifier
-    else if(std::isalpha(*it) || *(it) == '_') {
-        return IDENT;
-    }
+    auto token = std::make_shared<Token>(type_, tokenState_.buff_, std::move(pif_));
 
-    // String (ending)
-    else if(prevState == STR_ST && *(it-1) != '\\' && *it == '\"') {
-        return STR_EN;
-    }
-
-    // String (beginning)
-    else if((*it == '\"' && *(it-1) == '\\') || *it == '\"') {
-        return STR_ST;
-    }
-
-    // TODO: lambda + std::any_of
-    // Operators
-    else if(std::ispunct(*it)) {
-        // 1) Logical AND (&&)
-        if (prevState == OP_L_AND_ST) {
-            if (*it == '&')
-                return OP_L_AND;
-            else
-                return OP_SINGLE;
-        }
-        else if (*it == '&')
-            return OP_L_AND_ST;
-        // end of Logical AND (&&)
-
-        // 2) Logical OR (||)
-        else if (prevState == OP_L_OR_ST) {
-            if (*it == '|')
-                return OP_L_OR;
-            else
-                return OP_SINGLE;
-        }
-        else if (*it == '|')
-            return OP_L_OR_ST;
-        // end of Logical OR (||)
-
-        // 3) Either a single operand (!, <, >, =) or (!=, <=, >=, ==)
-        else if (prevState == OP_CMP_ST) {
-            if (*it == '=')
-                return OP_CMP_EN;
-            else
-                return OP_SINGLE;
-        }
-        else if (*it == '!' || *it == '<' || *it == '>' || *it == '=')
-            return OP_CMP_ST;
-        // end of 3)
-
-        // 4) (+, -) or (++, ->)
-        else if (*it == '+' && *(it+1) == '+')
-            return OP_PP;
-        else if (*it == '-' && *(it+1) == '>')
-            return OP_ARROW;
-
-        return OP_SINGLE;
-    }
-
-    return ERR;
+    // Clear existing token buffer and return parsed token
+    tokenState_.buff_.clear();
+    return token;
 }
 
-// Skips single-line comments
-bool remSingleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo) {
-    // It's a single-line comment opener
-    if(*it == '#') {
-        // Skip everything until the end of the line
-        while(it != data.end() && *it != '\n')
-            ++it;
-        return true; // it was a comment
-    }
-    return false; // it wasn't a comment
+// Finish tokenize identifier
+std::shared_ptr<Token> Lexer::finishIdent() {
+    // It's either a known keyword
+    if (auto search = StrToTokenKw.find(tokenState_.buff_); search != StrToTokenKw.end())
+        return finishTok(search->second, true);
+    // Or simply an identifier
+    else
+        return finishTok(TokenType::IDENT, true);
 }
 
-// Skips multiple-line comments
-bool remMultipleLnCmts(std::string::iterator &it, const std::string &data, int &lineNo, const std::string &file) {
-    bool reachedNewLn = false;
+// Tokenize the following character
+// TODO: std::optional ?
+// TODO: a vector of possible states of type std::function<void(bool)> tokMyState ???
+std::shared_ptr<Token> Lexer::tokNext(char ch) {
+    switch (tokenState_.state_) {
 
-    // If it's a comment opener ("/*")
-    if(*it == '/' && it+1 != data.end() && *(it+1) == '*') {
-        // Skip characters as long as we find an occurrence of "*/"
-        while(*it != '*' || it+1 == data.end() || *(it+1) != '/') {
-            ++it;
-
-            // Check if we've reached the following line
-            if (*it == '\n') {
-                ++lineNo;
-                reachedNewLn = true;
+        /* ~~~ CASE: START ~~~ */
+        case START:
+            if (isalpha(ch) || ch == '_') {
+                tokenState_.state_ = IDENT;
+                tokenState_.buff_ += ch;
             }
 
-            // We've reached the end of the file and didn't find the "*/"
-            if (it == data.end()) {
-                throw Exception{"The comment wasn't closed in " + file + ":" + std::to_string(lineNo)};
+            else if (ch == '!' || ch == '<' || ch == '>' || ch == '=') {
+                tokenState_.buff_ += ch;
+                tokenState_.state_ = OP_COMPARE;
             }
+
+            else if (ch == '\"') {
+                tokenState_.stringStart = tokenState_.lineNo;
+                tokenState_.state_ = STRING;
+            }
+
+            else if (isdigit(ch)) {
+                tokenState_.state_ = INTEGER;
+                tokenState_.buff_ += ch;
+            }
+
+            else if (ch == '&')
+                tokenState_.state_ = LOGIC_AND;
+
+            else if (ch == '|')
+                tokenState_.state_ = LOGIC_OR;
+
+            else if (ch == '+')
+                tokenState_.state_ = OP_PP;
+
+            else if (ch == '-')
+                tokenState_.state_ = OP_ARROW;
+
+            else if (ch == '/') {
+                tokenState_.state_ = CMT_MAYBE_MULTI_CMT;
+                return nullptr;
+            }
+
+            else if (ch == '#')
+                tokenState_.state_ = CMT_SINGLE;
+
+            // Finish the below tokens instantly
+            else if (std::any_of(simpleOperands.begin(), simpleOperands.end(), [&](char op){ return ch == op; })) {
+                std::string opToStr {ch};
+                return finishTok(StrToTokenOp[opToStr]);
+            }
+
+            // Skip white-spaces
+            else if (isspace(ch)) {
+                if (ch == '\n')
+                    ++tokenState_.lineNo;
+                return nullptr;
+            }
+
+            else
+                throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unrecognized char"};
+
+            return nullptr;
+
+        /* ~~~ CASE: IDENT ~~~ */
+        case IDENT:
+            if (isspace(ch))
+                return finishIdent();
+
+            if (!isalpha(ch) && !isdigit(ch) && ch != '_')
+                return finishIdent();
+
+            tokenState_.buff_ += ch;
+            return nullptr;
+
+        /* ~~~ CASE: OP_COMPARE ~~~ */
+        case OP_COMPARE:
+            if (ch == '=') {
+                std::string tokKey {tokenState_.buff_ + '='};
+                tokenState_.buff_.clear();
+                return finishTok(StrToTokenOp[tokKey]); // (!=, <=, >=, ==)
+            } else {
+                std::string tokKey {tokenState_.buff_};
+                tokenState_.buff_.clear();
+                return finishTok(StrToTokenOp[tokKey], true); // (!, <, >, =)
+            }
+
+        /* ~~~ CASE: STRING ~~~ */
+        case STRING: {
+            // We got an escape symbol -- need to escape it
+            if (ch == '\\')
+                tokenState_.state_ = ESCAPE_SEQ;
+
+            // It's some other symbol
+            else {
+                if (ch == '\n')
+                    ++tokenState_.lineNo;
+
+                else if (ch == '\"')
+                    return finishTok(TokenType::LIT_STR);
+
+                else if (ch == -1)
+                    throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unterminated string"};
+
+                tokenState_.buff_ += ch;
+            }
+            return nullptr;
         }
-        // Take care of the closing comment
-        it += 2;
-    }
-    // Instead of "/*" we found "*/", which shouldn't have happened
-    else if(*it == '*' && it+1 != data.end() && *(it+1) == '/') {
-        throw Exception{"Found a comment closing that wasn't opened in " + file + ":" + std::to_string(lineNo)};
-    }
-    return reachedNewLn;
-}
 
-// Removes back-slash from string data type
-void removeBackSlash(std::string &buff) {
-    for (auto it = buff.begin(); it != buff.end(); ++it) {
-        if(*it == '\\') {
-            // Nothing to do as we've reaches the end
-            if(it+1 >= buff.end())
-                continue;
-
-            // erase '\\'
-            it = buff.erase(it);
-
-            // Replace to escape characters
-            switch (*it) {
+        /* ~~~ CASE: ESCAPE_SEQ ~~~ */
+        case ESCAPE_SEQ:
+            // Escape sequences for strings
+            switch (ch) {
                 case 'f':
-                    *it = '\f';
-                    break;
-                case 'n':
-                    *it = '\n';
+                    tokenState_.buff_ += '\f';
                     break;
                 case 'r':
-                    *it = '\r';
+                    tokenState_.buff_ += '\r';
                     break;
                 case 't':
-                    *it = '\t';
+                    tokenState_.buff_ += '\t';
                     break;
                 case 'v':
-                    *it = '\v';
+                    tokenState_.buff_ += '\v';
                     break;
+                case 'n':
+                    tokenState_.buff_ += '\n';
+                    break;
+                case '\"':
+                    tokenState_.buff_ += '\"';
+                    break;
+                default:
+                    tokenState_.buff_ += ch;
+                    throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unknown escape symbol"};
             }
-        }
-    }
-}
+            // Continue parsing
+            tokenState_.state_ = STRING;
+            return nullptr;
 
-// Returns an appropriate TokenType per provided previous state
-TokenType getTokenType(int prevState, std::string::iterator &it, std::string &buff) {
-    // Determine the right TokenType according to the previous DFA state
-    switch (prevState) {
-        // Identifier
-        case IDENT: {
-            auto search {StrToTokenKw.find(buff)};
-            if (search != StrToTokenKw.end()) {
-                return search->second;
-            } else {
-                return TokenType::IDENT;
+        /* ~~~ CASE: INTEGER ~~~ */
+        case INTEGER:
+            if (isspace(ch))
+                return finishTok(TokenType::LIT_INT);
+
+            else if (ch == '.')
+                tokenState_.state_ = FLOAT;
+
+            else if (isalpha(ch)) {
+                tokenState_.state_ = ERRONEOUS_NUMBER;
+                tokenState_.erroneousType_ = "integer";
             }
-        }
-        // String
-        case STR_EN: {
-            return TokenType::LIT_STR;
-        }
-        // Integer number
-        case INT: {
-            return TokenType::LIT_INT;
-        }
-        // Float number
-        case FLT: {
-            return TokenType::LIT_FLT;
-        }
 
-        // Operands
-        case OP_SINGLE: // Single operand, e.g. (, }, >, =
-        case OP_CMP_ST: // Any of !, <, >, and =
-        case OP_CMP_EN: // Any of !=, <=, >=, ==
-        {
-            if (findInMap(StrToTokenOp, buff))
-                return StrToTokenOp[buff];
-            else
-                return TokenType::TOK_INVALID;
-        }
+            else if(!isdigit(ch))
+                return finishTok(TokenType::LIT_INT, true);
 
-        // Invalid operands for Ampersand and Tilde
-        case OP_L_AND_ST: // Ampersand (&)
-        case OP_L_OR_ST:  // Tilde (|)
-        {
-            return TokenType::TOK_INVALID;
-        }
+            tokenState_.buff_ += ch;
+            return nullptr;
 
-        // Logic AND (&&)
-        case OP_L_AND: {
-            return TokenType::OP_AND;
-        }
-        // Logic OR (||)
-        case OP_L_OR: {
-            return TokenType::OP_OR;
-        }
-        // Arrow (->)
-        case OP_ARROW: {
-            buff += *it;
-            ++it;
-            return TokenType::OP_FN_ARROW;
-        }
-        // Unary add (++)
-        case OP_PP: {
-            buff += *it;
-            ++it;
-            return TokenType::OP_UADD;
-        }
+        /* ~~~ CASE: FLOAT ~~~ */
+        case FLOAT:
+            if (isspace(ch))
+                return finishTok(TokenType::LIT_FLT);
+
+            else if (isalpha(ch) || ch == '.') {
+                tokenState_.state_ = ERRONEOUS_NUMBER;
+                tokenState_.erroneousType_ = "float";
+            }
+
+            else if (!isdigit(ch))
+                return finishTok(TokenType::LIT_FLT, true);
+
+            tokenState_.buff_ += ch;
+            return nullptr;
+
+        /* ~~~ CASE: ERRONEOUS_NUMBER ~~~ */
+        case ERRONEOUS_NUMBER:
+            if (isspace(ch)) {
+                if (ch == '\n')
+                    ++tokenState_.lineNo;
+
+                return finishTok(TokenType::TOK_INVALID);
+            }
+
+            tokenState_.buff_ += ch;
+            return nullptr;
+
+        /* ~~~ CASE: LOGIC_AND ~~~ */
+        case LOGIC_AND:
+            if (ch == '&')
+                return finishTok(TokenType::OP_AND);
+
+            tokenState_.erroneousType_ = "ampersand";
+            return finishTok(TokenType::TOK_INVALID, true);
+
+        /* ~~~ CASE: LOGIC_OR ~~~ */
+        case LOGIC_OR:
+            if (ch == '|')
+                return finishTok(TokenType::OP_OR);
+
+            tokenState_.erroneousType_ = "tilde";
+            return finishTok(TokenType::TOK_INVALID, true);
+
+        /* ~~~ CASE: OP_PP ~~~ */
+        case OP_PP:
+            if (ch == '+')
+                return finishTok(TokenType::OP_UADD);
+            return finishTok(TokenType::OP_ADD, true);
+
+        /* ~~~ CASE: OP_ARROW ~~~ */
+        case OP_ARROW:
+            if (ch == '>')
+                return finishTok(TokenType::OP_FN_ARROW);
+            return finishTok(TokenType::OP_SUB, true);
+
+        /* ~~~ CASE: OP_ARROW ~~~ */
+        case CMT_SINGLE:
+            if (ch == '\n') {
+                tokenState_.state_ = START;
+                ++tokenState_.lineNo;
+            }
+            return nullptr;
+
+        /* ~~~ CASE: CMT_MAYBE_MULTI_CMT ~~~ */
+        case CMT_MAYBE_MULTI_CMT:
+            // It's indeed a multi-line comment
+            if (ch == '*') {
+                tokenState_.state_ = CMT_MULTI;
+                return nullptr;
+            }
+            // It was just a division symbol
+            else {
+                tokenState_.state_ = START;
+                return finishTok(TokenType::OP_DIV, true);
+            }
+
+        /* ~~~ CASE: CMT_MULTI ~~~ */
+        case CMT_MULTI:
+            // Maybe we've reach the multi-line comment closing
+            if (ch == '*')
+                tokenState_.state_ = CMT_MAYBE_FINISH_MULTI;
+
+            // Newline
+            else if (ch == '\n')
+                ++tokenState_.lineNo;
+
+            // Found EOF
+            else if(ch == -1)
+                throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": comment wasn't closed"};
+
+            return nullptr;
+
+        /* ~~~ CASE: CMT_MAYBE_FINISH_MULTI ~~~ */
+        case CMT_MAYBE_FINISH_MULTI:
+            // It was indeed a multi-line comment closing
+            if (ch == '/')
+                tokenState_.state_ = START;
+
+            // Reached EOF
+            else if (ch == -1)
+                throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": comment wasn't closed"};
+
+            // Any other symbol other than '/' must be skipped
+            else if (ch != '*')
+                tokenState_.state_ = CMT_MULTI;
+
+            return nullptr;
+
+        /* ~~~ CASE: ERRONEOUS ~~~ */
+        default:
+            throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unexpected state"};
     }
-    return TokenType::TOK_INVALID;
 }
 
 void Lexer::tokenize(const std::string &input) {
     // Opens the `input` file and copies its content into `data`
     std::ifstream sourceFile {input};
-    std::string data {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
+    tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
 
-    if (data.empty())
-        throw Exception{"Empty file " + input};
+    if (tokenState_.data_.empty())
+        throw Exception{input + ":" + "Empty file"};
 
     // Add a newline at the end of the data if there's none already.
     // This comes in handy to save the last token from getting dismissed
     // when we reach the end of file and escape the condition `if(currState == MAIN)`
-    if (data.back() != '\n')
-        data += '\n';
+    if (tokenState_.data_.back() != '\n')
+        tokenState_.data_ += '\n';
 
-    int column    = MAIN;     // column of a DFA state (a.k.a. state type)
-    int currState = MAIN;     // current DFA state
-    int prevState = MAIN;     // previous DFA state
-    std::string tokenBuff;    // buffer in which we (gradually) store the value of a token
-    int lineNo = 1;           // Current line number
-    bool isSingleCmt = false; // Whether we've encountered a single-line comment
-    bool isMultiCmt = false;  // Whether we've encountered a multi-line comment
+    tokenState_.it_ = tokenState_.data_.begin();    // Set an iterator to the begin of the data
+    tokenState_.fileName_ = input;                  // Set file name for the file being tokenized at the moment
+    std::shared_ptr<Token> result;                  // This is where we temporarily save the token result
 
-    // use an DFA to parse the expression
-    for (auto it = data.begin(); it != data.end(); ) {
-        // Treat single-line comments
-        if (remSingleLnCmts(it, data, lineNo))
-            isSingleCmt = true;
-        // Nothing left to read, so break the for-loop
-        if (it == data.end())
-            break;
-
-        // Treat multiple-line comments
-        if (remMultipleLnCmts(it, data, lineNo, input))
-            isMultiCmt = true;
-        // Nothing left to read, so break the for-loop
-        if(it == data.end())
-            break;
-
-        // Column number for the current character
-        column = switchState(it, prevState);
-
-        // The current transition
-        currState = transitionTbl[currState][column];
-
-        // We have successfully parsed a token
-        if (currState == MAIN) {
-            if (prevState != SPACE) { // skip whitespaces
-                // Construct PositionInFile and TokenType
-                auto pif = std::make_unique<PositionInFile>(input, lineNo);
-                TokenType type = getTokenType(prevState, it, tokenBuff);
-
-                // Construct the whole token based on prevState
-                auto token = [&]() -> std::shared_ptr<Token> {
-                    switch (prevState) {
-                        case INT:
-                        case FLT:
-                        case STR_EN:
-                        {
-                            return std::make_shared<Token>(type, tokenBuff, std::move(pif));
-                        }
-                        case IDENT: {
-                            // It's either a known keyword
-                            if (auto search = StrToTokenKw.find(tokenBuff); search != StrToTokenKw.end())
-                                return std::make_shared<Token>(type, "", std::move(pif));
-                            // Or simply an identifier
-                            else
-                                return std::make_shared<Token>(type, tokenBuff, std::move(pif));
-                        }
-                    }
-                    // Default case
-                    return std::make_shared<Token>(type, "", std::move(pif));
-                };
-
-                // Found invalid token -- don't save it
-                if (type == TokenType::TOK_INVALID)
-                    std::cerr << "Invalid token " << tokenBuff << " in " << input << ":" << std::to_string(lineNo) << "\n";
-                else
-                    tokens_.push_back(token());
-
-            } else if (*it == '\n' && isMultiCmt) { // strictly multi-line comment
-                ++lineNo;
-                isMultiCmt = false;
-            } else if (*it == '\n' || isSingleCmt) { // end-of-line or a single-line comment
-                ++lineNo;
-                isSingleCmt = false;
-            }
-            tokenBuff.clear();
+    while (tokenState_.it_ != tokenState_.data_.end()) {
+        try {
+            result = tokNext(*tokenState_.it_);
+        } catch (const Exception &error) {
+            std::cerr << "Lexer error: " << error.what() << ": " << *tokenState_.it_ << "\n";
         }
-        // Continue appending content when it's a string
-        else if (currState == STR_ST) {
-            if (it+1 == data.end())
-                throw Exception{"Found a string which was never closed in " + input + ":" + std::to_string(lineNo)};
-
-            // Because we're including spaces when parsing strings
-            // And they don't get treated elsewhere
-            if (*it == '\n')
-                ++lineNo;
-
-            tokenBuff += *it;
-            ++it;
+        // Put only valid tokens into the tokens vector
+        if (result != nullptr) {
+            if (result->getType() == TokenType::TOK_INVALID)
+                // Muh user-friendly error messages for the end-users
+                std::cerr << "Lexer error: " << tokenState_.fileName_ << ":" << std::to_string(tokenState_.lineNo) << ": Invalid suffix for " << tokenState_.erroneousType_ << "\n";
+            else
+                tokens_.push_back(result);
         }
-        // When we're done with the string content, apply a minor fixes to it
-        else if (currState == STR_EN) {
-            tokenBuff.erase(0, 1);      // omit the opening '\"'
-            ++it;                       // omit the closing '\"'
-            removeBackSlash(tokenBuff); // remove back-slashes
-        }
-        // Continue parsing
-        else {
-            tokenBuff += *it;
-            ++it;
-        }
-        prevState = currState;
+        ++tokenState_.it_;
     }
 
     // Add the EOF token to mark the file's ending
-    auto pif   = std::make_unique<PositionInFile>(input, lineNo);
+    auto pif   = std::make_unique<PositionInFile>(input, tokenState_.lineNo);
     auto token = std::make_shared<Token>(TokenType::TOK_EOF, "", std::move(pif));
     tokens_.push_back(token);
 }
