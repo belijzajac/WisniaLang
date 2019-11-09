@@ -8,22 +8,42 @@ class Lexer;
 class Token;
 enum class TokenType;
 
+// TODO: put these under a namespace to not litter the code?
+// TODO: put everything under the PIMPL
+class AST;
+class FnDef;
+
 class Parser {
     // Checks if the current token is of type `token`
     bool has(const TokenType &token);
 
     // Position of current token
-    size_t pos_ {0};
+    int pos_ {-1};
 
     // Expects the following token to be of type `token`
     void expect(const TokenType &token);
+
+    // Parses identifier
+    std::unique_ptr<AST> parseIdent();
+
+    // Parses function definitions
+    std::unique_ptr<AST> parseFnDef();
+
+    // Parses a single parameter
+    std::unique_ptr<AST> parseParam();
+
+    // Parses parameters list, found in function and ctor/dtor definitions
+    std::unique_ptr<AST> parseParamsList();
+
+    // Parses function return type
+    std::unique_ptr<AST> parseFnType();
 
 public:
     explicit Parser(const Lexer &lexer);
     ~Parser() = default;
 
     // Returns an instance of token at position pos
-    const std::shared_ptr<Token> &at(size_t pos) const {
+    std::shared_ptr<Token> at(size_t pos) const {
         return (pos >= tokens_.size() || pos < 0)? nullptr : tokens_.at(pos);
     }
 
@@ -38,6 +58,9 @@ public:
 
     // Checks if we haven't reached the end of token stream
     bool hasNext() const { return pos_ + 1 < tokens_.size(); }
+
+    // Starts parsing
+    std::unique_ptr<AST> parse();
 
 private:
     std::vector<std::shared_ptr<Token>> tokens_;
