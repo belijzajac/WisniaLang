@@ -19,11 +19,12 @@ public:
     virtual const std::string kind() const { return "Root"; }
 
     // Outputs tree content
-    virtual void print(size_t level) const {
+    virtual void print(size_t level = 0) const {
         printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
 
         for (const auto &node : children_)
-            node->print(1);
+            node->print(level);
     }
 
     // Appends a child
@@ -53,32 +54,18 @@ public:
     }
 };
 
-// Function Definition node
-class FnDef : public AST {
+// Function Type node
+class FnType : public AST {
 public:
-    explicit FnDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnDef() = default;
+    explicit FnType(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FnType() = default;
 
-    const std::string kind() const override { return "FnDef"; }
-
-    // TODO: return *AST args, identifier, return type, etc....
+    const std::string kind() const override { return "FnType"; }
 
     void print(size_t level) const override {
         AST::print(level);
         level++;
-
-        // Name
-        if (auto name = dynamic_cast<Identifier*>(children_.at(0).get()))
-            name->print(level);
-        // Parameters
-        if (auto params = dynamic_cast<Identifier*>(children_.at(1).get()))
-            params->print(level);
-        // Return type
-        if (auto returnType = dynamic_cast<Identifier*>(children_.at(2).get()))
-            returnType->print(level);
-        // Body
-        //if (auto body = dynamic_cast<Identifier*>(children_.at(2).get()))
-        //    body->print(level);
+        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getName().c_str());
     }
 };
 
@@ -92,15 +79,6 @@ public:
 
     void print(size_t level) const override {
         AST::print(level);
-        level++;
-
-        /*if (Expression != nullptr)
-            Expression->print(level);
-        if (Seperator != nullptr)
-            Seperator->print(level);*/
-
-        AST::print(level);
-        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getValueStr().c_str());
     }
 };
 
@@ -113,27 +91,20 @@ public:
     const std::string kind() const override { return "ParamsList"; }
 
     void print(size_t level) const override {
-        AST::print(level);
-        level++;
-
-        for (const auto &param : children_)
-            param->print(level);
+        Param::print(level);
     }
 };
 
-// Function Type node
-class FnType : public AST {
+// Function Definition node
+class FnDef : public AST {
 public:
-    explicit FnType(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnType() = default;
+    explicit FnDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FnDef() = default;
 
-    const std::string kind() const override { return "FnType"; }
+    const std::string kind() const override { return "FnDef"; }
 
     void print(size_t level) const override {
         AST::print(level);
-        level++;
-
-        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getValueStr().c_str());
     }
 };
 

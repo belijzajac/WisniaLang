@@ -12,7 +12,7 @@ Parser::Parser(const Lexer &lexer) {
 
     // Parse and output AST
     auto root = parse();
-    root->print(0);
+    root->print();
 }
 
 bool Parser::has(const TokenType &token) {
