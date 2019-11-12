@@ -31,17 +31,19 @@ public:
     void addNode(std::unique_ptr<AST> child) { children_.push_back(std::move(child)); }
 };
 
-// Binary Expression node
-class BinaryExpr : public AST {
+//----------------------------------------------------------------------------------------------------------------------
+// Expressions
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Expr node
+class Expr : public AST {
 public:
-    explicit BinaryExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    BinaryExpr() = default;
-
-    const std::string kind() const override { return "BinaryExpression"; }
+    void print(size_t level) const override {
+        AST::print(level);
+    }
 };
 
 // Identifier node
-class Identifier : public AST {
+class Identifier : public Expr {
 public:
     explicit Identifier(const std::shared_ptr<Token> &tok) { token_ = tok; }
     Identifier() = default;
@@ -54,31 +56,73 @@ public:
     }
 };
 
-// Function Type node
-class FnType : public AST {
+// Binary Expression node
+class BinaryExpr : public Expr {
 public:
-    explicit FnType(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnType() = default;
+    explicit BinaryExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    BinaryExpr() = default;
 
-    const std::string kind() const override { return "FnType"; }
+    const std::string kind() const override { return "BinaryExpression"; }
+};
 
+//----------------------------------------------------------------------------------------------------------------------
+// Definitions
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Def node
+class Def : public AST {
+public:
     void print(size_t level) const override {
         AST::print(level);
-        level++;
-        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getName().c_str());
+    }
+};
+
+// Function Definition node
+class FnDef : public Def {
+public:
+    explicit FnDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FnDef() = default;
+
+    const std::string kind() const override { return "FnDef"; }
+
+    void print(size_t level) const override {
+        Def::print(level);
+    }
+};
+
+// Class Definition node
+class ClassDef : public Def {
+public:
+    explicit ClassDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ClassDef() = default;
+
+    const std::string kind() const override { return "ClassDef"; }
+
+    void print(size_t level) const override {
+        Def::print(level);
+    }
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// Parameters
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Param node
+class Param : public AST {
+public:
+    void print(size_t level) const override {
+        AST::print(level);
     }
 };
 
 // A single parameter
-class Param : public AST {
+class SingleParam : public Param {
 public:
-    explicit Param(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    Param() = default;
+    explicit SingleParam(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    SingleParam() = default;
 
-    const std::string kind() const override { return "Param"; }
+    const std::string kind() const override { return "SingleParam"; }
 
     void print(size_t level) const override {
-        AST::print(level);
+        Param::print(level);
     }
 };
 
@@ -95,16 +139,28 @@ public:
     }
 };
 
-// Function Definition node
-class FnDef : public AST {
+//----------------------------------------------------------------------------------------------------------------------
+// Types
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Type node
+class Type : public AST {
 public:
-    explicit FnDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnDef() = default;
+    void print(size_t level) const override {
+        AST::print(level);
+    }
+};
+// Function Type node
+class FnType : public Type {
+public:
+    explicit FnType(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FnType() = default;
 
-    const std::string kind() const override { return "FnDef"; }
+    const std::string kind() const override { return "FnType"; }
 
     void print(size_t level) const override {
         AST::print(level);
+        level++;
+        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getName().c_str());
     }
 };
 

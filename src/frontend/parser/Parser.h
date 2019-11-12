@@ -11,7 +11,10 @@ enum class TokenType;
 // TODO: put these under a namespace to not litter the code?
 // TODO: put everything under the PIMPL
 class AST;
-class FnDef;
+class Def;
+class Param;
+class Expr;
+class Type;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -24,19 +27,19 @@ class Parser {
     void expect(const TokenType &token);
 
     // Parses identifier
-    std::unique_ptr<AST> parseIdent();
+    std::unique_ptr<Expr> parseIdent();
 
     // Parses function definitions
-    std::unique_ptr<AST> parseFnDef();
+    std::unique_ptr<Def> parseFnDef();
 
     // Parses a single parameter
-    std::unique_ptr<AST> parseParam();
+    std::unique_ptr<Param> parseParam();
 
     // Parses parameters list, found in function and ctor/dtor definitions
-    std::unique_ptr<AST> parseParamsList();
+    std::unique_ptr<Param> parseParamsList();
 
     // Parses function return type
-    std::unique_ptr<AST> parseFnType();
+    std::unique_ptr<Type> parseFnType();
 
 public:
     explicit Parser(const Lexer &lexer);
