@@ -46,7 +46,7 @@ std::unique_ptr<AST> Parser::parse() {
     return root;
 }
 
-std::unique_ptr<AST> Parser::parseIdent() {
+std::unique_ptr<Expr> Parser::parseIdent() {
     if (has(TokenType::IDENT)) {
         consume(); // eat identifier
         return std::make_unique<Identifier>(curr());
@@ -56,7 +56,7 @@ std::unique_ptr<AST> Parser::parseIdent() {
 }
 
 // <FN_DECL> ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
-std::unique_ptr<AST> Parser::parseFnDef() {
+std::unique_ptr<Def> Parser::parseFnDef() {
     expect(TokenType::KW_FN);         // expect "fn"
     auto fnDef = std::make_unique<FnDef>();
 
@@ -72,8 +72,8 @@ std::unique_ptr<AST> Parser::parseFnDef() {
 }
 
 // <PARAM> ::= <IDENT> ":" <TYPE>
-std::unique_ptr<AST> Parser::parseParam() {
-    auto param = std::make_unique<Param>();
+std::unique_ptr<Param> Parser::parseParam() {
+    auto param = std::make_unique<SingleParam>();
 
     param->addNode(parseIdent());  // parse <IDENT>
     expect(TokenType::OP_COL);    // expect ":"
@@ -83,7 +83,7 @@ std::unique_ptr<AST> Parser::parseParam() {
 }
 
 // <PARAMS> ::= "(" ")" | "(" <PARAMS_SEQ> ")"
-std::unique_ptr<AST> Parser::parseParamsList() {
+std::unique_ptr<Param> Parser::parseParamsList() {
     expect(TokenType::OP_PAREN_O); // expect "("
     auto paramsList = std::make_unique<ParamsList>();
 
@@ -112,7 +112,7 @@ static inline std::vector<TokenType> FnTypes {
 };
 
 // <TYPE> ::= "void" | "int" | "bool" | "float" | "string"
-std::unique_ptr<AST> Parser::parseFnType() {
+std::unique_ptr<Type> Parser::parseFnType() {
     if (std::any_of(FnTypes.begin(), FnTypes.end(), [&](TokenType t) { return peek()->getType() == t; })) {
         consume(); // eat function type
         return std::make_unique<FnType>(curr());
