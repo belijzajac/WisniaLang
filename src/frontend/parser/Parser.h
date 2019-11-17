@@ -15,6 +15,7 @@ class Def;
 class Param;
 class Expr;
 class Type;
+class Stmt;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -40,6 +41,15 @@ class Parser {
 
     // Parses function return type
     std::unique_ptr<Type> parseFnType();
+
+    // Parses statement block
+    std::unique_ptr<Stmt> parseStmtBlock();
+
+    // Parses statement of a specific type
+    std::unique_ptr<Stmt> parseStmt();
+
+    // Parses return statement
+    std::unique_ptr<Stmt> parseReturnStmt();
 
 public:
     explicit Parser(const Lexer &lexer);

@@ -34,6 +34,8 @@ std::unique_ptr<AST> Parser::parse() {
     try {
         // continue parsing as long as there are tokens
         while (!has(TokenType::TOK_EOF)) {
+            // TODO: Rewrite in switch block
+            // TODO: switch ( peek() )
             if (has(TokenType::KW_FN))
                 root->addNode(parseFnDef());
             else
@@ -64,9 +66,7 @@ std::unique_ptr<Def> Parser::parseFnDef() {
     fnDef->addNode(parseParamsList()); // parse <PARAMS>
     expect(TokenType::OP_FN_ARROW);   // expect "->"
     fnDef->addNode(parseFnType());     // <TYPE>
-
-    // <STMT_BLOCK>
-    // TODO:
+    fnDef->addNode(parseStmtBlock());  // <STMT_BLOCK>
 
     return fnDef;
 }
@@ -118,5 +118,43 @@ std::unique_ptr<Type> Parser::parseFnType() {
         return std::make_unique<FnType>(curr());
     } else {
         throw Exception{"Function definition doesn't have any of the supported types"};
+    }
+}
+
+// <STMT_BLOCK> ::= "{" "}" | "{" <STMTS> "}"
+std::unique_ptr<Stmt> Parser::parseStmtBlock() {
+    if (has(TokenType::OP_BRACE_O)) {
+        consume(); // eat "{"
+        auto stmtBlock = std::make_unique<StmtBlock>();
+
+        // <STMTS> ::= <STMT> | <STMTS> <STMT>
+        while (hasNext() && !has(TokenType::OP_BRACE_C))
+            stmtBlock->addNode(parseStmt());
+
+        expect(TokenType::OP_BRACE_C); // expect "}"
+        return stmtBlock;
+    } else {
+        return parseStmt();
+    }
+}
+
+std::unique_ptr<Stmt> Parser::parseStmt() {
+    switch (peek()->getType()) {
+        case TokenType::KW_RETURN :
+            return parseReturnStmt();
+    }
+    throw Exception{"You shouldn't have gotten here"};
+}
+
+std::unique_ptr<Stmt> Parser::parseReturnStmt() {
+    expect(TokenType::KW_RETURN); // expect "return"
+    if (has(TokenType::OP_SEMICOLON)) { // if the following token is ";"
+        consume(); // eat ";"
+        return std::make_unique<ReturnStmt>();
+    } else {
+        auto returnStmt = std::make_unique<ReturnStmt>();
+        //returnStmt->addNode(/*parse expression*/);
+        expect(TokenType::OP_SEMICOLON); // expect ";"
+        return returnStmt;
     }
 }

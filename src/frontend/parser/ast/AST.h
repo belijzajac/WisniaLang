@@ -164,4 +164,33 @@ public:
     }
 };
 
+//----------------------------------------------------------------------------------------------------------------------
+// Statements
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Stmt (statement) node
+class Stmt : public AST {
+public:
+    void print(size_t level) const override {
+        AST::print(level);
+    }
+};
+
+// Statement block node
+class StmtBlock : public Stmt {
+public:
+    explicit StmtBlock(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    StmtBlock() = default;
+
+    const std::string kind() const override { return "StmtBlock"; }
+};
+
+// Return statement node
+class ReturnStmt : public Stmt {
+public:
+    explicit ReturnStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ReturnStmt() = default;
+
+    const std::string kind() const override { return "ReturnStmt"; }
+};
+
 #endif // AST_H
