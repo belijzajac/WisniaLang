@@ -51,20 +51,33 @@ class Parser {
     // Parses return statement
     std::unique_ptr<Stmt> parseReturnStmt();
 
-    // Parses expression
+    // Parses expression -- starts the whole parsing from this function
     std::unique_ptr<Expr> parseExpr();
 
-    // Parses logical AND expression
+    // Parses logical AND (&&) expression
     std::unique_ptr<Expr> parseAndExpr();
+
+    // Parses logical Equality (==, !=) expression
+    std::unique_ptr<Expr> parseEqExpr();
+
+    // Parses comparison (>, >=, <, <=) expression
+    std::unique_ptr<Expr> parseCompExpr();
+
+    // Parses addition (+) expression
+    std::unique_ptr<Expr> parseAddExpr();
+
+    // Parses multiplication (*, /) expression
+    std::unique_ptr<Expr> parseMultExpr();
+
+    // Parses unary (!, ++) expression
+    std::unique_ptr<Expr> parseUnaryExpr();
+
+    // Parses other expressions
+    std::unique_ptr<Expr> parseSomeExpr();
 
 public:
     explicit Parser(const Lexer &lexer);
     ~Parser() = default;
-
-    // Returns an instance of token at position pos
-    std::shared_ptr<Token> at(size_t pos) const {
-        return (pos >= tokens_.size() || pos < 0)? nullptr : tokens_.at(pos);
-    }
 
     // Returns an instance of the current token
     const std::shared_ptr<Token> &curr() const { return tokens_.at(pos_); }

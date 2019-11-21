@@ -181,7 +181,135 @@ std::unique_ptr<Expr> Parser::parseExpr() {
     return lhs;
 }
 
+// <AND_EXPR> ::= <EQUAL_EXPR> | <AND_EXPR> <AND_SYMB> <EQUAL_EXPR>
+// <AND_EXPR> ::= <EQUAL_EXPR> { <AND_SYMB> <EQUAL_EXPR> }
 std::unique_ptr<Expr> Parser::parseAndExpr() {
+    auto lhs = parseEqExpr();
+
+    while (has(TokenType::OP_AND)) { // ... <AND_SYMB> <EQUAL_EXPR>
+        expect(TokenType::OP_AND);   // expect "&&"
+        auto rhs = parseEqExpr();
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(lhs));
+
+        // Move rhs and tempLhs nodes
+        lhs = std::make_unique<BooleanExpr>(TokenType::OP_AND);
+        lhs->addNode(std::move(tempLhs));
+        lhs->addNode(std::move(rhs));
+    }
+    return lhs;
+}
+
+// <EQUAL_EXPR> ::= <COMPARE_EXPR> | <EQUAL_EXPR> <EQUALITY_SYMB> <COMPARE_EXPR>
+// <EQUAL_EXPR> ::= <COMPARE_EXPR> { <EQUALITY_SYMB> <COMPARE_EXPR> }
+std::unique_ptr<Expr> Parser::parseEqExpr() {
+    auto lhs = parseCompExpr();
+
+    while (has(TokenType::OP_EQ) || has(TokenType::OP_NE)) { // ... <EQUALITY_SYMB> <COMPARE_EXPR>
+        auto tokType = peek()->getType();
+        expect(tokType); // expect either "==" or "!="
+        auto rhs = parseCompExpr();
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(lhs));
+
+        // Move rhs and tempLhs nodes
+        lhs = std::make_unique<EqExpr>(tokType);
+        lhs->addNode(std::move(tempLhs));
+        lhs->addNode(std::move(rhs));
+    }
+    return lhs;
+}
+
+// <COMPARE_EXPR> ::= <ADD_EXPR> | <COMPARE_EXPR> <COMPARISON_SYMB> <ADD_EXPR>
+// <COMPARE_EXPR> ::= <ADD_EXPR> { <COMPARISON_SYMB> <ADD_EXPR> }
+std::unique_ptr<Expr> Parser::parseCompExpr() {
+    auto lhs = parseAddExpr();
+
+    // TODO: rewrite in folding expressions? method: hasAny(TokenType::OP_G, TokenType::OP_GE, ...)
+    while (has(TokenType::OP_G) || has(TokenType::OP_GE) ||
+           has(TokenType::OP_L) || has(TokenType::OP_LE)) { // ... <COMPARISON_SYMB> <ADD_EXPR>
+
+        auto tokType = peek()->getType();
+        expect(tokType); // expect any of ">", ">=", "<", "<="
+        auto rhs = parseAddExpr();
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(lhs));
+
+        // Move rhs and tempLhs nodes
+        lhs = std::make_unique<CompExpr>(tokType);
+        lhs->addNode(std::move(tempLhs));
+        lhs->addNode(std::move(rhs));
+    }
+    return lhs;
+}
+
+// <ADD_EXPR> ::= <MULT_EXPR> | <ADD_EXPR> <ADD_OP> <MULT_EXPR>
+// <ADD_EXPR> ::= <MULT_EXPR> { <ADD_OP> <MULT_EXPR> }
+std::unique_ptr<Expr> Parser::parseAddExpr() {
+    auto lhs = parseMultExpr();
+
+    while (has(TokenType::OP_ADD) || has(TokenType::OP_SUB)) { // ... <ADD_OP> <MULT_EXPR>
+        auto tokType = peek()->getType();
+        expect(tokType); // expect either "+" or "-"
+        auto rhs = parseMultExpr();
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(lhs));
+
+        // Move rhs and tempLhs nodes
+        lhs = std::make_unique<AddExpr>(tokType);
+        lhs->addNode(std::move(tempLhs));
+        lhs->addNode(std::move(rhs));
+    }
+    return lhs;
+}
+// <MULT_EXPR> ::= <UNARY_EXPR> | <MULT_EXPR> <MULT_OP> <UNARY_EXPR>
+// <MULT_EXPR> ::= <UNARY_EXPR> { <MULT_OP> <UNARY_EXPR> }
+std::unique_ptr<Expr> Parser::parseMultExpr() {
+    auto lhs = parseUnaryExpr();
+
+    while (has(TokenType::OP_MUL) || has(TokenType::OP_DIV)) { // ... <MULT_OP> <UNARY_EXPR>
+        auto tokType = peek()->getType();
+        expect(tokType); // expect either "*" or "/"
+        auto rhs = parseUnaryExpr();
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(lhs));
+
+        // Move rhs and tempLhs nodes
+        lhs = std::make_unique<MultExpr>(tokType);
+        lhs->addNode(std::move(tempLhs));
+        lhs->addNode(std::move(rhs));
+    }
+    return lhs;
+}
+
+// <UNARY_EXPR> ::= <SOME_EXPR> | <UNARY_SYM> <UNARY_EXPR>
+// <UNARY_EXPR> ::= {UNARY_SYM} <SOME_EXPR>
+std::unique_ptr<Expr> Parser::parseUnaryExpr() {
+    // {!|++} <SOME_EXPR>
+    if (has(TokenType::OP_UNEG) || has(TokenType::OP_UADD)) {
+        auto lhs = std::unique_ptr<Expr>();
+
+        while (has(TokenType::OP_UNEG) || has(TokenType::OP_UADD)) { // <UNARY_SYM> ...
+            auto tokType = peek()->getType();
+            expect(tokType); // expect either "!" or "++"
+            auto rhs = parseUnaryExpr();
+
+            // Append the unary expression we've just found
+            lhs = std::make_unique<UnaryExpr>(tokType);
+            lhs->addNode(std::move(rhs));
+        }
+        return lhs;
+    } else { // <SOME_EXPR>
+        return parseSomeExpr();
+    }
+}
+
+std::unique_ptr<Expr> Parser::parseSomeExpr() {
     // For testing purposes
     expect(TokenType::LIT_INT);
     return std::make_unique<BinaryExpr>(curr());
@@ -189,3 +317,13 @@ std::unique_ptr<Expr> Parser::parseAndExpr() {
     //consume();
     //return std::unique_ptr<Expr>();
 }
+
+/*
+std::unique_ptr<Expr> Parser::parseAndExpr() {
+    // For testing purposes
+    expect(TokenType::LIT_INT);
+    return std::make_unique<BinaryExpr>(curr());
+
+    //consume();
+    //return std::unique_ptr<Expr>();
+}*/

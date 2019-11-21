@@ -72,6 +72,71 @@ public:
     }
 };
 
+// Equality Expression node
+class EqExpr : public Expr {
+public:
+    explicit EqExpr(TokenType opType) { op_ = opType; }
+    EqExpr() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "EqExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+};
+
+// Comparison Expression node
+class CompExpr : public Expr {
+public:
+    explicit CompExpr(TokenType opType) { op_ = opType; }
+    CompExpr() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "CompExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+};
+
+// Addition (and subtraction) Expression node
+class AddExpr : public Expr {
+public:
+    explicit AddExpr(TokenType opType) { op_ = opType; }
+    AddExpr() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "AddExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+};
+
+// Multiplication (and division) Expression node
+class MultExpr : public Expr {
+public:
+    explicit MultExpr(TokenType opType) { op_ = opType; }
+    MultExpr() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "MultExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+};
+
+// Unary Expression node
+class UnaryExpr : public Expr {
+public:
+    explicit UnaryExpr(TokenType opType) { op_ = opType; }
+    UnaryExpr() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "UnaryExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+};
+
 // Binary Expression node
 class BinaryExpr : public Expr {
 public:
