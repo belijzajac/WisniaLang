@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <sstream>
 #include "../../lexer/token/Token.h"
 
 // Root node
@@ -36,6 +37,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 // An abstract definition for Expr node
 class Expr : public AST {
+protected:
+    TokenType op_; // operand for expression (+, *, &&, ...)
 public:
     void print(size_t level) const override {
         AST::print(level);
@@ -56,13 +59,30 @@ public:
     }
 };
 
+// Boolean Expression node
+class BooleanExpr : public Expr {
+public:
+    explicit BooleanExpr(TokenType opType) { op_ = opType; }
+    BooleanExpr() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "BooleanExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+};
+
 // Binary Expression node
 class BinaryExpr : public Expr {
 public:
     explicit BinaryExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
     BinaryExpr() = default;
 
-    const std::string kind() const override { return "BinaryExpression"; }
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "BinaryExpression" << " (" << token_->getValueStr() << ")";
+        return ss.str();
+    }
 };
 
 //----------------------------------------------------------------------------------------------------------------------

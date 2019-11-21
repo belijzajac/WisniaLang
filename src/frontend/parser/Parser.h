@@ -51,6 +51,12 @@ class Parser {
     // Parses return statement
     std::unique_ptr<Stmt> parseReturnStmt();
 
+    // Parses expression
+    std::unique_ptr<Expr> parseExpr();
+
+    // Parses logical AND expression
+    std::unique_ptr<Expr> parseAndExpr();
+
 public:
     explicit Parser(const Lexer &lexer);
     ~Parser() = default;

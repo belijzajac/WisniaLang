@@ -146,6 +146,8 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
     throw Exception{"You shouldn't have gotten here"};
 }
 
+// <FN_RETURN_STMT> <STMT_END>
+// <FN_RETURN_STMT> ::= <RETURN_SYMB> | <RETURN_SYMB> <EXPRESSION>
 std::unique_ptr<Stmt> Parser::parseReturnStmt() {
     expect(TokenType::KW_RETURN); // expect "return"
     if (has(TokenType::OP_SEMICOLON)) { // if the following token is ";"
@@ -153,8 +155,37 @@ std::unique_ptr<Stmt> Parser::parseReturnStmt() {
         return std::make_unique<ReturnStmt>();
     } else {
         auto returnStmt = std::make_unique<ReturnStmt>();
-        //returnStmt->addNode(/*parse expression*/);
+        returnStmt->addNode(parseExpr());
         expect(TokenType::OP_SEMICOLON); // expect ";"
         return returnStmt;
     }
+}
+
+// <EXPRESSION> ::= <AND_EXPR> | <EXPRESSION> <OR_SYMB> <AND_EXPR>
+// <EXPRESSION> ::= <AND_EXPR> { <OR_SYMB> <AND_EXPR> }
+std::unique_ptr<Expr> Parser::parseExpr() {
+    auto lhs = parseAndExpr();
+
+    while (has(TokenType::OP_OR)) { // ... <OR_SYMB> <AND_EXPR>
+        expect(TokenType::OP_OR);   // expect "||"
+        auto rhs = parseAndExpr();
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(lhs));
+
+        // Move rhs and tempLhs nodes
+        lhs = std::make_unique<BooleanExpr>(TokenType::OP_OR);
+        lhs->addNode(std::move(tempLhs));
+        lhs->addNode(std::move(rhs));
+    }
+    return lhs;
+}
+
+std::unique_ptr<Expr> Parser::parseAndExpr() {
+    // For testing purposes
+    expect(TokenType::LIT_INT);
+    return std::make_unique<BinaryExpr>(curr());
+
+    //consume();
+    //return std::unique_ptr<Expr>();
 }
