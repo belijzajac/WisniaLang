@@ -206,7 +206,7 @@ std::unique_ptr<Expr> Parser::parseAndExpr() {
 std::unique_ptr<Expr> Parser::parseEqExpr() {
     auto lhs = parseCompExpr();
 
-    while (has(TokenType::OP_EQ) || has(TokenType::OP_NE)) { // ... <EQUALITY_SYMB> <COMPARE_EXPR>
+    while (hasAnyOf(TokenType::OP_EQ, TokenType::OP_NE)) { // ... <EQUALITY_SYMB> <COMPARE_EXPR>
         auto tokType = peek()->getType();
         expect(tokType); // expect either "==" or "!="
         auto rhs = parseCompExpr();
@@ -228,9 +228,7 @@ std::unique_ptr<Expr> Parser::parseCompExpr() {
     auto lhs = parseAddExpr();
 
     // TODO: rewrite in folding expressions? method: hasAny(TokenType::OP_G, TokenType::OP_GE, ...)
-    while (has(TokenType::OP_G) || has(TokenType::OP_GE) ||
-           has(TokenType::OP_L) || has(TokenType::OP_LE)) { // ... <COMPARISON_SYMB> <ADD_EXPR>
-
+    while (hasAnyOf(TokenType::OP_G, TokenType::OP_GE, TokenType::OP_L, TokenType::OP_LE)) {  // ... <COMPARISON_SYMB> <ADD_EXPR>
         auto tokType = peek()->getType();
         expect(tokType); // expect any of ">", ">=", "<", "<="
         auto rhs = parseAddExpr();
@@ -251,7 +249,7 @@ std::unique_ptr<Expr> Parser::parseCompExpr() {
 std::unique_ptr<Expr> Parser::parseAddExpr() {
     auto lhs = parseMultExpr();
 
-    while (has(TokenType::OP_ADD) || has(TokenType::OP_SUB)) { // ... <ADD_OP> <MULT_EXPR>
+    while (hasAnyOf(TokenType::OP_ADD, TokenType::OP_SUB)) { // ... <ADD_OP> <MULT_EXPR>
         auto tokType = peek()->getType();
         expect(tokType); // expect either "+" or "-"
         auto rhs = parseMultExpr();
@@ -271,7 +269,7 @@ std::unique_ptr<Expr> Parser::parseAddExpr() {
 std::unique_ptr<Expr> Parser::parseMultExpr() {
     auto lhs = parseUnaryExpr();
 
-    while (has(TokenType::OP_MUL) || has(TokenType::OP_DIV)) { // ... <MULT_OP> <UNARY_EXPR>
+    while (hasAnyOf(TokenType::OP_MUL, TokenType::OP_DIV)) { // ... <MULT_OP> <UNARY_EXPR>
         auto tokType = peek()->getType();
         expect(tokType); // expect either "*" or "/"
         auto rhs = parseUnaryExpr();
@@ -290,11 +288,14 @@ std::unique_ptr<Expr> Parser::parseMultExpr() {
 // <UNARY_EXPR> ::= <SOME_EXPR> | <UNARY_SYM> <UNARY_EXPR>
 // <UNARY_EXPR> ::= {UNARY_SYM} <SOME_EXPR>
 std::unique_ptr<Expr> Parser::parseUnaryExpr() {
+    // Checks for acceptable token types
+    auto isAnyOf { [&]() -> bool { return hasAnyOf(TokenType::OP_UNEG, TokenType::OP_UADD); } };
+
     // {!|++} <SOME_EXPR>
-    if (has(TokenType::OP_UNEG) || has(TokenType::OP_UADD)) {
+    if (isAnyOf()) {
         auto lhs = std::unique_ptr<Expr>();
 
-        while (has(TokenType::OP_UNEG) || has(TokenType::OP_UADD)) { // <UNARY_SYM> ...
+        while (isAnyOf()) { // <UNARY_SYM> ...
             auto tokType = peek()->getType();
             expect(tokType); // expect either "!" or "++"
             auto rhs = parseUnaryExpr();

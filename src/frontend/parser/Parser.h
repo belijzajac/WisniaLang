@@ -21,6 +21,10 @@ class Parser {
     // Checks if the current token is of type `token`
     bool has(const TokenType &token);
 
+    // Checks if the sequence of tokens is of type `token`
+    template<typename... TokenTypes>
+    bool hasAnyOf(TokenTypes... type) { return (has(type) || ...); }
+
     // Position of current token
     int pos_ {-1};
 
