@@ -163,15 +163,19 @@ public:
 // Function Expression node
 class FnExpr : public Expr {
     std::unique_ptr<Expr> name_;       // function name
-    std::shared_ptr<Token> className_; // can be nullptr if the function isn't inside a class
+    std::shared_ptr<Expr> className_;  // can be nullptr if the function isn't inside a class
     std::unique_ptr<ParamsList> args_; // function arguments
 public:
     explicit FnExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
     FnExpr() = default;
 
+    // Mutators
     void addFnName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
-    void addClassName(const std::shared_ptr<Token> &className) { className_ = className; }
+    void addClassName(std::shared_ptr<Expr> className) { className_ = className; }
     void addArgs(std::unique_ptr<ParamsList> args) { args_ = std::move(args); }
+
+    // Accessors
+    std::shared_ptr<Expr> getClassName() const { return className_; }
 
     const std::string kind() const override {
         std::stringstream ss;
@@ -180,11 +184,14 @@ public:
     }
 
     void print(size_t level) const override {
+        Expr::print(level);
+        /*
         printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
         level++;
 
+        if (className_ != nullptr) className_->print(level);
         name_->print(level);
-        args_->print(level);
+        args_->print(level);*/
     }
 };
 

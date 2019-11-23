@@ -341,7 +341,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
 
         // <CLASS_M_CALL>
         else if (has2(TokenType::OP_METHOD_CALL) || has2(TokenType::OP_FN_ARROW)) // a. or a->
-            ; // TODO: return paseClassMethodCall();
+            return parseMethodCall();
 
         // <VAR>
         else
@@ -359,9 +359,38 @@ std::unique_ptr<Expr> Parser::parseFnCall() {
     return fnCallPtr;
 }
 
+// <CLASS_M_CALL> ::= <IDENT> <CLASS_M_CALL_SYM> <VAR> <ARGUMENTS {<CLASS_M_CALL_SYM> <VAR> <ARGUMENTS}
+std::unique_ptr<Expr> Parser::parseMethodCall() {
+    auto methodCallPtr = std::make_unique<FnExpr>();
+    methodCallPtr->addClassName(parseIdent());
+
+    // eat "." or "->"
+    hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW) ? consume() : throw Exception{"Unknown method call symbol"};
+
+    methodCallPtr->addFnName(parseIdent());
+    methodCallPtr->addArgs(parseArgsList());
+
+    while (hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW)) {
+        consume(); // eat "." or "->"
+        auto rhs = std::make_unique<FnExpr>();
+        rhs->addClassName(methodCallPtr->getClassName());
+        rhs->addFnName(parseIdent());
+        rhs->addArgs(parseArgsList());
+
+        // Make a temporary copy of the lhs
+        auto tempLhs = std::unique_ptr<Expr>(std::move(methodCallPtr));
+
+        // Move rhs and tempLhs nodes
+        methodCallPtr = std::make_unique<FnExpr>();
+        methodCallPtr->addNode(std::move(tempLhs));
+        methodCallPtr->addNode(std::move(rhs));
+    }
+    return methodCallPtr;
+}
+
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
 std::unique_ptr<ParamsList> Parser::parseArgsList() {
-    // To map possible argsBody types to their electable closing body types
+    // To map possible argsBody types to their selectable closing body types
     std::unordered_map<TokenType, TokenType> expectBodyType = {
         {TokenType::OP_PAREN_O, TokenType::OP_PAREN_C},
         {TokenType::OP_BRACE_O, TokenType::OP_BRACE_C}
@@ -388,7 +417,7 @@ std::unique_ptr<ParamsList> Parser::parseArgsList() {
         // If not, continue parsing
         expect(TokenType::OP_COMMA);
     }
-    expect(argsExpType); // // expect either ")" or "}"
+    expect(argsExpType); // expect either ")" or "}"
     return argsList;
 }
 

@@ -87,6 +87,10 @@ class Parser {
     // Parses function call
     std::unique_ptr<Expr> parseFnCall();
 
+    // Parses class method call
+    // e.g. classPtr->getObj()->...->calculateFib(5)
+    std::unique_ptr<Expr> parseMethodCall();
+
     // Parses function, ctor/dtor arguments list
     std::unique_ptr<ParamsList> parseArgsList();
 
