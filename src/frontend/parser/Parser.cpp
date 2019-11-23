@@ -5,6 +5,7 @@
 #include "../parser/ast/AST.h"
 #include "../../utilities/Exception.h"
 #include <algorithm>
+#include <unordered_map>
 #include <iostream>
 
 Parser::Parser(const Lexer &lexer) {
@@ -19,13 +20,16 @@ bool Parser::has(const TokenType &token) {
     return peek()->getType() == token;
 }
 
+bool Parser::has2(const TokenType &token) {
+    return tokens_.at(pos_ + 2)->getType() == token;
+}
+
 // TODO: Instead of throwing exceptions, make an option to instead print error msg to STDERR
 void Parser::expect(const TokenType &token) {
-    if (peek()->getType() != token) {
+    if (peek()->getType() != token)
         throw Exception{"Expected " + TokenTypeToStr[token] + " but found " + TokenTypeToStr[peek()->getType()]};
-    } else {
+    else
         consume();
-    }
 }
 
 std::unique_ptr<AST> Parser::parse() {
@@ -310,13 +314,82 @@ std::unique_ptr<Expr> Parser::parseUnaryExpr() {
     }
 }
 
+// <SOME_EXPR> ::= "(" <EXPRESSION> ")" | <VAR> | <FN_CALL> | <CLASS_M_CALL> | <CONSTANT_LIT> | <CLASS_INIT>
 std::unique_ptr<Expr> Parser::parseSomeExpr() {
-    // For testing purposes
-    expect(TokenType::LIT_INT);
-    return std::make_unique<BinaryExpr>(curr());
+    switch (peek()->getType()) {
+        // "(" <EXPRESSION> ")"
+        case TokenType::OP_PAREN_O: {
+            expect(TokenType::OP_PAREN_O); // eat "("
+            auto exp = parseExpr();
+            expect(TokenType::OP_PAREN_C); // eat ")"
+            return exp;
+        }
+        // <VAR> | <FN_CALL> | <CLASS_M_CALL>
+        case TokenType::IDENT: {
+            return parseVarExp();
+        }
+    }
+    throw Exception{"That's one weird expression you've got there"};
+}
 
-    //consume();
-    //return std::unique_ptr<Expr>();
+// Returns any of the following: <VAR> | <FN_CALL> | <CLASS_M_CALL>
+std::unique_ptr<Expr> Parser::parseVarExp() {
+    if (has(TokenType::IDENT)) { // a
+        // <FN_CALL>
+        if (has2(TokenType::OP_PAREN_O) || has2(TokenType::OP_BRACE_O)) // a( or a{
+            return parseFnCall();
+
+        // <CLASS_M_CALL>
+        else if (has2(TokenType::OP_METHOD_CALL) || has2(TokenType::OP_FN_ARROW)) // a. or a->
+            ; // TODO: return paseClassMethodCall();
+
+        // <VAR>
+        else
+            return parseIdent();
+    } else {
+        ; // do nothing. The branch is never reached
+    }
+}
+
+// <FN_CALL> ::= <IDENT> <ARGUMENTS>
+std::unique_ptr<Expr> Parser::parseFnCall() {
+    auto fnCallPtr = std::make_unique<FnExpr>();
+    fnCallPtr->addFnName(parseIdent());
+    fnCallPtr->addArgs(parseArgsList());
+    return fnCallPtr;
+}
+
+// <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
+std::unique_ptr<ParamsList> Parser::parseArgsList() {
+    // To map possible argsBody types to their electable closing body types
+    std::unordered_map<TokenType, TokenType> expectBodyType = {
+        {TokenType::OP_PAREN_O, TokenType::OP_PAREN_C},
+        {TokenType::OP_BRACE_O, TokenType::OP_BRACE_C}
+    };
+
+    consume(); // idk why's this required,
+               // but it solved the issue with incorrect token types
+
+    auto argsCurrType = curr()->getType();              // either "(" or "{"
+    auto argsExpType = expectBodyType.at(argsCurrType); // the opposite of argsCurrType
+    auto argsList = std::make_unique<ParamsList>();     // to store function arguments
+
+    // <EXPR_LIST> ::= <EXPRESSION> | <EXPR_LIST> "," <EXPRESSION>
+    while (hasNext() && !has(argsExpType)) {
+        // Parse a single argument
+        auto arg = std::make_unique<SingleParam>();
+        arg->addNode(parseExpr()); // parse <EXPRESSION>
+        argsList->addNode(std::move(arg));
+
+        // Check whether we've parsed all args
+        if (has(argsExpType))
+            break;
+
+        // If not, continue parsing
+        expect(TokenType::OP_COMMA);
+    }
+    expect(argsExpType); // // expect either ")" or "}"
+    return argsList;
 }
 
 /*

@@ -13,6 +13,7 @@ enum class TokenType;
 class AST;
 class Def;
 class Param;
+class ParamsList;
 class Expr;
 class Type;
 class Stmt;
@@ -20,6 +21,7 @@ class Stmt;
 class Parser {
     // Checks if the current token is of type `token`
     bool has(const TokenType &token);
+    bool has2(const TokenType &token);
 
     // Checks if the sequence of tokens is of type `token`
     template<typename... TokenTypes>
@@ -78,6 +80,15 @@ class Parser {
 
     // Parses other expressions
     std::unique_ptr<Expr> parseSomeExpr();
+
+    // Parses variangle expression (variable, class method call, function call)
+    std::unique_ptr<Expr> parseVarExp();
+
+    // Parses function call
+    std::unique_ptr<Expr> parseFnCall();
+
+    // Parses function, ctor/dtor arguments list
+    std::unique_ptr<ParamsList> parseArgsList();
 
 public:
     explicit Parser(const Lexer &lexer);

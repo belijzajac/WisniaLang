@@ -33,6 +33,43 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------
+// Parameters
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Param node
+class Param : public AST {
+public:
+    void print(size_t level) const override {
+        AST::print(level);
+    }
+};
+
+// A single parameter
+class SingleParam : public Param {
+public:
+    explicit SingleParam(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    SingleParam() = default;
+
+    const std::string kind() const override { return "SingleParam"; }
+
+    void print(size_t level) const override {
+        Param::print(level);
+    }
+};
+
+// Parameters List node
+class ParamsList : public Param {
+public:
+    explicit ParamsList(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ParamsList() = default;
+
+    const std::string kind() const override { return "ParamsList"; }
+
+    void print(size_t level) const override {
+        Param::print(level);
+    }
+};
+
+//----------------------------------------------------------------------------------------------------------------------
 // Expressions
 //----------------------------------------------------------------------------------------------------------------------
 // An abstract definition for Expr node
@@ -42,20 +79,6 @@ protected:
 public:
     void print(size_t level) const override {
         AST::print(level);
-    }
-};
-
-// Identifier node
-class Identifier : public Expr {
-public:
-    explicit Identifier(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    Identifier() = default;
-
-    const std::string kind() const override { return "Identifier"; }
-
-    void print(size_t level) const override {
-        AST::print(level);
-        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getValueStr().c_str());
     }
 };
 
@@ -137,6 +160,34 @@ public:
     }
 };
 
+// Function Expression node
+class FnExpr : public Expr {
+    std::unique_ptr<Expr> name_;       // function name
+    std::shared_ptr<Token> className_; // can be nullptr if the function isn't inside a class
+    std::unique_ptr<ParamsList> args_; // function arguments
+public:
+    explicit FnExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FnExpr() = default;
+
+    void addFnName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
+    void addClassName(const std::shared_ptr<Token> &className) { className_ = className; }
+    void addArgs(std::unique_ptr<ParamsList> args) { args_ = std::move(args); }
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "FnExpr";
+        return ss.str();
+    }
+
+    void print(size_t level) const override {
+        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
+
+        name_->print(level);
+        args_->print(level);
+    }
+};
+
 // Binary Expression node
 class BinaryExpr : public Expr {
 public:
@@ -147,6 +198,20 @@ public:
         std::stringstream ss;
         ss << "BinaryExpression" << " (" << token_->getValueStr() << ")";
         return ss.str();
+    }
+};
+
+// Identifier node
+class Identifier : public Expr {
+public:
+    explicit Identifier(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    Identifier() = default;
+
+    const std::string kind() const override { return "Identifier"; }
+
+    void print(size_t level) const override {
+        AST::print(level);
+        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getValueStr().c_str());
     }
 };
 
@@ -184,43 +249,6 @@ public:
 
     void print(size_t level) const override {
         Def::print(level);
-    }
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// Parameters
-//----------------------------------------------------------------------------------------------------------------------
-// An abstract definition for Param node
-class Param : public AST {
-public:
-    void print(size_t level) const override {
-        AST::print(level);
-    }
-};
-
-// A single parameter
-class SingleParam : public Param {
-public:
-    explicit SingleParam(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    SingleParam() = default;
-
-    const std::string kind() const override { return "SingleParam"; }
-
-    void print(size_t level) const override {
-        Param::print(level);
-    }
-};
-
-// Parameters List node
-class ParamsList : public Param {
-public:
-    explicit ParamsList(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    ParamsList() = default;
-
-    const std::string kind() const override { return "ParamsList"; }
-
-    void print(size_t level) const override {
-        Param::print(level);
     }
 };
 

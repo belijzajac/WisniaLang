@@ -46,8 +46,7 @@
 <PARAMS_SEQ>     ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
 <PARAM>          ::= <IDENT> ":" <TYPE>
 
-<FN_CALL>        ::= <FN_CALL_SINGLE> | <FN_CALL> "." <FN_CALL_SINGLE>
-<FN_CALL_SINGLE> ::= <IDENT> <ARGUMENTS>
+<FN_CALL>        ::= <IDENT> <ARGUMENTS>
 
 //----------------------------------------------------------------------
 // Statements
@@ -98,7 +97,7 @@
 <SOME_EXPR>       ::= "(" <EXPRESSION> ")"
                     | <VAR>
                     | <FN_CALL>
-                    | <CLASS_METHOD_CALL>
+                    | <CLASS_M_CALL>
                     | <CONSTANT_LIT>
                     | <CLASS_INIT>
 
