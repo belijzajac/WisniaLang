@@ -231,7 +231,6 @@ std::unique_ptr<Expr> Parser::parseEqExpr() {
 std::unique_ptr<Expr> Parser::parseCompExpr() {
     auto lhs = parseAddExpr();
 
-    // TODO: rewrite in folding expressions? method: hasAny(TokenType::OP_G, TokenType::OP_GE, ...)
     while (hasAnyOf(TokenType::OP_G, TokenType::OP_GE, TokenType::OP_L, TokenType::OP_LE)) {  // ... <COMPARISON_SYMB> <ADD_EXPR>
         auto tokType = peek()->getType();
         expect(tokType); // expect any of ">", ">=", "<", "<="
@@ -325,11 +324,17 @@ std::unique_ptr<Expr> Parser::parseSomeExpr() {
             return exp;
         }
         // <VAR> | <FN_CALL> | <CLASS_M_CALL>
-        case TokenType::IDENT: {
+        case TokenType::IDENT:
             return parseVarExp();
-        }
+
+        // <CLASS_INIT>
+        case TokenType::KW_CLASS_INIT:
+            return parseClassInit();
+
+        // <CONSTANT_LIT>
+        default:
+            return parseConstExpr();
     }
-    throw Exception{"That's one weird expression you've got there"};
 }
 
 // Returns any of the following: <VAR> | <FN_CALL> | <CLASS_M_CALL>
@@ -349,6 +354,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
     } else {
         ; // do nothing. The branch is never reached
     }
+    throw Exception{"Undefined expression"};
 }
 
 // <FN_CALL> ::= <IDENT> <ARGUMENTS>
@@ -421,12 +427,44 @@ std::unique_ptr<ParamsList> Parser::parseArgsList() {
     return argsList;
 }
 
-/*
-std::unique_ptr<Expr> Parser::parseAndExpr() {
-    // For testing purposes
-    expect(TokenType::LIT_INT);
-    return std::make_unique<BinaryExpr>(curr());
+// <CLASS_INIT> ::= "new" <IDENT> <ARGUMENTS>
+std::unique_ptr<Expr> Parser::parseClassInit() {
+    expect(TokenType::KW_CLASS_INIT); // expect "new"
+    auto classInitPtr = std::make_unique<ClassInitExpr>();
+    classInitPtr->addName(parseIdent());
+    classInitPtr->addArgs(parseArgsList());
+    return classInitPtr;
+}
 
-    //consume();
-    //return std::unique_ptr<Expr>();
-}*/
+// <CONSTANT_LIT> ::= <BOOL_CONSTANT> | <NUMERIC_CONSTANT> | <STRING>
+std::unique_ptr<Expr> Parser::parseConstExpr() {
+    switch (peek()->getType()) {
+        // <NUMERIC_CONSTANT> : integer
+        case TokenType::LIT_INT: {
+            consume();
+            auto intExpr = std::make_unique<IntExpr>(curr());
+            return intExpr;
+        }
+        // <NUMERIC_CONSTANT> : float
+        case TokenType::LIT_FLT: {
+            consume();
+            auto fltExpr = std::make_unique<FloatExpr>(curr());
+            return fltExpr;
+        }
+        // <BOOL_CONSTANT>
+        case TokenType::KW_TRUE:
+        case TokenType::KW_FALSE:
+        {
+            consume();
+            auto boolExpr = std::make_unique<BoolExpr>(curr());
+            return boolExpr;
+        }
+        // <STRING>
+        case TokenType::LIT_STR: {
+            consume();
+            auto strExpr = std::make_unique<StringExpr>(curr());
+            return strExpr;
+        }
+    }
+    throw Exception{"Unknown constant expression"};
+}

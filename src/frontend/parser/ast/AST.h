@@ -195,6 +195,29 @@ public:
     }
 };
 
+// Function Expression node
+class ClassInitExpr : public Expr {
+    std::unique_ptr<Expr> name_;       // function name
+    std::unique_ptr<ParamsList> args_; // function arguments
+public:
+    explicit ClassInitExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ClassInitExpr() = default;
+
+    // Mutators
+    void addName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
+    void addArgs(std::unique_ptr<ParamsList> args) { args_ = std::move(args); }
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "ClassInitExpr";
+        return ss.str();
+    }
+
+    void print(size_t level) const override {
+        Expr::print(level);
+    }
+};
+
 // Binary Expression node
 class BinaryExpr : public Expr {
 public:
@@ -220,6 +243,58 @@ public:
         AST::print(level);
         printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getValueStr().c_str());
     }
+};
+
+// An abstract definition for constant expression node
+class ConstExpr : public Expr {
+public:
+    const std::string kind() const override {
+        std::stringstream ss;
+
+        // Returns a string representation of the value that a token holds
+        // It's needed because boolean expressions normally don't hold a value
+        auto valueStr = [&]() -> std::string {
+            switch (token_->getType()) {
+                case TokenType::KW_TRUE:
+                    return "true";
+                case TokenType::KW_FALSE:
+                    return "false";
+                default:
+                    return token_->getValueStr();
+            }
+        };
+
+        ss << "ConstExpr" << " (" << valueStr() << ")";
+        return ss.str();
+    }
+};
+
+// A node for Integer expression
+class IntExpr : public ConstExpr {
+public:
+    explicit IntExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    IntExpr() = default;
+};
+
+// A node for Float expression
+class FloatExpr : public ConstExpr {
+public:
+    explicit FloatExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FloatExpr() = default;
+};
+
+// A node for Bool expression
+class BoolExpr : public ConstExpr {
+public:
+    explicit BoolExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    BoolExpr() = default;
+};
+
+// A node for String expression
+class StringExpr : public ConstExpr {
+public:
+    explicit StringExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    StringExpr() = default;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

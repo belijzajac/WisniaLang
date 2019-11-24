@@ -94,6 +94,12 @@ class Parser {
     // Parses function, ctor/dtor arguments list
     std::unique_ptr<ParamsList> parseArgsList();
 
+    // Parses class initialization expression
+    std::unique_ptr<Expr> parseClassInit();
+
+    // Parses constant expression
+    std::unique_ptr<Expr> parseConstExpr();
+
 public:
     explicit Parser(const Lexer &lexer);
     ~Parser() = default;
