@@ -388,4 +388,84 @@ public:
     const std::string kind() const override { return "ReturnStmt"; }
 };
 
+// Loop break statement node
+class LoopBrkStmt : public Stmt {
+public:
+    explicit LoopBrkStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    LoopBrkStmt() = default;
+
+    const std::string kind() const override { return "LoopBrkStmt"; }
+};
+
+// Variable declaration statement node
+class VarDeclStmt : public Stmt {
+    std::unique_ptr<Type> type_;        // variable type
+    std::unique_ptr<Expr> name_;        // variable name
+    std::unique_ptr<Expr> value_;       // variable value
+public:
+    explicit VarDeclStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    VarDeclStmt() = default;
+
+    const std::string kind() const override { return "VarDeclStmt"; }
+
+    // Mutators
+    void addType(std::unique_ptr<Type> varType) { type_ = std::move(varType); }
+    void addName(std::unique_ptr<Expr> varName) { name_ = std::move(varName); }
+    void addValue(std::unique_ptr<Expr> varValue) { value_ = std::move(varValue); }
+};
+
+// Variable assignment statement node
+class VarAssignStmt : public Stmt {
+    std::unique_ptr<Expr> name_;        // variable name
+    std::unique_ptr<Expr> value_;       // variable value
+public:
+    explicit VarAssignStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    VarAssignStmt() = default;
+
+    const std::string kind() const override { return "VarAssignStmt"; }
+
+    // Mutators
+    void addName(std::unique_ptr<Expr> varName) { name_ = std::move(varName); }
+    void addValue(std::unique_ptr<Expr> varValue) { value_ = std::move(varValue); }
+};
+
+// Expression statement node
+class ExprStmt : public Stmt {
+    std::unique_ptr<Expr> expr_;
+public:
+    explicit ExprStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ExprStmt() = default;
+
+    const std::string kind() const override { return "ExprStmt"; }
+
+    // Mutators
+    void addExpr(std::unique_ptr<Expr> expr) { expr_ = std::move(expr); }
+};
+
+// Read IO statement node
+class readIOStmt : public Stmt {
+    std::vector<std::unique_ptr<Expr>> vars_;
+public:
+    explicit readIOStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    readIOStmt() = default;
+
+    const std::string kind() const override { return "readIOStmt"; }
+
+    // Mutators
+    void addVar(std::unique_ptr<Expr> var) { vars_.push_back(std::move(var)); }
+};
+
+// Write IO statement node
+class writeIOStmt : public Stmt {
+    std::vector<std::unique_ptr<Expr>> exprs_;
+public:
+    explicit writeIOStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    writeIOStmt() = default;
+
+    const std::string kind() const override { return "writeIOStmt"; }
+
+    // Mutators
+    void addExpr(std::unique_ptr<Expr> expr) { exprs_.push_back(std::move(expr)); }
+};
+
 #endif // AST_H

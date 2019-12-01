@@ -142,12 +142,51 @@ std::unique_ptr<Stmt> Parser::parseStmtBlock() {
     }
 }
 
+// <STMT> ::= <FN_RETURN_STMT> <STMT_END>
+//          | <LOOP_BREAK_STMT> <STMT_END>
+//          | <VAR_DECL> <STMT_END>
+//          | <ASSIGNMENT_STMT> <STMT_END>
+//          | <EXPRESSION> <STMT_END>
+//          | <IO_STMT> <STMT_END>
+//          | <LOOP_STMT>
+//          | <IF_STMT>
 std::unique_ptr<Stmt> Parser::parseStmt() {
     switch (peek()->getType()) {
+        // <FN_RETURN_STMT>
         case TokenType::KW_RETURN :
             return parseReturnStmt();
+
+        // <LOOP_BREAK_STMT>
+        case TokenType::KW_BREAK :
+        case TokenType::KW_CONTINUE :
+            return parseLoopBrkStmt();
+
+        // <VAR_DECL>
+        case TokenType::KW_VOID :
+        case TokenType::KW_INT :
+        case TokenType::KW_BOOL :
+        case TokenType::KW_FLOAT :
+        case TokenType::KW_STRING :
+            if (has2(TokenType::IDENT))
+                return parseVarDeclStmt();
+
+        // <ASSIGNMENT_STMT>
+        case TokenType::IDENT :
+            if (has2(TokenType::OP_ASSN))
+                return parseVarAssignStmt();
+
+        // <IO_STMT>
+        case TokenType::KW_READ :
+        case TokenType::KW_PRINT :
+            return parseIOStmt();
+
+        // <LOOP_STMT>
+        // TODO
+        
+        // <EXPRESSION>
+        default:
+            return parseExprStmt();
     }
-    throw Exception{"You shouldn't have gotten here"};
 }
 
 // <FN_RETURN_STMT> <STMT_END>
@@ -467,4 +506,119 @@ std::unique_ptr<Expr> Parser::parseConstExpr() {
         }
     }
     throw Exception{"Unknown constant expression"};
+}
+
+// <LOOP_BREAK_STMT> <STMT_END>
+// <LOOP_BREAK_STMT> ::= <BREAK_SYMB> | <CONTINUE_SYMB>
+std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
+    // expect either "break" or "continue"
+    if (hasAnyOf(TokenType::KW_BREAK, TokenType::KW_CONTINUE)) {
+        consume(); // eat either "break" or "continue"
+
+        // if the following token is ";"
+        if (has(TokenType::OP_SEMICOLON)) {
+            consume(); // eat ";"
+            return std::make_unique<LoopBrkStmt>();
+        }
+    }
+    throw Exception{"Unterminated loop break statement"};
+}
+
+// <VAR_DECL> <STMT_END>
+// <VAR_DECL> ::= <TYPE> <VAR> | <TYPE> <VAR> "=" <EXPRESSION> | <TYPE> <VAR> "{" <EXPRESSION> "}"
+std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
+    auto varDeclPtr = std::make_unique<VarDeclStmt>();
+
+    varDeclPtr->addType(parseFnType());
+    varDeclPtr->addName((parseIdent()));
+    std::unique_ptr<Expr> varValue;
+
+    // <TYPE> <VAR> "=" <EXPRESSION>
+    if (has(TokenType::OP_ASSN)) {
+        consume(); // eat "="
+        varValue = parseExpr();
+    }
+    // <TYPE> <VAR> "{" <EXPRESSION> "}"
+    else if (has(TokenType::OP_BRACE_O)) {
+        consume(); // eat "{"
+        varValue = parseExpr();
+        consume(); // eat "}"
+    }
+    // <TYPE> <VAR>
+    else {
+        expect(TokenType::OP_SEMICOLON);
+        return varDeclPtr;
+    }
+    varDeclPtr->addValue(std::move(varValue));
+    expect(TokenType::OP_SEMICOLON);
+    return varDeclPtr;
+}
+
+// <ASSIGNMENT_STMT> <STMT_END>
+// <ASSIGNMENT_STMT> ::= <VAR> "=" <EXPRESSION>
+std::unique_ptr<Stmt> Parser::parseVarAssignStmt() {
+    auto varAssignPtr = std::make_unique<VarAssignStmt>();
+
+    varAssignPtr->addName((parseIdent()));
+    expect(TokenType::OP_ASSN); // eat "="
+    varAssignPtr->addValue(parseExpr());
+
+    expect(TokenType::OP_SEMICOLON);
+    return varAssignPtr;
+}
+
+// <EXPRESSION> <STMT_END>
+std::unique_ptr<Stmt> Parser::parseExprStmt() {
+    auto exprStmtPtr = std::make_unique<ExprStmt>();
+    exprStmtPtr->addExpr(parseExpr());
+    expect(TokenType::OP_SEMICOLON);
+    return exprStmtPtr;
+}
+
+// <IO_STMT> ::= <INPUT_STMT> | <OUTPUT_STMT>
+std::unique_ptr<Stmt> Parser::parseIOStmt() {
+    if (has(TokenType::KW_READ))
+        return parseReadIOStmt();
+    else
+        return parseWriteIOStmt();
+}
+
+// <INPUT_STMT> ::= "read" <INPUT_SEQ>
+// <INPUT_SEQ>  ::= <VAR> | <INPUT_SEQ> "," <VAR>
+std::unique_ptr<Stmt> Parser::parseReadIOStmt() {
+    consume(); // eat "read"
+    auto readIO = std::make_unique<readIOStmt>();
+
+    // <INPUT_SEQ>
+    while (hasNext()) { // a, b, c
+        readIO->addVar(parseIdent());
+
+        if (has(TokenType::OP_COMMA))
+            consume(); // eat ","
+        else
+            break;
+    }
+
+    expect(TokenType::OP_SEMICOLON);
+    return readIO;
+}
+
+// <OUTPUT_STMT> ::= "print" <OUTPUT_SEQ>
+// <OUTPUT_SEQ>  ::= <EXPRESSION> | <OUTPUT_SEQ> "," <EXPRESSION>
+std::unique_ptr<Stmt> Parser::parseWriteIOStmt() {
+    consume(); // eat "print"
+    auto writeIO = std::make_unique<writeIOStmt>();
+
+    // <OUTPUT_SEQ>
+    while (hasNext()) { // a, b, c
+        writeIO->addExpr(parseExpr());
+
+        if (has(TokenType::OP_COMMA))
+            consume(); // eat ","
+        else
+            break;
+    }
+
+    expect(TokenType::OP_SEMICOLON);
+    return writeIO;
 }

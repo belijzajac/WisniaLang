@@ -57,6 +57,32 @@ class Parser {
     // Parses return statement
     std::unique_ptr<Stmt> parseReturnStmt();
 
+    // Parses loop break (break, continue) statement
+    std::unique_ptr<Stmt> parseLoopBrkStmt();
+
+    // Parses variable declaration statement
+    std::unique_ptr<Stmt> parseVarDeclStmt();
+
+    // Parses variable assignment statement
+    std::unique_ptr<Stmt> parseVarAssignStmt();
+
+    // Parses expression statement
+    std::unique_ptr<Stmt> parseExprStmt();
+
+    // Parses IO statement
+    std::unique_ptr<Stmt> parseIOStmt();
+
+    // Parses Read IO statement
+    std::unique_ptr<Stmt> parseReadIOStmt();
+
+    // Parses Write IO statement
+    std::unique_ptr<Stmt> parseWriteIOStmt();
+
+
+
+
+
+
     // Parses expression -- starts the whole parsing from this function
     std::unique_ptr<Expr> parseExpr();
 
