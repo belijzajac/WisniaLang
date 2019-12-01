@@ -117,8 +117,7 @@
 // Loop statements
 //----------------------------------------------------------------------
 
-<LOOP_STMT>         ::= <LOOP_TYPE> <STMT_BLOCK>
-<LOOP_TYPE>         ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
+<LOOP_STMT>         ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
 
 <WHILE_LOOP>        ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
 

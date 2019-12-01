@@ -399,9 +399,9 @@ public:
 
 // Variable declaration statement node
 class VarDeclStmt : public Stmt {
-    std::unique_ptr<Type> type_;        // variable type
-    std::unique_ptr<Expr> name_;        // variable name
-    std::unique_ptr<Expr> value_;       // variable value
+    std::unique_ptr<Type> type_;  // variable type
+    std::unique_ptr<Expr> name_;  // variable name
+    std::unique_ptr<Expr> value_; // variable value
 public:
     explicit VarDeclStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
     VarDeclStmt() = default;
@@ -416,8 +416,8 @@ public:
 
 // Variable assignment statement node
 class VarAssignStmt : public Stmt {
-    std::unique_ptr<Expr> name_;        // variable name
-    std::unique_ptr<Expr> value_;       // variable value
+    std::unique_ptr<Expr> name_;  // variable name
+    std::unique_ptr<Expr> value_; // variable value
 public:
     explicit VarAssignStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
     VarAssignStmt() = default;
@@ -466,6 +466,66 @@ public:
 
     // Mutators
     void addExpr(std::unique_ptr<Expr> expr) { exprs_.push_back(std::move(expr)); }
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// Loops
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Loop node
+class Loop : public Stmt {
+    std::unique_ptr<Stmt> body_; // surrounded by "{ and "}"
+public:
+    void print(size_t level) const override {
+        AST::print(level);
+    }
+
+    // Mutators
+    void addBody(std::unique_ptr<Stmt> body) { body_ = std::move(body); }
+};
+
+// While loop statement node
+class WhileLoop : public Loop {
+    std::unique_ptr<Expr> cond_;
+public:
+    explicit WhileLoop(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    WhileLoop() = default;
+
+    const std::string kind() const override { return "WhileLoop"; }
+
+    // Mutators
+    void addCond(std::unique_ptr<Expr> expr) { cond_ = std::move(expr); }
+};
+
+// For loop statement node
+class ForLoop : public Loop {
+    std::unique_ptr<Stmt> init_;
+    std::unique_ptr<Expr> cond_;
+    std::unique_ptr<Expr> incdec_;
+public:
+    explicit ForLoop(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ForLoop() = default;
+
+    const std::string kind() const override { return "ForLoop"; }
+
+    // Mutators
+    void addInit(std::unique_ptr<Stmt> expr) { init_ = std::move(expr); }
+    void addCond(std::unique_ptr<Expr> expr) { cond_ = std::move(expr); }
+    void addIncDec(std::unique_ptr<Expr> expr) { incdec_ = std::move(expr); }
+};
+
+// ForEach loop statement node
+class ForEachLoop : public Loop {
+    std::unique_ptr<Expr> elem_;     // element
+    std::unique_ptr<Expr> iterElem_; // iterable element
+public:
+    explicit ForEachLoop(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ForEachLoop() = default;
+
+    const std::string kind() const override { return "ForEachLoop"; }
+
+    // Mutators
+    void addElem(std::unique_ptr<Expr> expr) { elem_ = std::move(expr); }
+    void addIterElem(std::unique_ptr<Expr> expr) { iterElem_ = std::move(expr); }
 };
 
 #endif // AST_H

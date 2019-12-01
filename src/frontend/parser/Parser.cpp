@@ -181,8 +181,14 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
             return parseIOStmt();
 
         // <LOOP_STMT>
+        case TokenType::KW_WHILE :
+        case TokenType::KW_FOR :
+        case TokenType::KW_FOREACH :
+            return parseLoops();
+
+        // <IF_STMT>
         // TODO
-        
+
         // <EXPRESSION>
         default:
             return parseExprStmt();
@@ -621,4 +627,69 @@ std::unique_ptr<Stmt> Parser::parseWriteIOStmt() {
 
     expect(TokenType::OP_SEMICOLON);
     return writeIO;
+}
+
+// <LOOP_STMT> ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
+std::unique_ptr<Loop> Parser::parseLoops() {
+    // <WHILE_LOOP>
+    if (has(TokenType::KW_WHILE))
+        return parseWhileLoop();
+    // <FOR_LOOP>
+    else if (has(TokenType::KW_FOR))
+        return parseForLoop();
+    // <FOREACH_LOOP>
+    else
+        return parseForEachLoop();
+}
+
+// <WHILE_LOOP> ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
+std::unique_ptr<Loop> Parser::parseWhileLoop() {
+    auto whileLoopPtr = std::make_unique<WhileLoop>();
+
+    consume();                               // eat "while"
+    expect(TokenType::OP_PAREN_O);           // expect "("
+    whileLoopPtr->addCond(parseExpr());      // <EXPRESSION>
+    expect(TokenType::OP_PAREN_C);           // expect ")"
+    whileLoopPtr->addBody(parseStmtBlock()); // { ... }
+
+    return whileLoopPtr;
+}
+
+// <FOR_LOOP> ::= "for" "(" <FOR_CONDITION> ")" <STMT_BLOCK>
+// <FOR_CONDITION> ::= <VAR_DECL> ";" <EXPRESSION> ";" <EXPRESSION>
+std::unique_ptr<Loop> Parser::parseForLoop() {
+    auto forLoopPtr = std::make_unique<ForLoop>();
+
+    consume();                            // eat "for"
+    expect(TokenType::OP_PAREN_O);        // expect "("
+
+    // For loop body
+    forLoopPtr->addInit(parseVarDeclStmt()); // parses var declaration, which is expected to end with a semicolon
+    forLoopPtr->addCond(parseExpr());
+    expect(TokenType::OP_SEMICOLON);
+    forLoopPtr->addIncDec(parseExpr());
+
+    expect(TokenType::OP_PAREN_C);         // expect ")"
+    forLoopPtr->addBody(parseStmtBlock()); // { ... }
+
+    return forLoopPtr;
+}
+
+// <FOREACH_LOOP>     ::= "for_each" "(" <FOREACH_CONDITION> ")" <STMT_BLOCK>
+//<FOREACH_CONDITION> ::= <VAR> "in" <EXPRESSION>
+std::unique_ptr<Loop> Parser::parseForEachLoop() {
+    auto foreachLoopPtr = std::make_unique<ForEachLoop>();
+
+    consume();                     // eat "for_each"
+    expect(TokenType::OP_PAREN_O); // expect "("
+
+    // Foreach loop body
+    foreachLoopPtr->addElem(parseIdent());
+    expect(TokenType::KW_FOREACH_IN);
+    foreachLoopPtr->addIterElem(parseExpr());
+
+    expect(TokenType::OP_PAREN_C);             // expect ")"
+    foreachLoopPtr->addBody(parseStmtBlock()); // { ... }
+
+    return foreachLoopPtr;
 }

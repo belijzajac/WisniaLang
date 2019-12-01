@@ -17,6 +17,7 @@ class ParamsList;
 class Expr;
 class Type;
 class Stmt;
+class Loop;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -77,6 +78,20 @@ class Parser {
 
     // Parses Write IO statement
     std::unique_ptr<Stmt> parseWriteIOStmt();
+
+    // Parses Loop statements
+    std::unique_ptr<Loop> parseLoops();
+
+    // Parses While loop statement
+    std::unique_ptr<Loop> parseWhileLoop();
+
+    // Parses For loop statement
+    std::unique_ptr<Loop> parseForLoop();
+
+    // Parses ForEach loop statement
+    std::unique_ptr<Loop> parseForEachLoop();
+
+
 
 
 
