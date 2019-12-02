@@ -528,4 +528,74 @@ public:
     void addIterElem(std::unique_ptr<Expr> expr) { iterElem_ = std::move(expr); }
 };
 
+//----------------------------------------------------------------------------------------------------------------------
+// Conditional if statements
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for if statement node
+class BaseIf : public Stmt {
+    std::unique_ptr<Stmt> body_; // surrounded by "{ and "}"
+public:
+    void print(size_t level) const override {
+        AST::print(level);
+        //body_->print(level);
+    }
+
+    // Mutators
+    void addBody(std::unique_ptr<Stmt> body) { body_ = std::move(body); }
+};
+
+// If statement node
+class IfStmt : public BaseIf {
+    std::unique_ptr<Expr> cond_;                     // if condition
+    std::vector<std::unique_ptr<BaseIf>> elseBlcks_; // else blocks
+public:
+    explicit IfStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    IfStmt() = default;
+
+    const std::string kind() const override { return "IfStmt"; }
+
+    void print(size_t level) const override {
+        BaseIf::print(level);
+        //level++;
+        //cond_->print(level);
+
+        for (const auto &elseBl : elseBlcks_)
+            elseBl->print(level);
+    }
+
+    // Mutators
+    void addCond(std::unique_ptr<Expr> expr) { cond_ = std::move(expr); }
+    void addElseBlocks( std::vector<std::unique_ptr<BaseIf>> expr) { elseBlcks_ = std::move(expr); }
+};
+
+// Else statement node
+class ElseStmt : public BaseIf {
+public:
+    explicit ElseStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ElseStmt() = default;
+
+    const std::string kind() const override { return "ElseStmt"; }
+
+    void print(size_t level) const override {
+        BaseIf::print(level);
+    }
+};
+
+// Else If statement node
+class ElseIfStmt : public BaseIf {
+    std::unique_ptr<Expr> cond_;   // else if condition
+public:
+    explicit ElseIfStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    ElseIfStmt() = default;
+
+    const std::string kind() const override { return "ElseIfStmt"; }
+
+    void print(size_t level) const override {
+        BaseIf::print(level);
+    }
+
+    // Mutators
+    void addCond(std::unique_ptr<Expr> expr) { cond_ = std::move(expr); }
+};
+
 #endif // AST_H

@@ -187,7 +187,8 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
             return parseLoops();
 
         // <IF_STMT>
-        // TODO
+        case TokenType::KW_IF:
+            return parseIfBlock();
 
         // <EXPRESSION>
         default:
@@ -675,8 +676,8 @@ std::unique_ptr<Loop> Parser::parseForLoop() {
     return forLoopPtr;
 }
 
-// <FOREACH_LOOP>     ::= "for_each" "(" <FOREACH_CONDITION> ")" <STMT_BLOCK>
-//<FOREACH_CONDITION> ::= <VAR> "in" <EXPRESSION>
+// <FOREACH_LOOP> ::= "for_each" "(" <FOREACH_CONDITION> ")" <STMT_BLOCK>
+// <FOREACH_CONDITION> ::= <VAR> "in" <EXPRESSION>
 std::unique_ptr<Loop> Parser::parseForEachLoop() {
     auto foreachLoopPtr = std::make_unique<ForEachLoop>();
 
@@ -692,4 +693,75 @@ std::unique_ptr<Loop> Parser::parseForEachLoop() {
     foreachLoopPtr->addBody(parseStmtBlock()); // { ... }
 
     return foreachLoopPtr;
+}
+
+// <IF_STMT> ::= <IF_BLOCK> [<MULTIPLE_ELSE_IF_BLOCK>]
+std::unique_ptr<BaseIf> Parser::parseIfBlock() {
+    auto ifStmtPtr = std::make_unique<IfStmt>();
+
+    // <IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")"
+    auto ifCond = [&]() -> std::unique_ptr<Expr> {
+        expect(TokenType::KW_IF);      // expect "if"
+        expect(TokenType::OP_PAREN_O); // expect "("
+        auto cond = parseExpr();       // parse if header condition
+        expect(TokenType::OP_PAREN_C); // expect ")"
+        return cond;
+    };
+
+    ifStmtPtr->addCond(ifCond());
+    ifStmtPtr->addBody(parseStmtBlock());
+
+    // a vector of else statement blocks
+    std::vector<std::unique_ptr<BaseIf>> elseBlocks;
+
+    // Parse else blocks
+    // [<MULTIPLE_ELSE_IF_BLOCK>]
+    if (hasAnyOf(TokenType::KW_ELIF, TokenType::KW_ELSE)) {
+        elseBlocks = parseMultipleElseBlock();
+        ifStmtPtr->addElseBlocks(std::move(elseBlocks));
+    } else {
+        return ifStmtPtr;
+    }
+
+    return ifStmtPtr;
+}
+
+// <MULTIPLE_ELSE_IF_BLOCK> ::= <MULTIPLE_ELIF> | <ELSE_BLOCK>
+// <MULTIPLE_ELIF> ::= <ELIF_BLOCK> {<ELIF_BLOCK>}
+std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
+    std::vector<std::unique_ptr<BaseIf>> elseBlocks;
+
+    // <ELIF_BLOCK> ::= "elif" "(" <EXPRESSION> ")" <STMT_BLOCK>
+    auto elifBodyPtr = [&]() -> std::unique_ptr<ElseIfStmt> {
+        expect(TokenType::KW_ELIF);
+
+        // parse elif condition
+        expect(TokenType::OP_PAREN_O); // expect "("
+        auto cond = parseExpr();       // parse if header condition
+        expect(TokenType::OP_PAREN_C); // expect ")"
+
+        // construct elif statement pointer
+        auto elifStmtPtr = std::make_unique<ElseIfStmt>();
+        elifStmtPtr->addCond(std::move(cond));
+        elifStmtPtr->addBody(parseStmtBlock());
+        return elifStmtPtr;
+    };
+
+    // <ELSE_BLOCK> ::= "else" <STMT_BLOCK>
+    auto elseBodyPtr = [&]() -> std::unique_ptr<ElseStmt> {
+        expect(TokenType::KW_ELSE);
+        auto elseStmtPtr = std::make_unique<ElseStmt>();
+        elseStmtPtr->addBody(parseStmtBlock());
+        return elseStmtPtr;
+    };
+
+    // Parse elif blocks while there are any left
+    while (has(TokenType::KW_ELIF))
+        elseBlocks.push_back(std::move(elifBodyPtr()));
+
+    // Eventually, parse the else block
+    if (has(TokenType::KW_ELSE))
+        elseBlocks.push_back(std::move(elseBodyPtr()));
+
+    return elseBlocks;
 }

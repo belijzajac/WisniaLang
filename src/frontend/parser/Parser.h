@@ -18,6 +18,7 @@ class Expr;
 class Type;
 class Stmt;
 class Loop;
+class BaseIf;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -91,12 +92,11 @@ class Parser {
     // Parses ForEach loop statement
     std::unique_ptr<Loop> parseForEachLoop();
 
+    // Parses if condition block statement
+    std::unique_ptr<BaseIf> parseIfBlock();
 
-
-
-
-
-
+    // Parses multiple else block statements
+    std::vector<std::unique_ptr<BaseIf>> parseMultipleElseBlock();
 
     // Parses expression -- starts the whole parsing from this function
     std::unique_ptr<Expr> parseExpr();
