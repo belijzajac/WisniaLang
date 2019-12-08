@@ -38,34 +38,13 @@ public:
 // An abstract definition for Param node
 class Param : public AST {
 public:
+    explicit Param(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    Param() = default;
+
+    const std::string kind() const override { return "Param"; }
+
     void print(size_t level) const override {
         AST::print(level);
-    }
-};
-
-// A single parameter
-class SingleParam : public Param {
-public:
-    explicit SingleParam(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    SingleParam() = default;
-
-    const std::string kind() const override { return "SingleParam"; }
-
-    void print(size_t level) const override {
-        Param::print(level);
-    }
-};
-
-// Parameters List node
-class ParamsList : public Param {
-public:
-    explicit ParamsList(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    ParamsList() = default;
-
-    const std::string kind() const override { return "ParamsList"; }
-
-    void print(size_t level) const override {
-        Param::print(level);
     }
 };
 
@@ -162,9 +141,9 @@ public:
 
 // Function Expression node
 class FnExpr : public Expr {
-    std::unique_ptr<Expr> name_;       // function name
-    std::shared_ptr<Expr> className_;  // can be nullptr if the function isn't inside a class
-    std::unique_ptr<ParamsList> args_; // function arguments
+    std::unique_ptr<Expr> name_;               // function name
+    std::shared_ptr<Expr> className_;          // can be nullptr if the function isn't inside a class
+    std::vector<std::unique_ptr<Param>> args_; // function arguments
 public:
     explicit FnExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
     FnExpr() = default;
@@ -172,7 +151,7 @@ public:
     // Mutators
     void addFnName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
     void addClassName(std::shared_ptr<Expr> className) { className_ = className; }
-    void addArgs(std::unique_ptr<ParamsList> args) { args_ = std::move(args); }
+    void addArgs(std::vector<std::unique_ptr<Param>> args) { args_ = std::move(args); }
 
     // Accessors
     std::shared_ptr<Expr> getClassName() const { return className_; }
@@ -191,21 +170,23 @@ public:
             className_->print(level);
 
         name_->print(level);
-        args_->print(level);
+
+        for (const auto &arg : args_)
+            arg->print(level);
     }
 };
 
 // Function Expression node
 class ClassInitExpr : public Expr {
-    std::unique_ptr<Expr> name_;       // function name
-    std::unique_ptr<ParamsList> args_; // function arguments
+    std::unique_ptr<Expr> name_;               // function name
+    std::vector<std::unique_ptr<Param>> args_; // function arguments
 public:
     explicit ClassInitExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
     ClassInitExpr() = default;
 
     // Mutators
     void addName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
-    void addArgs(std::unique_ptr<ParamsList> args) { args_ = std::move(args); }
+    void addArgs(std::vector<std::unique_ptr<Param>> args) { args_ = std::move(args); }
 
     const std::string kind() const override {
         std::stringstream ss;
@@ -295,43 +276,6 @@ class StringExpr : public ConstExpr {
 public:
     explicit StringExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
     StringExpr() = default;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// Definitions
-//----------------------------------------------------------------------------------------------------------------------
-// An abstract definition for Def node
-class Def : public AST {
-public:
-    void print(size_t level) const override {
-        AST::print(level);
-    }
-};
-
-// Function Definition node
-class FnDef : public Def {
-public:
-    explicit FnDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnDef() = default;
-
-    const std::string kind() const override { return "FnDef"; }
-
-    void print(size_t level) const override {
-        Def::print(level);
-    }
-};
-
-// Class Definition node
-class ClassDef : public Def {
-public:
-    explicit ClassDef(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    ClassDef() = default;
-
-    const std::string kind() const override { return "ClassDef"; }
-
-    void print(size_t level) const override {
-        Def::print(level);
-    }
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -498,6 +442,110 @@ public:
 
     // Mutators
     void addExpr(std::unique_ptr<Expr> expr) { exprs_.push_back(std::move(expr)); }
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// Definitions
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Def node
+class Def : public AST {
+protected:
+    std::unique_ptr<Type> retType_;                 // return type
+    std::vector<std::unique_ptr<Param>> params_;    // parameters
+    std::unique_ptr<Stmt> body_;                    // body, surrounded by "{ and "}"
+public:
+    explicit Def(const std::shared_ptr<Token> &tok) { token_ = tok; }
+
+    // Getters
+    const std::string getName() const { return token_->getValueStr(); }
+
+    // A bunch of mutators
+    void addRetType(std::unique_ptr<Type> type) { retType_ = std::move(type); }
+    void addParams(std::vector<std::unique_ptr<Param>> params) { params_ = std::move(params); }
+    void addBody(std::unique_ptr<Stmt> body) { body_ = std::move(body); }
+
+    void print(size_t level) const override {
+        AST::print(level);
+        level++;
+
+        retType_->print(level);
+
+        for (const auto &param : params_)
+            param->print(level);
+
+        body_->print(level);
+    }
+};
+
+// Function Definition node
+class FnDef : public Def {
+public:
+    explicit FnDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "FnDef" << " (" << Def::getName() << ")";
+        return ss.str();
+    }
+
+    void print(size_t level) const override {
+        Def::print(level);
+    }
+};
+
+// Constructor Definition node
+class ConstructorDef : public Def {
+public:
+    explicit ConstructorDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
+
+    const std::string kind() const override { return "ConstructorDef"; }
+
+    void print(size_t level) const override {
+        Def::print(level);
+    }
+};
+
+// Destructor Definition node
+class DestructorDef : public Def {
+public:
+    explicit DestructorDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
+
+    const std::string kind() const override { return "DestructorDef"; }
+
+    void print(size_t level) const override {
+        Def::print(level);
+    }
+};
+
+// Class Definition node
+class ClassDef : public Def {
+    std::unique_ptr<Def> ctor_;                         // constructor
+    std::unique_ptr<Def> dtor_;                         // destructor
+    std::vector<std::unique_ptr<Def>> methods_;         // methods
+    std::vector<std::unique_ptr<VarDeclStmt>> fields_;  // fields
+public:
+    explicit ClassDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
+
+    // A bunch of mutators
+    void addConstructor(std::unique_ptr<Def> ctor) { ctor_ = std::move(ctor); }
+    void addDestructor(std::unique_ptr<Def> dtor) { dtor_ = std::move(dtor); }
+    void addMethods(std::vector<std::unique_ptr<Def>> methods) { methods_ = std::move(methods); }
+    void addFields(std::vector<std::unique_ptr<VarDeclStmt>> fields) { fields_ = std::move(fields); }
+
+    const std::string kind() const override { return "ClassDef"; }
+
+    void print(size_t level) const override {
+        Def::print(level);
+
+        ctor_->print(level);
+        dtor_->print(level);
+
+        for (const auto &method : methods_)
+            method->print(level);
+
+        for (const auto &field : fields_)
+            field->print(level);
+    }
 };
 
 //----------------------------------------------------------------------------------------------------------------------

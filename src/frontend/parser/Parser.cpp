@@ -63,21 +63,22 @@ std::unique_ptr<Expr> Parser::parseIdent() {
 
 // <FN_DECL> ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseFnDef() {
-    expect(TokenType::KW_FN);         // expect "fn"
-    auto fnDef = std::make_unique<FnDef>();
+    expect(TokenType::KW_FN);                     // expect "fn"
 
-    fnDef->addNode(parseIdent());      // parse <IDENT>
-    fnDef->addNode(parseParamsList()); // parse <PARAMS>
-    expect(TokenType::OP_FN_ARROW);   // expect "->"
-    fnDef->addNode(parseFnType());     // <TYPE>
-    fnDef->addNode(parseStmtBlock());  // <STMT_BLOCK>
+    consume();                                    // eat identifier
+    auto fnDef = std::make_unique<FnDef>(curr()); // parse <IDENT>
+
+    fnDef->addParams(parseParamsList()); // parse <PARAMS>
+    expect(TokenType::OP_FN_ARROW);      // expect "->"
+    fnDef->addRetType(parseFnType());    // <TYPE>
+    fnDef->addBody(parseStmtBlock());    // <STMT_BLOCK>
 
     return fnDef;
 }
 
 // <PARAM> ::= <IDENT> ":" <TYPE>
 std::unique_ptr<Param> Parser::parseParam() {
-    auto param = std::make_unique<SingleParam>();
+    auto param = std::make_unique<Param>();
 
     param->addNode(parseIdent());  // parse <IDENT>
     expect(TokenType::OP_COL);    // expect ":"
@@ -87,13 +88,13 @@ std::unique_ptr<Param> Parser::parseParam() {
 }
 
 // <PARAMS> ::= "(" ")" | "(" <PARAMS_SEQ> ")"
-std::unique_ptr<Param> Parser::parseParamsList() {
+std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
     expect(TokenType::OP_PAREN_O); // expect "("
-    auto paramsList = std::make_unique<ParamsList>();
+    std::vector<std::unique_ptr<Param>> paramsList;
 
     // <PARAMS_SEQ> ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
     while (hasNext() && !has(TokenType::OP_PAREN_C)) {
-        paramsList->addNode(parseParam());
+        paramsList.push_back(parseParam());
 
         // Check whether we've parsed all params already
         if (has(TokenType::OP_PAREN_C))
@@ -441,7 +442,7 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
 }
 
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
-std::unique_ptr<ParamsList> Parser::parseArgsList() {
+std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
     // To map possible argsBody types to their selectable closing body types
     std::unordered_map<TokenType, TokenType> expectBodyType = {
         {TokenType::OP_PAREN_O, TokenType::OP_PAREN_C},
@@ -453,14 +454,14 @@ std::unique_ptr<ParamsList> Parser::parseArgsList() {
 
     auto argsCurrType = curr()->getType();              // either "(" or "{"
     auto argsExpType = expectBodyType.at(argsCurrType); // the opposite of argsCurrType
-    auto argsList = std::make_unique<ParamsList>();     // to store function arguments
+    std::vector<std::unique_ptr<Param>> argsList;       // to store function arguments
 
     // <EXPR_LIST> ::= <EXPRESSION> | <EXPR_LIST> "," <EXPRESSION>
     while (hasNext() && !has(argsExpType)) {
         // Parse a single argument
-        auto arg = std::make_unique<SingleParam>();
+        auto arg = std::make_unique<Param>();
         arg->addNode(parseExpr()); // parse <EXPRESSION>
-        argsList->addNode(std::move(arg));
+        argsList.push_back(std::move(arg));
 
         // Check whether we've parsed all args
         if (has(argsExpType))

@@ -45,7 +45,7 @@ class Parser {
     std::unique_ptr<Param> parseParam();
 
     // Parses parameters list, found in function and ctor/dtor definitions
-    std::unique_ptr<Param> parseParamsList();
+    std::vector<std::unique_ptr<Param>> parseParamsList();
 
     // Parses function return type
     std::unique_ptr<Type> parseFnType();
@@ -133,7 +133,7 @@ class Parser {
     std::unique_ptr<Expr> parseMethodCall();
 
     // Parses function, ctor/dtor arguments list
-    std::unique_ptr<ParamsList> parseArgsList();
+    std::vector<std::unique_ptr<Param>> parseArgsList();
 
     // Parses class initialization expression
     std::unique_ptr<Expr> parseClassInit();
