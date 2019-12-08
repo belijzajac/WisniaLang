@@ -185,13 +185,13 @@ public:
 
     void print(size_t level) const override {
         Expr::print(level);
-        /*
-        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
         level++;
 
-        if (className_ != nullptr) className_->print(level);
+        if (className_ != nullptr)
+            className_->print(level);
+
         name_->print(level);
-        args_->print(level);*/
+        args_->print(level);
     }
 };
 
@@ -344,6 +344,7 @@ public:
         AST::print(level);
     }
 };
+
 // Function Type node
 class FnType : public Type {
 public:
@@ -408,6 +409,15 @@ public:
 
     const std::string kind() const override { return "VarDeclStmt"; }
 
+    void print(size_t level) const override {
+        Stmt::print(level);
+        level++;
+
+        type_->print(level); // TODO: KW_INT ==> "int"?
+        name_->print(level);
+        value_->print(level);
+    }
+
     // Mutators
     void addType(std::unique_ptr<Type> varType) { type_ = std::move(varType); }
     void addName(std::unique_ptr<Expr> varName) { name_ = std::move(varName); }
@@ -423,6 +433,12 @@ public:
     VarAssignStmt() = default;
 
     const std::string kind() const override { return "VarAssignStmt"; }
+
+    void print(size_t level) const override {
+        Stmt::print(level);
+        name_->print(level);
+        value_->print(level);
+    }
 
     // Mutators
     void addName(std::unique_ptr<Expr> varName) { name_ = std::move(varName); }
@@ -451,6 +467,14 @@ public:
 
     const std::string kind() const override { return "readIOStmt"; }
 
+    void print(size_t level) const override {
+        Stmt::print(level);
+        level++;
+
+        for (const auto &var : vars_)
+            var->print(level);
+    }
+
     // Mutators
     void addVar(std::unique_ptr<Expr> var) { vars_.push_back(std::move(var)); }
 };
@@ -464,6 +488,14 @@ public:
 
     const std::string kind() const override { return "writeIOStmt"; }
 
+    void print(size_t level) const override {
+        Stmt::print(level);
+        level++;
+
+        for (const auto &expr : exprs_)
+            expr->print(level);
+    }
+
     // Mutators
     void addExpr(std::unique_ptr<Expr> expr) { exprs_.push_back(std::move(expr)); }
 };
@@ -473,10 +505,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 // An abstract definition for Loop node
 class Loop : public Stmt {
+protected:
     std::unique_ptr<Stmt> body_; // surrounded by "{ and "}"
 public:
     void print(size_t level) const override {
         AST::print(level);
+        body_->print(level);
     }
 
     // Mutators
@@ -492,6 +526,16 @@ public:
 
     const std::string kind() const override { return "WhileLoop"; }
 
+    void print(size_t level) const override {
+        // Print header
+        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
+
+        // Print the for loop insides
+        cond_->print(level);
+        body_->print(level);
+    }
+
     // Mutators
     void addCond(std::unique_ptr<Expr> expr) { cond_ = std::move(expr); }
 };
@@ -506,6 +550,19 @@ public:
     ForLoop() = default;
 
     const std::string kind() const override { return "ForLoop"; }
+
+    void print(size_t level) const override {
+        // Print header
+        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
+
+        // Print the for loop insides
+        init_->print(level);
+        cond_->print(level);
+        incdec_->print(level);
+
+        body_->print(level);
+    }
 
     // Mutators
     void addInit(std::unique_ptr<Stmt> expr) { init_ = std::move(expr); }
@@ -523,6 +580,18 @@ public:
 
     const std::string kind() const override { return "ForEachLoop"; }
 
+    void print(size_t level) const override {
+        // Print header
+        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
+
+        // Print the for loop insides
+        elem_->print(level);
+        iterElem_->print(level);
+
+        body_->print(level);
+    }
+
     // Mutators
     void addElem(std::unique_ptr<Expr> expr) { elem_ = std::move(expr); }
     void addIterElem(std::unique_ptr<Expr> expr) { iterElem_ = std::move(expr); }
@@ -533,11 +602,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 // An abstract definition for if statement node
 class BaseIf : public Stmt {
+protected:
     std::unique_ptr<Stmt> body_; // surrounded by "{ and "}"
 public:
     void print(size_t level) const override {
         AST::print(level);
-        //body_->print(level);
+        body_->print(level);
     }
 
     // Mutators
@@ -555,9 +625,13 @@ public:
     const std::string kind() const override { return "IfStmt"; }
 
     void print(size_t level) const override {
-        BaseIf::print(level);
-        //level++;
-        //cond_->print(level);
+        // Print header
+        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
+
+        // Print the if insides
+        cond_->print(level);
+        body_->print(level);
 
         for (const auto &elseBl : elseBlcks_)
             elseBl->print(level);
