@@ -61,6 +61,25 @@ public:
     }
 };
 
+// Identifier node
+class Identifier : public Expr {
+public:
+    explicit Identifier(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    Identifier() = default;
+
+    const std::string getValue() const { return token_->getValueStr(); }
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "Var" << " (" << token_->getValueStr() << ")";
+        return ss.str();
+    }
+
+    void print(size_t level) const override {
+        AST::print(level);
+    }
+};
+
 // Boolean Expression node
 class BooleanExpr : public Expr {
 public:
@@ -139,37 +158,36 @@ public:
     }
 };
 
-// Function Expression node
-class FnExpr : public Expr {
-    std::unique_ptr<Expr> name_;               // function name
-    std::shared_ptr<Expr> className_;          // can be nullptr if the function isn't inside a class
+// Function Call Expression node
+class FnCallExpr : public Expr {
+    std::shared_ptr<Identifier> className_;    // can be nullptr if the function isn't inside a class
     std::vector<std::unique_ptr<Param>> args_; // function arguments
 public:
-    explicit FnExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnExpr() = default;
+    explicit FnCallExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    FnCallExpr() = default;
 
     // Mutators
-    void addFnName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
-    void addClassName(std::shared_ptr<Expr> className) { className_ = className; }
+    void addClassName(std::shared_ptr<Identifier> className) { className_ = className; }
     void addArgs(std::vector<std::unique_ptr<Param>> args) { args_ = std::move(args); }
 
     // Accessors
-    std::shared_ptr<Expr> getClassName() const { return className_; }
+    std::shared_ptr<Identifier> getClassName() const { return className_; }
 
     const std::string kind() const override {
         std::stringstream ss;
-        ss << "FnExpr";
+        ss << "FnCallExpr";
+
+        if (className_ != nullptr)
+            ss << " (" << className_->getValue() << "::" << token_->getValueStr() << ")";
+        else
+            ss << " (" << token_->getValueStr() << ")";
+
         return ss.str();
     }
 
     void print(size_t level) const override {
         Expr::print(level);
         level++;
-
-        if (className_ != nullptr)
-            className_->print(level);
-
-        name_->print(level);
 
         for (const auto &arg : args_)
             arg->print(level);
@@ -178,24 +196,25 @@ public:
 
 // Function Expression node
 class ClassInitExpr : public Expr {
-    std::unique_ptr<Expr> name_;               // function name
     std::vector<std::unique_ptr<Param>> args_; // function arguments
 public:
     explicit ClassInitExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    ClassInitExpr() = default;
 
     // Mutators
-    void addName(std::unique_ptr<Expr> fnName) { name_ = std::move(fnName); }
     void addArgs(std::vector<std::unique_ptr<Param>> args) { args_ = std::move(args); }
 
     const std::string kind() const override {
         std::stringstream ss;
-        ss << "ClassInitExpr";
+        ss << "ClassInitExpr" << " (" << token_->getValueStr() << ")";
         return ss.str();
     }
 
     void print(size_t level) const override {
         Expr::print(level);
+        level++;
+
+        for (const auto &arg : args_)
+            arg->print(level);
     }
 };
 
@@ -209,20 +228,6 @@ public:
         std::stringstream ss;
         ss << "BinaryExpression" << " (" << token_->getValueStr() << ")";
         return ss.str();
-    }
-};
-
-// Identifier node
-class Identifier : public Expr {
-public:
-    explicit Identifier(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    Identifier() = default;
-
-    const std::string kind() const override { return "Identifier"; }
-
-    void print(size_t level) const override {
-        AST::print(level);
-        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getValueStr().c_str());
     }
 };
 
@@ -290,17 +295,29 @@ public:
 };
 
 // Function Type node
-class FnType : public Type {
-public:
-    explicit FnType(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    FnType() = default;
+class PrimitiveType : public Type {
+private:
+    // Map token type to its string equivalent
+    static inline std::unordered_map<TokenType, std::string> typeToStr = {
+        {TokenType::KW_VOID, "void"},
+        {TokenType::KW_INT, "int"},
+        {TokenType::KW_BOOL, "bool"},
+        {TokenType::KW_FLOAT, "float"},
+        {TokenType::KW_STRING, "string"},
+    };
 
-    const std::string kind() const override { return "FnType"; }
+public:
+    explicit PrimitiveType(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    PrimitiveType() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "PrimitiveType" << " (" << typeToStr.at(token_->getType()) << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         AST::print(level);
-        level++;
-        printf("%sValue: %s\n", std::string((level + 1) * 2, ' ').c_str(), token_->getName().c_str());
     }
 };
 
@@ -399,6 +416,12 @@ public:
     ExprStmt() = default;
 
     const std::string kind() const override { return "ExprStmt"; }
+
+    void print(size_t level) const override {
+        Stmt::print(level);
+        level++;
+        expr_->print(level);
+    }
 
     // Mutators
     void addExpr(std::unique_ptr<Expr> expr) { expr_ = std::move(expr); }

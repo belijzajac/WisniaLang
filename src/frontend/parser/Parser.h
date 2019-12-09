@@ -18,6 +18,7 @@ class Type;
 class Stmt;
 class Loop;
 class BaseIf;
+class Identifier;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -35,7 +36,7 @@ class Parser {
     void expect(const TokenType &token);
 
     // Parses identifier
-    std::unique_ptr<Expr> parseIdent();
+    std::unique_ptr<Identifier> parseIdent();
 
     // Parses function definitions
     std::unique_ptr<Def> parseFnDef();
@@ -47,7 +48,7 @@ class Parser {
     std::vector<std::unique_ptr<Param>> parseParamsList();
 
     // Parses function return type
-    std::unique_ptr<Type> parseFnType();
+    std::unique_ptr<Type> parsePrimitiveType();
 
     // Parses statement block
     std::unique_ptr<Stmt> parseStmtBlock();
