@@ -82,6 +82,12 @@ std::unique_ptr<Def> Parser::parseFnDef() {
 std::unique_ptr<Param> Parser::parseParam() {
     auto param = std::make_unique<Param>();
 
+    // TODO:
+    // "->addNode(" ==> members. Cast all of them???
+    // add members: var, type
+    // one of them can be nullptr
+    // AST stores GLOBAL definitions of classes and functions found elsewhere
+
     param->addNode(parseIdent());         // parse <IDENT>
     expect(TokenType::OP_COL);            // expect ":"
     param->addNode(parsePrimitiveType()); // parse <TYPE>
@@ -423,7 +429,7 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
 
     consume();
     auto methodCallPtr = std::make_unique<FnCallExpr>(curr());
-    
+
     methodCallPtr->addClassName(std::move(className));
     methodCallPtr->addArgs(parseArgsList());
 

@@ -30,6 +30,10 @@ public:
 
     // Appends a child
     void addNode(std::unique_ptr<AST> child) { children_.push_back(std::move(child)); }
+
+    // Access children
+    AST *first() const { return children_.at(0).get(); }
+    AST *second() const { return children_.at(1).get(); }
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -53,8 +57,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 // An abstract definition for Expr node
 class Expr : public AST {
-protected:
-    TokenType op_; // operand for expression (+, *, &&, ...)
 public:
     void print(size_t level) const override {
         AST::print(level);
@@ -80,10 +82,38 @@ public:
     }
 };
 
-// Boolean Expression node
-class BooleanExpr : public Expr {
+// Binary Expression node
+class BinaryExpr : public Expr {
+protected:
+    TokenType op_; // operand for expression (+, *, &&, ...)
 public:
-    explicit BooleanExpr(TokenType opType) { op_ = opType; }
+    explicit BinaryExpr(TokenType opType) { op_ = opType; }
+    BinaryExpr() = default;
+
+    // Accessors
+    Expr *lhs() const { return static_cast<Expr*>(first()); }
+    Expr *rhs() const { return static_cast<Expr*>(second()); }
+
+    // TODO:
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "BinaryExpr" << " (" << TokenTypeToStr[op_] << ")";
+        return ss.str();
+    }
+
+    void print(size_t level) const override {
+        AST::print(level);
+        level++;
+
+        //lhs()->print(level);
+        //rhs()->print(level);
+    }
+};
+
+// Boolean Expression node
+class BooleanExpr : public BinaryExpr {
+public:
+    explicit BooleanExpr(TokenType opType) : BinaryExpr(opType) {}
     BooleanExpr() = default;
 
     const std::string kind() const override {
@@ -94,9 +124,9 @@ public:
 };
 
 // Equality Expression node
-class EqExpr : public Expr {
+class EqExpr : public BinaryExpr {
 public:
-    explicit EqExpr(TokenType opType) { op_ = opType; }
+    explicit EqExpr(TokenType opType) : BinaryExpr(opType) {}
     EqExpr() = default;
 
     const std::string kind() const override {
@@ -107,9 +137,9 @@ public:
 };
 
 // Comparison Expression node
-class CompExpr : public Expr {
+class CompExpr : public BinaryExpr {
 public:
-    explicit CompExpr(TokenType opType) { op_ = opType; }
+    explicit CompExpr(TokenType opType) : BinaryExpr(opType) {}
     CompExpr() = default;
 
     const std::string kind() const override {
@@ -120,9 +150,9 @@ public:
 };
 
 // Addition (and subtraction) Expression node
-class AddExpr : public Expr {
+class AddExpr : public BinaryExpr {
 public:
-    explicit AddExpr(TokenType opType) { op_ = opType; }
+    explicit AddExpr(TokenType opType) : BinaryExpr(opType) {}
     AddExpr() = default;
 
     const std::string kind() const override {
@@ -133,9 +163,9 @@ public:
 };
 
 // Multiplication (and division) Expression node
-class MultExpr : public Expr {
+class MultExpr : public BinaryExpr {
 public:
-    explicit MultExpr(TokenType opType) { op_ = opType; }
+    explicit MultExpr(TokenType opType) : BinaryExpr(opType) {}
     MultExpr() = default;
 
     const std::string kind() const override {
@@ -146,9 +176,9 @@ public:
 };
 
 // Unary Expression node
-class UnaryExpr : public Expr {
+class UnaryExpr : public BinaryExpr {
 public:
-    explicit UnaryExpr(TokenType opType) { op_ = opType; }
+    explicit UnaryExpr(TokenType opType) : BinaryExpr(opType) {}
     UnaryExpr() = default;
 
     const std::string kind() const override {
@@ -215,19 +245,6 @@ public:
 
         for (const auto &arg : args_)
             arg->print(level);
-    }
-};
-
-// Binary Expression node
-class BinaryExpr : public Expr {
-public:
-    explicit BinaryExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    BinaryExpr() = default;
-
-    const std::string kind() const override {
-        std::stringstream ss;
-        ss << "BinaryExpression" << " (" << token_->getValueStr() << ")";
-        return ss.str();
     }
 };
 
