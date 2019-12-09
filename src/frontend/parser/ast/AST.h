@@ -359,7 +359,9 @@ public:
 
         type_->print(level); // TODO: KW_INT ==> "int"?
         name_->print(level);
-        value_->print(level);
+
+        if (value_)
+            value_->print(level);
     }
 
     // Mutators
@@ -450,9 +452,9 @@ public:
 // An abstract definition for Def node
 class Def : public AST {
 protected:
-    std::unique_ptr<Type> retType_;                 // return type
-    std::vector<std::unique_ptr<Param>> params_;    // parameters
-    std::unique_ptr<Stmt> body_;                    // body, surrounded by "{ and "}"
+    std::unique_ptr<Type> retType_;              // return type
+    std::vector<std::unique_ptr<Param>> params_; // parameters
+    std::unique_ptr<Stmt> body_;                 // body, surrounded by "{ and "}"
 public:
     explicit Def(const std::shared_ptr<Token> &tok) { token_ = tok; }
 
@@ -468,12 +470,14 @@ public:
         AST::print(level);
         level++;
 
-        retType_->print(level);
+        if (retType_)
+            retType_->print(level);
 
         for (const auto &param : params_)
             param->print(level);
 
-        body_->print(level);
+        if (body_)
+            body_->print(level);
     }
 };
 
@@ -498,7 +502,11 @@ class ConstructorDef : public Def {
 public:
     explicit ConstructorDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
 
-    const std::string kind() const override { return "ConstructorDef"; }
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "ConstructorDef" << " (" << Def::getName() << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         Def::print(level);
@@ -510,7 +518,11 @@ class DestructorDef : public Def {
 public:
     explicit DestructorDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
 
-    const std::string kind() const override { return "DestructorDef"; }
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "DestructorDef" << " (" << Def::getName() << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         Def::print(level);
@@ -519,26 +531,34 @@ public:
 
 // Class Definition node
 class ClassDef : public Def {
-    std::unique_ptr<Def> ctor_;                         // constructor
-    std::unique_ptr<Def> dtor_;                         // destructor
-    std::vector<std::unique_ptr<Def>> methods_;         // methods
-    std::vector<std::unique_ptr<VarDeclStmt>> fields_;  // fields
+    std::unique_ptr<Def> ctor_;                 // constructor
+    std::unique_ptr<Def> dtor_;                 // destructor
+    std::vector<std::unique_ptr<Def>> methods_; // methods
+    std::vector<std::unique_ptr<Stmt>> fields_; // fields
 public:
     explicit ClassDef(const std::shared_ptr<Token> &tok) : Def(tok) { token_ = tok; }
 
     // A bunch of mutators
     void addConstructor(std::unique_ptr<Def> ctor) { ctor_ = std::move(ctor); }
     void addDestructor(std::unique_ptr<Def> dtor) { dtor_ = std::move(dtor); }
-    void addMethods(std::vector<std::unique_ptr<Def>> methods) { methods_ = std::move(methods); }
-    void addFields(std::vector<std::unique_ptr<VarDeclStmt>> fields) { fields_ = std::move(fields); }
+    void addMethod(std::unique_ptr<Def> method) { methods_.push_back(std::move(method)); }
+    void addField(std::unique_ptr<Stmt> field) { fields_.push_back(std::move(field)); }
 
-    const std::string kind() const override { return "ClassDef"; }
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "ClassDef" << " (" << Def::getName() << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         Def::print(level);
+        level++;
 
-        ctor_->print(level);
-        dtor_->print(level);
+        if (ctor_)
+            ctor_->print(level);
+
+        if (dtor_)
+            dtor_->print(level);
 
         for (const auto &method : methods_)
             method->print(level);

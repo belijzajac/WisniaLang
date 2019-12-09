@@ -42,8 +42,10 @@ std::unique_ptr<AST> Parser::parse() {
             // TODO: switch ( peek() )
             if (has(TokenType::KW_FN))
                 root->addNode(parseFnDef());
+            else if (has(TokenType::KW_CLASS))
+                root->addNode(parseClassDef());
             else
-                throw Exception{"You're fucked, goyim"};
+                throw Exception{"Not a global definition of either a class, or a function"};
         }
     } catch (const Exception &error) {
         std::cerr << "Parser error: " << error.what() << "\n";
@@ -765,4 +767,69 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
         elseBlocks.push_back(std::move(elseBodyPtr()));
 
     return elseBlocks;
+}
+
+// <CLASS_DECL> ::= "class" <IDENT> <CLASS_BODY>
+std::unique_ptr<Def> Parser::parseClassDef() {
+    expect(TokenType::KW_CLASS); // expect "class"
+
+    consume();                                    // eat identifier
+    auto classDef = std::make_unique<ClassDef>(curr()); // parse <IDENT>
+
+    // Parse <CLASS_BODY>
+    // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
+    if (has(TokenType::OP_BRACE_O)) {
+        consume(); // eat "{"
+
+        // <CLASS_STMT> ::= <METHOD_DECLS> | <FIELD_DECLS>
+        while (hasNext() && !has(TokenType::OP_BRACE_C)) {
+            switch (peek()->getType()) {
+                // <CONSTRUCTOR_DECL>
+                case TokenType::KW_CLASS_DEF :
+                    classDef->addConstructor(parseClassCtorDef());
+                    break;
+                // <DESTRUCTOR_DECL>
+                case TokenType::KW_CLASS_REM :
+                    classDef->addDestructor(parseClassDtorDef());
+                    break;
+                // <FN_DECL>
+                case TokenType::KW_FN :
+                    classDef->addMethod(parseFnDef());
+                    break;
+                // <FIELD_DECLS>
+                default:
+                    classDef->addField(parseVarDeclStmt());
+                    break;
+            }
+        }
+        expect(TokenType::OP_BRACE_C); // expect "}"
+    }
+
+    return classDef;
+}
+
+// <CONSTRUCTOR_DECL> ::= <CONSTRUCTOR_DEF> <IDENT> <PARAMS> <STMT_BLOCK>
+std::unique_ptr<Def> Parser::parseClassCtorDef() {
+    expect(TokenType::KW_CLASS_DEF);                         // expect "def"
+
+    consume();                                               // eat identifier
+    auto ctorDef = std::make_unique<ConstructorDef>(curr()); // parse <IDENT>
+
+    ctorDef->addParams(parseParamsList()); // parse <PARAMS>
+    ctorDef->addBody(parseStmtBlock());    // <STMT_BLOCK>
+
+    return ctorDef;
+}
+
+// <DESTRUCTOR_DECL> ::= <DESTRUCTOR_DEF>  <IDENT> <PARAMS> <STMT_BLOCK>
+std::unique_ptr<Def> Parser::parseClassDtorDef() {
+    expect(TokenType::KW_CLASS_REM);                        // expect "rem"
+
+    consume();                                              // eat identifier
+    auto dtorDef = std::make_unique<DestructorDef>(curr()); // parse <IDENT>
+
+    dtorDef->addParams(parseParamsList()); // parse <PARAMS>
+    dtorDef->addBody(parseStmtBlock());    // <STMT_BLOCK>
+
+    return dtorDef;
 }

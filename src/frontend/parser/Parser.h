@@ -13,7 +13,6 @@ enum class TokenType;
 class AST;
 class Def;
 class Param;
-class ParamsList;
 class Expr;
 class Type;
 class Stmt;
@@ -140,6 +139,15 @@ class Parser {
 
     // Parses constant expression
     std::unique_ptr<Expr> parseConstExpr();
+
+    // Parses class definitions
+    std::unique_ptr<Def> parseClassDef();
+
+    // Parses class c-tor definition
+    std::unique_ptr<Def> parseClassCtorDef();
+
+    // Parses class d-tor definition
+    std::unique_ptr<Def> parseClassDtorDef();
 
 public:
     explicit Parser(const Lexer &lexer);
