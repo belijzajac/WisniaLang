@@ -424,16 +424,17 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
     consume();
     auto methodCallPtr = std::make_unique<FnCallExpr>(curr());
 
-    consume();
     methodCallPtr->addClassName(className);
-
     methodCallPtr->addArgs(parseArgsList());
 
     while (hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW)) {
         consume(); // eat "." or "->"
+
+        // TODO: create a function that returns a current Token, and does consume() at the end
+        consume();
         auto rhs = std::make_unique<FnCallExpr>(curr());
 
-        rhs->addClassName(methodCallPtr->getClassName());
+        rhs->addClassName(methodCallPtr->getFnName());
         rhs->addArgs(parseArgsList());
 
         // Make a temporary copy of the lhs
@@ -445,6 +446,9 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
         methodCallPtr->addNode(std::move(rhs));
     }
 
+    // TODO: create a base class that holds references to this object
+    // Reason: when this object with multiple classes (.. -> .. -> getFib{5}) gets created,
+    // the base class loses token_ and args_ fields when tempLhs is created (or use a copy ctor?)
     return methodCallPtr;
 }
 
@@ -455,6 +459,9 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
         {TokenType::OP_PAREN_O, TokenType::OP_PAREN_C},
         {TokenType::OP_BRACE_O, TokenType::OP_BRACE_C}
     };
+
+    consume(); // idk why's this required,
+               // but it solved the issue with incorrect token types
 
     auto argsCurrType = curr()->getType();              // either "(" or "{"
     auto argsExpType = expectBodyType.at(argsCurrType); // the opposite of argsCurrType

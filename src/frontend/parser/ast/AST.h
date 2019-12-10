@@ -123,6 +123,7 @@ public:
             value_->print(level);
     }
 };
+//----------------------------------------------------------------------------------------------------------------------
 
 // Identifier node
 class Identifier : public Expr {
@@ -252,7 +253,7 @@ public:
         AST::print(level);
         level++;
 
-        // UnaryExpr especially holds the lhs value, e.g. children[0]
+        // UnaryExpr especially holds the lhs value, e.g. children_[0]
         lhs()->print(level);
     }
 };
@@ -271,6 +272,7 @@ public:
 
     // Accessors
     std::shared_ptr<Token> getClassName() const { return className_; }
+    std::shared_ptr<Token> getFnName() const { return token_; }
 
     const std::string kind() const override {
         std::stringstream ss;
