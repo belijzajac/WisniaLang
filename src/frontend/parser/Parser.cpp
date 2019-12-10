@@ -41,9 +41,9 @@ std::unique_ptr<AST> Parser::parse() {
             // TODO: Rewrite in switch block
             // TODO: switch ( peek() )
             if (has(TokenType::KW_FN))
-                root->addNode(parseFnDef());
+                root->addGlobalFnDef(parseFnDef());
             else if (has(TokenType::KW_CLASS))
-                root->addNode(parseClassDef());
+                root->addGlobalClassDef(parseClassDef());
             else
                 throw Exception{"Not a global definition of either a class, or a function"};
         }
@@ -70,27 +70,20 @@ std::unique_ptr<Def> Parser::parseFnDef() {
     consume();                                    // eat identifier
     auto fnDef = std::make_unique<FnDef>(curr()); // parse <IDENT>
 
-    fnDef->addParams(parseParamsList()); // parse <PARAMS>
-    expect(TokenType::OP_FN_ARROW);      // expect "->"
-    fnDef->addRetType(parsePrimitiveType());    // <TYPE>
-    fnDef->addBody(parseStmtBlock());    // <STMT_BLOCK>
+    fnDef->addParams(parseParamsList());     // parse <PARAMS>
+    expect(TokenType::OP_FN_ARROW);          // expect "->"
+    fnDef->addRetType(parsePrimitiveType()); // <TYPE>
+    fnDef->addBody(parseStmtBlock());        // <STMT_BLOCK>
 
     return fnDef;
 }
 
 // <PARAM> ::= <IDENT> ":" <TYPE>
 std::unique_ptr<Param> Parser::parseParam() {
-    auto param = std::make_unique<Param>();
-
-    // TODO:
-    // "->addNode(" ==> members. Cast all of them???
-    // add members: var, type
-    // one of them can be nullptr
-    // AST stores GLOBAL definitions of classes and functions found elsewhere
-
-    param->addNode(parseIdent());         // parse <IDENT>
-    expect(TokenType::OP_COL);            // expect ":"
-    param->addNode(parsePrimitiveType()); // parse <TYPE>
+    consume();
+    auto param = std::make_unique<Param>(curr()); // parse <IDENT>
+    expect(TokenType::OP_COL);                    // expect ":"
+    param->addType(parsePrimitiveType());         // parse <TYPE>
 
     return param;
 }
@@ -142,7 +135,7 @@ std::unique_ptr<Stmt> Parser::parseStmtBlock() {
 
         // <STMTS> ::= <STMT> | <STMTS> <STMT>
         while (hasNext() && !has(TokenType::OP_BRACE_C))
-            stmtBlock->addNode(parseStmt());
+            stmtBlock->addStmt(parseStmt());
 
         expect(TokenType::OP_BRACE_C); // expect "}"
         return stmtBlock;
@@ -208,13 +201,13 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
 // <FN_RETURN_STMT> <STMT_END>
 // <FN_RETURN_STMT> ::= <RETURN_SYMB> | <RETURN_SYMB> <EXPRESSION>
 std::unique_ptr<Stmt> Parser::parseReturnStmt() {
-    expect(TokenType::KW_RETURN); // expect "return"
-    if (has(TokenType::OP_SEMICOLON)) { // if the following token is ";"
-        consume(); // eat ";"
+    expect(TokenType::KW_RETURN);        // expect "return"
+    if (has(TokenType::OP_SEMICOLON)) {  // if the following token is ";"
+        consume();                       // eat ";"
         return std::make_unique<ReturnStmt>();
     } else {
         auto returnStmt = std::make_unique<ReturnStmt>();
-        returnStmt->addNode(parseExpr());
+        returnStmt->addReturnValue(parseExpr());
         expect(TokenType::OP_SEMICOLON); // expect ";"
         return returnStmt;
     }
@@ -422,7 +415,8 @@ std::unique_ptr<Expr> Parser::parseFnCall() {
 
 // <CLASS_M_CALL> ::= <IDENT> <CLASS_M_CALL_SYM> <VAR> <ARGUMENTS {<CLASS_M_CALL_SYM> <VAR> <ARGUMENTS}
 std::unique_ptr<Expr> Parser::parseMethodCall() {
-    auto className = parseIdent();
+    consume();
+    auto className = curr();
 
     // eat "." or "->"
     hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW) ? consume() : throw Exception{"Unknown method call symbol"};
@@ -430,7 +424,9 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
     consume();
     auto methodCallPtr = std::make_unique<FnCallExpr>(curr());
 
-    methodCallPtr->addClassName(std::move(className));
+    consume();
+    methodCallPtr->addClassName(className);
+
     methodCallPtr->addArgs(parseArgsList());
 
     while (hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW)) {
@@ -448,6 +444,7 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
         methodCallPtr->addNode(std::move(tempLhs));
         methodCallPtr->addNode(std::move(rhs));
     }
+
     return methodCallPtr;
 }
 
@@ -459,9 +456,6 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
         {TokenType::OP_BRACE_O, TokenType::OP_BRACE_C}
     };
 
-    consume(); // idk why's this required,
-               // but it solved the issue with incorrect token types
-
     auto argsCurrType = curr()->getType();              // either "(" or "{"
     auto argsExpType = expectBodyType.at(argsCurrType); // the opposite of argsCurrType
     std::vector<std::unique_ptr<Param>> argsList;       // to store function arguments
@@ -470,7 +464,7 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
     while (hasNext() && !has(argsExpType)) {
         // Parse a single argument
         auto arg = std::make_unique<Param>();
-        arg->addNode(parseExpr()); // parse <EXPRESSION>
+        arg->addValue(parseExpr()); // parse <EXPRESSION>
         argsList.push_back(std::move(arg));
 
         // Check whether we've parsed all args
@@ -548,7 +542,8 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
     auto varDeclPtr = std::make_unique<VarDeclStmt>();
 
     varDeclPtr->addType(parsePrimitiveType());
-    varDeclPtr->addName((parseIdent()));
+    consume();
+    varDeclPtr->addName(curr());
     std::unique_ptr<Expr> varValue;
 
     // <TYPE> <VAR> "=" <EXPRESSION>
@@ -577,7 +572,8 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
 std::unique_ptr<Stmt> Parser::parseVarAssignStmt() {
     auto varAssignPtr = std::make_unique<VarAssignStmt>();
 
-    varAssignPtr->addName((parseIdent()));
+    consume();
+    varAssignPtr->addName(curr());
     expect(TokenType::OP_ASSN); // eat "="
     varAssignPtr->addValue(parseExpr());
 
@@ -781,7 +777,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
 std::unique_ptr<Def> Parser::parseClassDef() {
     expect(TokenType::KW_CLASS); // expect "class"
 
-    consume();                                    // eat identifier
+    consume();                                          // eat identifier
     auto classDef = std::make_unique<ClassDef>(curr()); // parse <IDENT>
 
     // Parse <CLASS_BODY>

@@ -9,9 +9,12 @@
 // Root node
 class AST {
 protected:
-    std::vector<std::unique_ptr<AST>> children_;    // children nodes
-    std::unique_ptr<AST> parent_;                   // parent node
-    std::shared_ptr<Token> token_;                  // token
+    std::vector<std::unique_ptr<AST>> children_;        // children nodes
+    std::unique_ptr<AST> parent_;                       // parent node
+    std::shared_ptr<Token> token_;                      // token (for holding names, etc.)
+private:
+    std::vector<std::unique_ptr<AST>> globalClassDefs_; // global class definitions
+    std::vector<std::unique_ptr<AST>> globalFnDefs_;    // global function definitions
 public:
     AST() = default;
     virtual ~AST() = default;
@@ -24,9 +27,16 @@ public:
         printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
         level++;
 
-        for (const auto &node : children_)
-            node->print(level);
+        for (const auto &globalClass : globalClassDefs_)
+            globalClass->print(level);
+
+        for (const auto &globalFn : globalFnDefs_)
+            globalFn->print(level);
     }
+
+    // Append global definitions
+    void addGlobalClassDef(std::unique_ptr<AST> classDef) { globalClassDefs_.push_back(std::move(classDef)); }
+    void addGlobalFnDef(std::unique_ptr<AST> fnDef) { globalFnDefs_.push_back(std::move(fnDef)); }
 
     // Appends a child
     void addNode(std::unique_ptr<AST> child) { children_.push_back(std::move(child)); }
@@ -37,15 +47,37 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------
-// Parameters
+// Types
 //----------------------------------------------------------------------------------------------------------------------
-// An abstract definition for Param node
-class Param : public AST {
+// An abstract definition for Type node
+class Type : public AST {
 public:
-    explicit Param(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    Param() = default;
+    void print(size_t level) const override {
+        AST::print(level);
+    }
+};
 
-    const std::string kind() const override { return "Param"; }
+// Function Type node
+class PrimitiveType : public Type {
+private:
+    // Map token type to its string equivalent
+    static inline std::unordered_map<TokenType, std::string> typeToStr = {
+        {TokenType::KW_VOID,   "void"},
+        {TokenType::KW_INT,    "int"},
+        {TokenType::KW_BOOL,   "bool"},
+        {TokenType::KW_FLOAT,  "float"},
+        {TokenType::KW_STRING, "string"},
+    };
+
+public:
+    explicit PrimitiveType(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    PrimitiveType() = default;
+
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "PrimitiveType" << " (" << typeToStr.at(token_->getType()) << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         AST::print(level);
@@ -60,6 +92,35 @@ class Expr : public AST {
 public:
     void print(size_t level) const override {
         AST::print(level);
+    }
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// Parameters
+//----------------------------------------------------------------------------------------------------------------------
+// An abstract definition for Param node
+class Param : public AST {
+    std::unique_ptr<Type> type_;
+    std::unique_ptr<Expr> value_;
+public:
+    explicit Param(const std::shared_ptr<Token> &tok) { token_ = tok; }
+    Param() = default;
+
+    // Mutators
+    void addType(std::unique_ptr<Type> type) { type_ = std::move(type); }
+    void addValue(std::unique_ptr<Expr> value) { value_ = std::move(value); }
+
+    const std::string kind() const override { return "Param"; }
+
+    void print(size_t level) const override {
+        AST::print(level);
+        level++;
+
+        if (type_)
+            type_->print(level);
+
+        if (value_)
+            value_->print(level);
     }
 };
 
@@ -94,7 +155,6 @@ public:
     Expr *lhs() const { return static_cast<Expr*>(first()); }
     Expr *rhs() const { return static_cast<Expr*>(second()); }
 
-    // TODO:
     const std::string kind() const override {
         std::stringstream ss;
         ss << "BinaryExpr" << " (" << TokenTypeToStr[op_] << ")";
@@ -105,8 +165,9 @@ public:
         AST::print(level);
         level++;
 
-        //lhs()->print(level);
-        //rhs()->print(level);
+        // Print lhs and rhs values
+        lhs()->print(level);
+        rhs()->print(level);
     }
 };
 
@@ -186,29 +247,37 @@ public:
         ss << "UnaryExpr" << " (" << TokenTypeToStr[op_] << ")";
         return ss.str();
     }
+
+    void print(size_t level) const override {
+        AST::print(level);
+        level++;
+
+        // UnaryExpr especially holds the lhs value, e.g. children[0]
+        lhs()->print(level);
+    }
 };
 
 // Function Call Expression node
 class FnCallExpr : public Expr {
-    std::shared_ptr<Identifier> className_;    // can be nullptr if the function isn't inside a class
+    std::shared_ptr<Token> className_;         // can be nullptr if the function isn't inside a class
     std::vector<std::unique_ptr<Param>> args_; // function arguments
 public:
     explicit FnCallExpr(const std::shared_ptr<Token> &tok) { token_ = tok; }
     FnCallExpr() = default;
 
     // Mutators
-    void addClassName(std::shared_ptr<Identifier> className) { className_ = className; }
+    void addClassName(std::shared_ptr<Token> className) { className_ = className; }
     void addArgs(std::vector<std::unique_ptr<Param>> args) { args_ = std::move(args); }
 
     // Accessors
-    std::shared_ptr<Identifier> getClassName() const { return className_; }
+    std::shared_ptr<Token> getClassName() const { return className_; }
 
     const std::string kind() const override {
         std::stringstream ss;
         ss << "FnCallExpr";
 
         if (className_ != nullptr)
-            ss << " (" << className_->getValue() << "::" << token_->getValueStr() << ")";
+            ss << " (" << className_->getValueStr() << "::" << token_->getValueStr() << ")";
         else
             ss << " (" << token_->getValueStr() << ")";
 
@@ -301,44 +370,6 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------
-// Types
-//----------------------------------------------------------------------------------------------------------------------
-// An abstract definition for Type node
-class Type : public AST {
-public:
-    void print(size_t level) const override {
-        AST::print(level);
-    }
-};
-
-// Function Type node
-class PrimitiveType : public Type {
-private:
-    // Map token type to its string equivalent
-    static inline std::unordered_map<TokenType, std::string> typeToStr = {
-        {TokenType::KW_VOID, "void"},
-        {TokenType::KW_INT, "int"},
-        {TokenType::KW_BOOL, "bool"},
-        {TokenType::KW_FLOAT, "float"},
-        {TokenType::KW_STRING, "string"},
-    };
-
-public:
-    explicit PrimitiveType(const std::shared_ptr<Token> &tok) { token_ = tok; }
-    PrimitiveType() = default;
-
-    const std::string kind() const override {
-        std::stringstream ss;
-        ss << "PrimitiveType" << " (" << typeToStr.at(token_->getType()) << ")";
-        return ss.str();
-    }
-
-    void print(size_t level) const override {
-        AST::print(level);
-    }
-};
-
-//----------------------------------------------------------------------------------------------------------------------
 // Statements
 //----------------------------------------------------------------------------------------------------------------------
 // An abstract definition for Stmt (statement) node
@@ -351,20 +382,42 @@ public:
 
 // Statement block node
 class StmtBlock : public Stmt {
+    std::vector<std::unique_ptr<Stmt>> stmts_;
 public:
     explicit StmtBlock(const std::shared_ptr<Token> &tok) { token_ = tok; }
     StmtBlock() = default;
 
+    void addStmt(std::unique_ptr<Stmt> stmt) { stmts_.push_back(std::move(stmt)); }
+
     const std::string kind() const override { return "StmtBlock"; }
+
+    void print(size_t level) const override {
+        Stmt::print(level);
+        level++;
+
+        for (const auto &stmt : stmts_)
+            stmt->print(level);
+    }
 };
 
 // Return statement node
 class ReturnStmt : public Stmt {
+    std::unique_ptr<Expr> returnValue_;
 public:
     explicit ReturnStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
     ReturnStmt() = default;
 
+    void addReturnValue(std::unique_ptr<Expr> returnVal) { returnValue_ = std::move(returnVal); }
+
     const std::string kind() const override { return "ReturnStmt"; }
+
+    void print(size_t level) const override {
+        Stmt::print(level);
+        level++;
+
+        if (returnValue_)
+            returnValue_->print(level);
+    }
 };
 
 // Loop break statement node
@@ -379,20 +432,24 @@ public:
 // Variable declaration statement node
 class VarDeclStmt : public Stmt {
     std::unique_ptr<Type> type_;  // variable type
-    std::unique_ptr<Expr> name_;  // variable name
+    std::shared_ptr<Token> name_; // variable name
     std::unique_ptr<Expr> value_; // variable value
 public:
     explicit VarDeclStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
     VarDeclStmt() = default;
 
-    const std::string kind() const override { return "VarDeclStmt"; }
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "VarDeclStmt" << " (" << name_->getValueStr() << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         Stmt::print(level);
         level++;
 
-        type_->print(level); // TODO: KW_INT ==> "int"?
-        name_->print(level);
+        if (type_)
+            type_->print(level);
 
         if (value_)
             value_->print(level);
@@ -400,28 +457,32 @@ public:
 
     // Mutators
     void addType(std::unique_ptr<Type> varType) { type_ = std::move(varType); }
-    void addName(std::unique_ptr<Expr> varName) { name_ = std::move(varName); }
+    void addName(std::shared_ptr<Token> varName) { name_ = varName; }
     void addValue(std::unique_ptr<Expr> varValue) { value_ = std::move(varValue); }
 };
 
 // Variable assignment statement node
 class VarAssignStmt : public Stmt {
-    std::unique_ptr<Expr> name_;  // variable name
+    std::shared_ptr<Token> name_; // variable name
     std::unique_ptr<Expr> value_; // variable value
 public:
     explicit VarAssignStmt(const std::shared_ptr<Token> &tok) { token_ = tok; }
     VarAssignStmt() = default;
 
-    const std::string kind() const override { return "VarAssignStmt"; }
+    const std::string kind() const override {
+        std::stringstream ss;
+        ss << "VarAssignStmt" << " (" << name_->getValueStr() << ")";
+        return ss.str();
+    }
 
     void print(size_t level) const override {
         Stmt::print(level);
-        name_->print(level);
+        level++;
         value_->print(level);
     }
 
     // Mutators
-    void addName(std::unique_ptr<Expr> varName) { name_ = std::move(varName); }
+    void addName(std::shared_ptr<Token> varName) { name_ = varName; }
     void addValue(std::unique_ptr<Expr> varValue) { value_ = std::move(varValue); }
 };
 
@@ -510,11 +571,11 @@ public:
         AST::print(level);
         level++;
 
-        if (retType_)
-            retType_->print(level);
-
         for (const auto &param : params_)
             param->print(level);
+
+        if (retType_)
+            retType_->print(level);
 
         if (body_)
             body_->print(level);
@@ -618,6 +679,7 @@ protected:
 public:
     void print(size_t level) const override {
         AST::print(level);
+        level++;
         body_->print(level);
     }
 
@@ -715,6 +777,7 @@ protected:
 public:
     void print(size_t level) const override {
         AST::print(level);
+        level++;
         body_->print(level);
     }
 
