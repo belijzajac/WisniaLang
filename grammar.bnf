@@ -46,8 +46,7 @@
 <PARAMS_SEQ>     ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
 <PARAM>          ::= <IDENT> ":" <TYPE>
 
-<FN_CALL>        ::= <FN_CALL_SINGLE> | <FN_CALL> "." <FN_CALL_SINGLE>
-<FN_CALL_SINGLE> ::= <IDENT> <ARGUMENTS>
+<FN_CALL>        ::= <IDENT> <ARGUMENTS>
 
 //----------------------------------------------------------------------
 // Statements
@@ -98,7 +97,7 @@
 <SOME_EXPR>       ::= "(" <EXPRESSION> ")"
                     | <VAR>
                     | <FN_CALL>
-                    | <CLASS_METHOD_CALL>
+                    | <CLASS_M_CALL>
                     | <CONSTANT_LIT>
                     | <CLASS_INIT>
 
@@ -118,8 +117,7 @@
 // Loop statements
 //----------------------------------------------------------------------
 
-<LOOP_STMT>         ::= <LOOP_TYPE> <STMT_BLOCK>
-<LOOP_TYPE>         ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
+<LOOP_STMT>         ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
 
 <WHILE_LOOP>        ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
 
@@ -147,12 +145,12 @@
                | <IF_BLOCK> <MULTIPLE_ELIF>              // 3rd row
                | <IF_BLOCK> <MULTIPLE_ELIF> <ELSE_BLOCK> // 4th row
 
-<IF_BLOCK>   ::= "if"   <IF_ELSE_COND_BODY>
-<ELIF_BLOCK> ::= "elif" <IF_ELSE_COND_BODY>
-<ELSE_BLOCK> ::= "else" <IF_ELSE_COND_BODY>
+<IF_BLOCK>   ::= "if"   <IF_ELIF_COND_BODY>
+<ELIF_BLOCK> ::= "elif" <IF_ELIF_COND_BODY>
+<ELSE_BLOCK> ::= "else" <STMT_BLOCK>
 
 <MULTIPLE_ELIF>     ::= <ELIF_BLOCK> | <MULTIPLE_ELIF> <ELIF_BLOCK>
-<IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")" <STMT_BLOCK>
+<IF_ELIF_COND_BODY> ::= "(" <EXPRESSION> ")" <STMT_BLOCK>
 
 //----------------------------------------------------------------------
 // Miscellaneous statements
