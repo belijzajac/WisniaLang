@@ -157,6 +157,13 @@ public:
     // Returns an instance of the current token
     const std::shared_ptr<Token> &curr() const { return tokens_.at(pos_); }
 
+    // Consumes and returns current token
+    // Used for obtaining tokens that represent names
+    const std::shared_ptr<Token> &getTokenName() {
+        consume();
+        return tokens_.at(pos_);
+    }
+
     // Returns an instance of the following token (peeks)
     const std::shared_ptr<Token> &peek() const { return tokens_.at(pos_ + 1); }
 
