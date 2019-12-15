@@ -812,7 +812,7 @@ public:
 
     // Mutators
     void addCond(std::unique_ptr<Expr> expr) { cond_ = std::move(expr); }
-    void addElseBlocks( std::vector<std::unique_ptr<BaseIf>> expr) { elseBlcks_ = std::move(expr); }
+    void addElseBlocks(std::vector<std::unique_ptr<BaseIf>> expr) { elseBlcks_ = std::move(expr); }
 };
 
 // Else statement node
@@ -838,7 +838,13 @@ public:
     const std::string kind() const override { return "ElseIfStmt"; }
 
     void print(size_t level) const override {
-        BaseIf::print(level);
+        // Print header
+        printf("%s%s\n", std::string(level*2, ' ').c_str(), kind().c_str());
+        level++;
+
+        // Print the if insides
+        cond_->print(level);
+        body_->print(level);
     }
 
     // Mutators

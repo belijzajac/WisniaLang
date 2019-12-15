@@ -38,14 +38,18 @@ std::unique_ptr<AST> Parser::parse() {
     try {
         // continue parsing as long as there are tokens
         while (!has(TokenType::TOK_EOF)) {
-            // TODO: Rewrite in switch block
-            // TODO: switch ( peek() )
-            if (has(TokenType::KW_FN))
-                root->addGlobalFnDef(parseFnDef());
-            else if (has(TokenType::KW_CLASS))
-                root->addGlobalClassDef(parseClassDef());
-            else
-                throw Exception{"Not a global definition of either a class, or a function"};
+            switch (peek()->getType()) {
+                // <FN_DECL>
+                case TokenType::KW_FN :
+                    root->addGlobalFnDef(parseFnDef());
+                    break;
+                // <CLASS_DECL>
+                case TokenType::KW_CLASS :
+                    root->addGlobalClassDef(parseClassDef());
+                    break;
+                default:
+                    throw Exception{"Not a global definition of either a class, or a function"};
+            }
         }
     } catch (const Exception &error) {
         std::cerr << "Parser error: " << error.what() << "\n";
@@ -419,16 +423,13 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
     hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW) ? consume() : throw Exception{"Unknown method call symbol"};
 
     auto methodCallPtr = std::make_unique<FnCallExpr>(getTokenName());
-
     methodCallPtr->addClassName(className);
     methodCallPtr->addArgs(parseArgsList());
 
     while (hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW)) {
         consume(); // eat "." or "->"
 
-        // TODO: create a function that returns a current Token, and does consume() at the end
         auto rhs = std::make_unique<FnCallExpr>(getTokenName());
-
         rhs->addClassName(methodCallPtr->getFnName());
         rhs->addArgs(parseArgsList());
 
