@@ -1,6 +1,7 @@
 #include <iostream>
 #include "utilities/Exception.h"
 #include "frontend/lexer/Lexer.h"
+#include "frontend/parser/Parser.h"
 
 int main(int argc, char *argv[]) {
     try {
@@ -12,7 +13,10 @@ int main(int argc, char *argv[]) {
         lexer.tokenize(argv[1]);
 
         // Output the tokens in STDOUT
-        lexer.prettyPrint();
+        //lexer.prettyPrint();
+
+        // Pass tokens to the parser
+        auto parser = std::make_unique<Parser>(lexer);
         
     } catch (const Exception &ex) {
         std::cerr << ex.what() << "\n";

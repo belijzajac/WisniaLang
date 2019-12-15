@@ -78,6 +78,11 @@ public:
     // Tokenize the given source file
     void tokenize(const std::string &input);
 
+    // Returns tokens
+    std::vector<std::shared_ptr<Token>> getTokens() const {
+        return tokens_;
+    }
+
     // Prints out tokens in a pretty table
     void prettyPrint();
 

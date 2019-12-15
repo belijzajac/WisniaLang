@@ -20,14 +20,32 @@ std::shared_ptr<Token> Lexer::finishTok(const TokenType &type_, bool backtrack) 
     if (backtrack)
         --tokenState_.it_;
 
+    // Construct PositionInFile
     std::unique_ptr<PositionInFile> pif_;
-    // Construct token
     if (type_ == TokenType::LIT_STR)
         pif_ = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.stringStart);
     else
         pif_ = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.lineNo);
 
-    auto token = std::make_shared<Token>(type_, tokenState_.buff_, std::move(pif_));
+    // Converts tokenState_.buff_ to an appropriate type
+    const auto TokValue = [&]() -> TokenValue {
+        switch (type_) {
+            // Integer
+            case TokenType::LIT_INT:
+                return std::stoi(tokenState_.buff_);
+            // Float
+            case TokenType::LIT_FLT:
+                return std::stof(tokenState_.buff_);
+            // String
+            case TokenType::LIT_STR:
+            case TokenType::IDENT:
+                return tokenState_.buff_;
+        }
+        return nullptr;
+    };
+
+    // Construct token
+    auto token = std::make_shared<Token>(type_, TokValue(), std::move(pif_));
 
     // Clear existing token buffer and return parsed token
     tokenState_.buff_.clear();
@@ -373,7 +391,7 @@ void Lexer::prettyPrint() {
         std::cout << std::left << std::setw(5)   << index << " | "
                                << std::setw(5)   << token->getFileInfo()->getLineNo() << " | "
                                << std::setw(15)  << token->getName() << " | "
-                               << token->getValue() << "\n";
+                               << token->getValueStr() << "\n";
         ++index;
     }
 }
