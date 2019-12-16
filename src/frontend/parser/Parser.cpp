@@ -58,11 +58,11 @@ std::unique_ptr<AST> Parser::parse() {
     return root;
 }
 
-std::unique_ptr<Identifier> Parser::parseIdent() {
+std::unique_ptr<Var> Parser::parseVar() {
     if (has(TokenType::IDENT)) {
-        return std::make_unique<Identifier>(getTokenName());
+        return std::make_unique<Var>(getTokenName());
     } else {
-        throw Exception{"Not an identifier"};
+        throw Exception{"Not a variable name"};
     }
 }
 
@@ -401,7 +401,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
 
         // <VAR>
         else
-            return parseIdent();
+            return parseVar();
     } else {
         ; // do nothing. The branch is never reached
     }
@@ -536,7 +536,7 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
 
 // <VAR_DECL> <STMT_END>
 // <VAR_DECL> ::= <TYPE> <VAR> | <TYPE> <VAR> "=" <EXPRESSION> | <TYPE> <VAR> "{" <EXPRESSION> "}"
-std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
+std::unique_ptr<VarDeclStmt> Parser::parseVarDeclStmt() {
     auto varDeclPtr = std::make_unique<VarDeclStmt>();
 
     varDeclPtr->addType(parsePrimitiveType());
@@ -601,7 +601,7 @@ std::unique_ptr<Stmt> Parser::parseReadIOStmt() {
 
     // <INPUT_SEQ>
     while (hasNext()) { // a, b, c
-        readIO->addVar(parseIdent());
+        readIO->addVar(parseVar());
 
         if (has(TokenType::OP_COMMA))
             consume(); // eat ","
@@ -688,7 +688,7 @@ std::unique_ptr<Loop> Parser::parseForEachLoop() {
     expect(TokenType::OP_PAREN_O); // expect "("
 
     // Foreach loop body
-    foreachLoopPtr->addElem(parseIdent());
+    foreachLoopPtr->addElem(parseVar());
     expect(TokenType::KW_FOREACH_IN);
     foreachLoopPtr->addIterElem(parseExpr());
 
