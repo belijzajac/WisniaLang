@@ -19,7 +19,7 @@ class Stmt;
 class Loop;
 class BaseIf;
 class Var;
-class VarDeclStmt;
+class Field;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -64,7 +64,7 @@ class Parser {
     std::unique_ptr<Stmt> parseLoopBrkStmt();
 
     // Parses variable declaration statement
-    std::unique_ptr<VarDeclStmt> parseVarDeclStmt();
+    std::unique_ptr<Stmt> parseVarDeclStmt();
 
     // Parses variable assignment statement
     std::unique_ptr<Stmt> parseVarAssignStmt();
@@ -150,6 +150,9 @@ class Parser {
 
     // Parses class d-tor definition
     std::unique_ptr<Def> parseClassDtorDef();
+
+    // Parses class' fields
+    std::unique_ptr<Field> parseClassField();
 
 public:
     explicit Parser(const Lexer &lexer);

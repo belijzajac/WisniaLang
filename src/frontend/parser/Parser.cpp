@@ -536,7 +536,7 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
 
 // <VAR_DECL> <STMT_END>
 // <VAR_DECL> ::= <TYPE> <VAR> | <TYPE> <VAR> "=" <EXPRESSION> | <TYPE> <VAR> "{" <EXPRESSION> "}"
-std::unique_ptr<VarDeclStmt> Parser::parseVarDeclStmt() {
+std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
     auto varDeclPtr = std::make_unique<VarDeclStmt>();
 
     varDeclPtr->addType(parsePrimitiveType());
@@ -798,7 +798,7 @@ std::unique_ptr<Def> Parser::parseClassDef() {
                     break;
                 // <FIELD_DECLS>
                 default:
-                    classDef->addField(parseVarDeclStmt());
+                    classDef->addField(parseClassField());
                     break;
             }
         }
@@ -831,4 +831,33 @@ std::unique_ptr<Def> Parser::parseClassDtorDef() {
     dtorDef->addBody(parseStmtBlock());    // <STMT_BLOCK>
 
     return dtorDef;
+}
+
+// Same as <VAR_DECL>
+std::unique_ptr<Field> Parser::parseClassField() {
+    auto varDeclPtr = std::make_unique<Field>();
+
+    varDeclPtr->addType(parsePrimitiveType());
+    varDeclPtr->addName(getTokenName());
+    std::unique_ptr<Expr> varValue;
+
+    // <TYPE> <VAR> "=" <EXPRESSION>
+    if (has(TokenType::OP_ASSN)) {
+        consume(); // eat "="
+        varValue = parseExpr();
+    }
+    // <TYPE> <VAR> "{" <EXPRESSION> "}"
+    else if (has(TokenType::OP_BRACE_O)) {
+        consume(); // eat "{"
+        varValue = parseExpr();
+        consume(); // eat "}"
+    }
+    // <TYPE> <VAR>
+    else {
+        expect(TokenType::OP_SEMICOLON);
+        return varDeclPtr;
+    }
+    varDeclPtr->addValue(std::move(varValue));
+    expect(TokenType::OP_SEMICOLON);
+    return varDeclPtr;
 }
