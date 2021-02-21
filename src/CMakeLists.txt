@@ -1,5 +1,5 @@
-set(MEGUMIN_SOURCES
-  ${MEGUMIN_SOURCES}
+set(WISNIA_SOURCES
+  ${WISNIA_SOURCES}
   main.cpp
 )
 
@@ -7,8 +7,8 @@ add_subdirectory(frontend)
 add_subdirectory(backend)
 add_subdirectory(utilities)
 
-set(MEGUMIN_TARGET "Megumin")
+set(WISNIA_TARGET "WisniaLang")
 
-add_executable(${MEGUMIN_TARGET}
-  ${MEGUMIN_SOURCES}
+add_executable(${WISNIA_TARGET}
+  ${WISNIA_SOURCES}
 )
