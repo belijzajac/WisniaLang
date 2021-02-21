@@ -18,7 +18,8 @@ class Type;
 class Stmt;
 class Loop;
 class BaseIf;
-class Identifier;
+class Var;
+class Field;
 
 class Parser {
     // Checks if the current token is of type `token`
@@ -36,7 +37,7 @@ class Parser {
     void expect(const TokenType &token);
 
     // Parses identifier
-    std::unique_ptr<Identifier> parseIdent();
+    std::unique_ptr<Var> parseVar();
 
     // Parses function definitions
     std::unique_ptr<Def> parseFnDef();
@@ -149,6 +150,9 @@ class Parser {
 
     // Parses class d-tor definition
     std::unique_ptr<Def> parseClassDtorDef();
+
+    // Parses class' fields
+    std::unique_ptr<Field> parseClassField();
 
 public:
     explicit Parser(const Lexer &lexer);
