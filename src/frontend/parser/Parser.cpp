@@ -3,7 +3,7 @@
 #include "../lexer/token/Token.h"
 #include "../lexer/token/TokenType.h"
 #include "../parser/ast/AST.h"
-#include "../../utilities/Exception.h"
+#include "../../utilities/Exceptions.h"
 #include <algorithm>
 #include <unordered_map>
 #include <iostream>
@@ -16,7 +16,7 @@ Parser::Parser(const Lexer &lexer) {
     root->print();
 }
 
-bool Parser::has(const TokenType &token) {
+bool Parser::has(const TokenType &token) const {
     return peek()->getType() == token;
 }
 
@@ -27,7 +27,7 @@ bool Parser::has2(const TokenType &token) {
 // TODO: Instead of throwing exceptions, make an option to instead print error msg to STDERR
 void Parser::expect(const TokenType &token) {
     if (peek()->getType() != token)
-        throw Exception{"Expected " + TokenTypeToStr[token] + " but found " + TokenTypeToStr[peek()->getType()]};
+        throw ParserError{"Expected " + TokenTypeToStr[token] + " but found " + TokenTypeToStr[peek()->getType()]};
     else
         consume();
 }
@@ -35,24 +35,20 @@ void Parser::expect(const TokenType &token) {
 std::unique_ptr<AST> Parser::parse() {
     auto root = std::make_unique<AST>();
 
-    try {
-        // continue parsing as long as there are tokens
-        while (!has(TokenType::TOK_EOF)) {
-            switch (peek()->getType()) {
-                // <FN_DECL>
-                case TokenType::KW_FN :
-                    root->addGlobalFnDef(parseFnDef());
-                    break;
-                // <CLASS_DECL>
-                case TokenType::KW_CLASS :
-                    root->addGlobalClassDef(parseClassDef());
-                    break;
-                default:
-                    throw Exception{"Not a global definition of either a class, or a function"};
-            }
+    // continue parsing as long as there are tokens
+    while (!has(TokenType::TOK_EOF)) {
+        switch (peek()->getType()) {
+            // <FN_DECL>
+            case TokenType::KW_FN :
+                root->addGlobalFnDef(parseFnDef());
+                break;
+            // <CLASS_DECL>
+            case TokenType::KW_CLASS :
+                root->addGlobalClassDef(parseClassDef());
+                break;
+            default:
+                throw ParserError{"Not a global definition of either a class, or a function"};
         }
-    } catch (const Exception &error) {
-        std::cerr << "Parser error: " << error.what() << "\n";
     }
 
     return root;
@@ -62,7 +58,7 @@ std::unique_ptr<Var> Parser::parseVar() {
     if (has(TokenType::IDENT)) {
         return std::make_unique<Var>(getTokenName());
     } else {
-        throw Exception{"Not a variable name"};
+        throw ParserError{"Not a variable name"};
     }
 }
 
@@ -124,7 +120,7 @@ std::unique_ptr<Type> Parser::parsePrimitiveType() {
     if (std::any_of(PrimTypes.begin(), PrimTypes.end(), [&](TokenType t) { return peek()->getType() == t; })) {
         return std::make_unique<PrimitiveType>(getTokenName());
     } else {
-        throw Exception{"Function definition doesn't have any of the supported types"};
+        throw ParserError{"Function definition doesn't have any of the supported types"};
     }
 }
 
@@ -405,7 +401,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
     } else {
         ; // do nothing. The branch is never reached
     }
-    throw Exception{"Undefined expression"};
+    throw ParserError{"Undefined expression"};
 }
 
 // <FN_CALL> ::= <IDENT> <ARGUMENTS>
@@ -420,7 +416,7 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
     auto className = getTokenName();
 
     // eat "." or "->"
-    hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW) ? consume() : throw Exception{"Unknown method call symbol"};
+    hasAnyOf(TokenType::OP_METHOD_CALL, TokenType::OP_FN_ARROW) ? consume() : throw ParserError{"Unknown method call symbol"};
 
     auto methodCallPtr = std::make_unique<FnCallExpr>(getTokenName());
     methodCallPtr->addClassName(className);
@@ -515,7 +511,7 @@ std::unique_ptr<Expr> Parser::parseConstExpr() {
             return strExpr;
         }
     }
-    throw Exception{"Unknown constant expression"};
+    throw ParserError{"Unknown constant expression"};
 }
 
 // <LOOP_BREAK_STMT> <STMT_END>
@@ -531,7 +527,7 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
             return std::make_unique<LoopBrkStmt>();
         }
     }
-    throw Exception{"Unterminated loop break statement"};
+    throw ParserError{"Unterminated loop break statement"};
 }
 
 // <VAR_DECL> <STMT_END>

@@ -1,6 +1,6 @@
 #include "Lexer.h"
 #include "token/Token.h"
-#include "../../utilities/Exception.h"
+#include "../../utilities/Exceptions.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -9,11 +9,11 @@
 #include <algorithm>
 
 // Operands of length 1
-static inline std::vector<char> simpleOperands {'.', '*', '(', ')', '{', '}', ',', ':', ';'};
+constexpr std::array<char, 9> simpleOperands {'.', '*', '(', ')', '{', '}', ',', ':', ';'};
 
-// Finish tokenize token
+// Finish tokenizing a token
 std::shared_ptr<Token> Lexer::finishTok(const TokenType &type_, bool backtrack) {
-    tokenState_.state_ = START;
+    tokenState_.state_ = State::START;
 
     // We've over-gone by 1 character further by returning the token earlier,
     // so step back the iterator
@@ -69,51 +69,50 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
     switch (tokenState_.state_) {
 
         /* ~~~ CASE: START ~~~ */
-        case START:
+        case State::START:
             if (isalpha(ch) || ch == '_') {
-                tokenState_.state_ = IDENT;
+                tokenState_.state_ = State::IDENT;
                 tokenState_.buff_ += ch;
             }
 
             else if (ch == '!' || ch == '<' || ch == '>' || ch == '=') {
                 tokenState_.buff_ += ch;
-                tokenState_.state_ = OP_COMPARE;
+                tokenState_.state_ = State::OP_COMPARE;
             }
 
             else if (ch == '\"') {
                 tokenState_.stringStart = tokenState_.lineNo;
-                tokenState_.state_ = STRING;
+                tokenState_.state_ = State::STRING;
             }
 
             else if (isdigit(ch)) {
-                tokenState_.state_ = INTEGER;
+                tokenState_.state_ = State::INTEGER;
                 tokenState_.buff_ += ch;
             }
 
             else if (ch == '&')
-                tokenState_.state_ = LOGIC_AND;
+                tokenState_.state_ = State::LOGIC_AND;
 
             else if (ch == '|')
-                tokenState_.state_ = LOGIC_OR;
+                tokenState_.state_ = State::LOGIC_OR;
 
             else if (ch == '+')
-                tokenState_.state_ = OP_PP;
+                tokenState_.state_ = State::OP_PP;
 
             else if (ch == '-')
-                tokenState_.state_ = OP_ARROW;
+                tokenState_.state_ = State::OP_ARROW;
 
             else if (ch == '/') {
-                tokenState_.state_ = CMT_MAYBE_MULTI_CMT;
+                tokenState_.state_ = State::CMT_MAYBE_MULTI_CMT;
                 return nullptr;
             }
 
             else if (ch == '#')
-                tokenState_.state_ = CMT_SINGLE;
+                tokenState_.state_ = State::CMT_SINGLE;
 
             // Finish the below tokens instantly
             else if (std::any_of(simpleOperands.begin(), simpleOperands.end(), [&](char op){ return ch == op; })) {
-                std::string opToStr {ch};
-                return finishTok(StrToTokenOp[opToStr]);
+                return finishTok(StrToTokenOp[std::string{ch}]);
             }
 
             // Skip white-spaces
@@ -124,12 +123,12 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             }
 
             else
-                throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unrecognized char"};
+                throw LexerError{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unrecognized char"};
 
             return nullptr;
 
         /* ~~~ CASE: IDENT ~~~ */
-        case IDENT:
+        case State::IDENT:
             if (isspace(ch))
                 return finishIdent();
 
@@ -140,7 +139,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             return nullptr;
 
         /* ~~~ CASE: OP_COMPARE ~~~ */
-        case OP_COMPARE:
+        case State::OP_COMPARE:
             if (ch == '=') {
                 std::string tokKey {tokenState_.buff_ + '='};
                 tokenState_.buff_.clear();
@@ -152,10 +151,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             }
 
         /* ~~~ CASE: STRING ~~~ */
-        case STRING: {
+        case State::STRING: {
             // We got an escape symbol -- need to escape it
             if (ch == '\\')
-                tokenState_.state_ = ESCAPE_SEQ;
+                tokenState_.state_ = State::ESCAPE_SEQ;
 
             // It's some other symbol
             else {
@@ -166,7 +165,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
                     return finishTok(TokenType::LIT_STR);
 
                 else if (ch == -1)
-                    throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unterminated string"};
+                    throw LexerError{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unterminated string"};
 
                 tokenState_.buff_ += ch;
             }
@@ -174,7 +173,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         }
 
         /* ~~~ CASE: ESCAPE_SEQ ~~~ */
-        case ESCAPE_SEQ:
+        case State::ESCAPE_SEQ:
             // Escape sequences for strings
             switch (ch) {
                 case 'f':
@@ -197,22 +196,22 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
                     break;
                 default:
                     tokenState_.buff_ += ch;
-                    throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unknown escape symbol"};
+                    throw LexerError{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unknown escape symbol"};
             }
             // Continue parsing
-            tokenState_.state_ = STRING;
+            tokenState_.state_ = State::STRING;
             return nullptr;
 
         /* ~~~ CASE: INTEGER ~~~ */
-        case INTEGER:
+        case State::INTEGER:
             if (isspace(ch))
                 return finishTok(TokenType::LIT_INT);
 
             else if (ch == '.')
-                tokenState_.state_ = FLOAT;
+                tokenState_.state_ = State::FLOAT;
 
             else if (isalpha(ch)) {
-                tokenState_.state_ = ERRONEOUS_NUMBER;
+                tokenState_.state_ = State::ERRONEOUS_NUMBER;
                 tokenState_.erroneousType_ = "integer";
             }
 
@@ -223,12 +222,12 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             return nullptr;
 
         /* ~~~ CASE: FLOAT ~~~ */
-        case FLOAT:
+        case State::FLOAT:
             if (isspace(ch))
                 return finishTok(TokenType::LIT_FLT);
 
             else if (isalpha(ch) || ch == '.') {
-                tokenState_.state_ = ERRONEOUS_NUMBER;
+                tokenState_.state_ = State::ERRONEOUS_NUMBER;
                 tokenState_.erroneousType_ = "float";
             }
 
@@ -239,7 +238,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             return nullptr;
 
         /* ~~~ CASE: ERRONEOUS_NUMBER ~~~ */
-        case ERRONEOUS_NUMBER:
+        case State::ERRONEOUS_NUMBER:
             if (isspace(ch)) {
                 if (ch == '\n')
                     ++tokenState_.lineNo;
@@ -251,7 +250,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             return nullptr;
 
         /* ~~~ CASE: LOGIC_AND ~~~ */
-        case LOGIC_AND:
+        case State::LOGIC_AND:
             if (ch == '&')
                 return finishTok(TokenType::OP_AND);
 
@@ -259,7 +258,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             return finishTok(TokenType::TOK_INVALID, true);
 
         /* ~~~ CASE: LOGIC_OR ~~~ */
-        case LOGIC_OR:
+        case State::LOGIC_OR:
             if (ch == '|')
                 return finishTok(TokenType::OP_OR);
 
@@ -267,43 +266,43 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
             return finishTok(TokenType::TOK_INVALID, true);
 
         /* ~~~ CASE: OP_PP ~~~ */
-        case OP_PP:
+        case State::OP_PP:
             if (ch == '+')
                 return finishTok(TokenType::OP_UADD);
             return finishTok(TokenType::OP_ADD, true);
 
         /* ~~~ CASE: OP_ARROW ~~~ */
-        case OP_ARROW:
+        case State::OP_ARROW:
             if (ch == '>')
                 return finishTok(TokenType::OP_FN_ARROW);
             return finishTok(TokenType::OP_SUB, true);
 
         /* ~~~ CASE: OP_ARROW ~~~ */
-        case CMT_SINGLE:
+        case State::CMT_SINGLE:
             if (ch == '\n') {
-                tokenState_.state_ = START;
+                tokenState_.state_ = State::START;
                 ++tokenState_.lineNo;
             }
             return nullptr;
 
         /* ~~~ CASE: CMT_MAYBE_MULTI_CMT ~~~ */
-        case CMT_MAYBE_MULTI_CMT:
+        case State::CMT_MAYBE_MULTI_CMT:
             // It's indeed a multi-line comment
             if (ch == '*') {
-                tokenState_.state_ = CMT_MULTI;
+                tokenState_.state_ = State::CMT_MULTI;
                 return nullptr;
             }
             // It was just a division symbol
             else {
-                tokenState_.state_ = START;
+                tokenState_.state_ = State::START;
                 return finishTok(TokenType::OP_DIV, true);
             }
 
         /* ~~~ CASE: CMT_MULTI ~~~ */
-        case CMT_MULTI:
+        case State::CMT_MULTI:
             // Maybe we've reach the multi-line comment closing
             if (ch == '*')
-                tokenState_.state_ = CMT_MAYBE_FINISH_MULTI;
+                tokenState_.state_ = State::CMT_MAYBE_FINISH_MULTI;
 
             // Newline
             else if (ch == '\n')
@@ -311,29 +310,29 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
             // Found EOF
             else if(ch == -1)
-                throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": comment wasn't closed"};
+                throw LexerError{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": comment wasn't closed"};
 
             return nullptr;
 
         /* ~~~ CASE: CMT_MAYBE_FINISH_MULTI ~~~ */
-        case CMT_MAYBE_FINISH_MULTI:
+        case State::CMT_MAYBE_FINISH_MULTI:
             // It was indeed a multi-line comment closing
             if (ch == '/')
-                tokenState_.state_ = START;
+                tokenState_.state_ = State::START;
 
             // Reached EOF
             else if (ch == -1)
-                throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": comment wasn't closed"};
+                throw LexerError{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": comment wasn't closed"};
 
             // Any other symbol other than '/' must be skipped
             else if (ch != '*')
-                tokenState_.state_ = CMT_MULTI;
+                tokenState_.state_ = State::CMT_MULTI;
 
             return nullptr;
 
         /* ~~~ CASE: ERRONEOUS ~~~ */
         default:
-            throw Exception{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unexpected state"};
+            throw LexerError{tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Unexpected state"};
     }
 }
 
@@ -343,7 +342,7 @@ void Lexer::tokenize(const std::string &input) {
     tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
 
     if (tokenState_.data_.empty())
-        throw Exception{input + ":" + "Empty file"};
+        throw LexerError{input + ":" + "Empty file"};
 
     // Add a newline at the end of the data if there's none already.
     // This comes in handy to save the last token from getting dismissed
@@ -356,16 +355,12 @@ void Lexer::tokenize(const std::string &input) {
     std::shared_ptr<Token> result;                  // This is where we temporarily save the token result
 
     while (tokenState_.it_ != tokenState_.data_.end()) {
-        try {
-            result = tokNext(*tokenState_.it_);
-        } catch (const Exception &error) {
-            std::cerr << "Lexer error: " << error.what() << ": " << *tokenState_.it_ << "\n";
-        }
+        result = tokNext(*tokenState_.it_);
+
         // Put only valid tokens into the tokens vector
         if (result != nullptr) {
             if (result->getType() == TokenType::TOK_INVALID)
-                // Muh user-friendly error messages for the end-users
-                std::cerr << "Lexer error: " << tokenState_.fileName_ << ":" << std::to_string(tokenState_.lineNo) << ": Invalid suffix for " << tokenState_.erroneousType_ << "\n";
+                throw LexerError(tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) + ": Invalid suffix for " + tokenState_.erroneousType_);
             else
                 tokens_.push_back(result);
         }
@@ -387,7 +382,7 @@ void Lexer::prettyPrint() {
                            << std::setw(15) << "TYPE" << " | " << "VALUE\n";
     std::cout << "------+-------+-----------------+-----------------\n";
 
-    for(auto & token : tokens_){
+    for(const auto &token : tokens_){
         std::cout << std::left << std::setw(5)   << index << " | "
                                << std::setw(5)   << token->getFileInfo()->getLineNo() << " | "
                                << std::setw(15)  << token->getName() << " | "

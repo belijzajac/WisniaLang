@@ -7,7 +7,7 @@ add_subdirectory(frontend)
 add_subdirectory(backend)
 add_subdirectory(utilities)
 
-set(WISNIA_TARGET "WisniaLang")
+set(WISNIA_TARGET "wisnia")
 
 add_executable(${WISNIA_TARGET}
   ${WISNIA_SOURCES}

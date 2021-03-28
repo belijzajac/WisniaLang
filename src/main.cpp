@@ -1,27 +1,24 @@
 #include <iostream>
-#include "utilities/Exception.h"
+#include "utilities/Exceptions.h"
 #include "frontend/lexer/Lexer.h"
 #include "frontend/parser/Parser.h"
 
 int main(int argc, char *argv[]) {
     try {
         if (argc < 2)
-            throw Exception{"No arguments provided"};
+            throw WisniaError{"No arguments provided"};
 
         // Tokenize a single file
-        auto &lexer = Lexer::get();
-        lexer.tokenize(argv[1]);
+        auto lexer = std::make_unique<Lexer>();
+        lexer->tokenize(argv[1]);
 
         // Output the tokens in STDOUT
-        //lexer.prettyPrint();
+        //lexer->prettyPrint();
 
         // Pass tokens to the parser
-        auto parser = std::make_unique<Parser>(lexer);
+        auto parser = std::make_unique<Parser>(std::move(*lexer));
         
-    } catch (const Exception &ex) {
-        std::cerr << ex.what() << "\n";
-        return -1;
-    } catch (const std::exception &ex) {
+    } catch (const WisniaError &ex) {
         std::cerr << ex.what() << "\n";
         return -1;
     } catch (...) {

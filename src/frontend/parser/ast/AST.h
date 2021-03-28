@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 #include "../../lexer/token/Token.h"
-#include "../../../utilities/Exception.h"
+#include "../../../utilities/Exceptions.h"
 
 // Root node
 class AST {
@@ -72,7 +72,7 @@ private:
                 case TokenType::KW_STRING :
                     return "string";
                 default:
-                    throw Exception{"Invalid token type"};
+                    throw ParserError{"Invalid token type"};
             }
         };
 
@@ -211,7 +211,7 @@ private:
                 case TokenType::OP_NE :
                     return "!=";
                 default:
-                    throw Exception{"Invalid operand type"};
+                    throw ParserError{"Invalid operand type"};
             }
         };
 

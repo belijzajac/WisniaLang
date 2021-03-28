@@ -23,7 +23,7 @@ class Field;
 
 class Parser {
     // Checks if the current token is of type `token`
-    bool has(const TokenType &token);
+    bool has(const TokenType &token) const;
     bool has2(const TokenType &token);
 
     // Checks if the sequence of tokens is of type `token`

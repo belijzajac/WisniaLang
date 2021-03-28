@@ -10,10 +10,7 @@ class Token;
 
 // TODO: hide the implementation of private parts with the PIMPL idiom
 class Lexer {
-    Lexer() = default;
-
-    // TODO: enum class?
-    enum State {
+    enum class State {
         START,            // Start state
         IDENT,            // Identifier
         OP_COMPARE,       // Either a single operand (!, <, >, =) or (!=, <=, >=, ==)
@@ -37,7 +34,7 @@ class Lexer {
 
     struct TokenState {
         // Info needed to construct a token and to tokenize a letter
-        State state_ {START};
+        State state_ {State::START};
         std::string buff_;
 
         // Accessors to the actual data of the source file
@@ -65,15 +62,8 @@ class Lexer {
     std::shared_ptr<Token> tokNext(char ch);
 
 public:
-    // Prohibit copy ctor
-    Lexer(Lexer const &) = delete;
-    void operator=(Lexer const &) = delete;
-
-    // Get an instance of Lexer
-    static Lexer &get() {
-        static Lexer lexer_;
-        return lexer_;
-    }
+    Lexer() = default;
+    ~Lexer() = default;
 
     // Tokenize the given source file
     void tokenize(const std::string &input);
