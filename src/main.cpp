@@ -1,7 +1,11 @@
 #include <iostream>
+// Wisnia
 #include "utilities/Exceptions.h"
 #include "frontend/lexer/Lexer.h"
 #include "frontend/parser/Parser.h"
+
+using namespace Wisnia;
+using namespace Utils;
 
 int main(int argc, char *argv[]) {
     try {

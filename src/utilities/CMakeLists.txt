@@ -1,5 +1,5 @@
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  utilities/Exception.h
+  utilities/Exceptions.h
   PARENT_SCOPE
 )
