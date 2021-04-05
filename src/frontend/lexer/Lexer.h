@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-// Wisnia
-#include "../basic/TType.h"
 
 namespace Wisnia {
     namespace Basic {

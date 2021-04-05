@@ -5,8 +5,6 @@
 #include <vector>
 #include <sstream>
 // Wisnia
-#include "../basic/Token.h"
-#include "../basic/TType.h"
 #include "../../utilities/Exceptions.h"
 
 namespace Wisnia {

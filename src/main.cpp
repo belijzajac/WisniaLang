@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
         auto lexer = std::make_unique<Lexer>();
         lexer->tokenize(argv[1]);
 
-        // Output the tokens in STDOUT
+        // Output the tokens to STDOUT
         //lexer->prettyPrint();
 
         // Pass tokens to the parser

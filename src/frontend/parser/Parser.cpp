@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <unordered_map>
-#include <iostream>
 // Wisnia
 #include "Parser.h"
 #include "../lexer/Lexer.h"
