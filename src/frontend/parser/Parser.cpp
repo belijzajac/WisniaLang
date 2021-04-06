@@ -2,9 +2,9 @@
 #include <unordered_map>
 // Wisnia
 #include "Parser.h"
+#include "../ast/AST.h"
 #include "../lexer/Lexer.h"
 #include "../basic/Token.h"
-#include "../ast/AST.h"
 
 using namespace Wisnia;
 using namespace AST;
