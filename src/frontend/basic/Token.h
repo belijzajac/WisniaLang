@@ -1,60 +1,63 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include <variant>
 #include <memory>
 #include <string>
+#include <variant>
 // Wisnia
 #include "PositionInFile.h"
 #include "TType.h"
 
 namespace Wisnia::Basic {
-    // Variant, that holds all the possible values
-    using TokenValue = std::variant<int, float, std::string, nullptr_t>;
 
-    // Helper type for the visitor
-    template<class... Ts>
-    struct overloaded : Ts ... {
-        using Ts::operator()...;
-    };
-    template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+// Variant, that holds all the possible values
+using TokenValue = std::variant<int, float, std::string, nullptr_t>;
 
-    class Token {
-    public:
-        Token(TType type, const TokenValue &value,
-              std::unique_ptr<PositionInFile> pif)
-                : type_{type}, value_{value}, pif_{std::move(pif)} {}
+// Helper type for the visitor
+template <class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
 
-        ~Token() = default;
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
-        // Getters for token
-        TType getType() const { return type_; }
+class Token {
+ public:
+  Token(TType type, const TokenValue &value,
+        std::unique_ptr<PositionInFile> pif)
+      : type_{type}, value_{value}, pif_{std::move(pif)} {}
 
-        std::string getName() const { return TokenTypeToStr[type_]; }
+  ~Token() = default;
 
-        // Returns a string representation of value_
-        std::string getValueStr() const {
-            std::string valueStr;
+  // Getters for token
+  TType getType() const { return type_; }
 
-            // Visit the variant (type-matching visitor)
-            std::visit(overloaded{
-                    [&](int arg) { valueStr = std::to_string(arg); },
-                    [&](float arg) { valueStr = std::to_string(arg); },
-                    [&](const std::string &arg) { valueStr = arg; },
-                    [&](nullptr_t arg) { valueStr = ""; }
-            }, value_);
+  std::string getName() const { return TokenTypeToStr[type_]; }
 
-            return valueStr;
-        }
+  // Returns a string representation of value_
+  std::string getValueStr() const {
+    std::string valueStr;
 
-        // Getter for file information
-        const PositionInFile *getFileInfo() const { return pif_.get(); }
+    // Visit the variant (type-matching visitor)
+    std::visit(overloaded{[&](int arg) { valueStr = std::to_string(arg); },
+                          [&](float arg) { valueStr = std::to_string(arg); },
+                          [&](const std::string &arg) { valueStr = arg; },
+                          [&](nullptr_t arg) { valueStr = ""; }},
+               value_);
 
-    private:
-        TType type_;
-        TokenValue value_;
-        std::unique_ptr<PositionInFile> pif_;
-    };
-} // Wisnia::Basic
+    return valueStr;
+  }
 
-#endif // TOKEN_H
+  // Getter for file information
+  const PositionInFile *getFileInfo() const { return pif_.get(); }
+
+ private:
+  TType type_;
+  TokenValue value_;
+  std::unique_ptr<PositionInFile> pif_;
+};
+
+}  // namespace Wisnia::Basic
+
+#endif  // TOKEN_H

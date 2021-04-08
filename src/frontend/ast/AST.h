@@ -2,12 +2,12 @@
 #define AST_H
 
 // Wisnia
-#include "Types.h"
-#include "Expressions.h"
-#include "Variables.h"
-#include "Statements.h"
-#include "Definitions.h"
-#include "Loops.h"
-#include "Conditionals.h"
+#include "nodes/Types.h"
+#include "nodes/Expressions.h"
+#include "nodes/Variables.h"
+#include "nodes/Statements.h"
+#include "nodes/Definitions.h"
+#include "nodes/Loops.h"
+#include "nodes/Conditionals.h"
 
-#endif // AST_H
+#endif  // AST_H
