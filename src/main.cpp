@@ -1,8 +1,8 @@
 #include <iostream>
 // Wisnia
-#include "frontend/lexer/Lexer.h"
-#include "frontend/parser/Parser.h"
-#include "utilities/Exceptions.h"
+#include "Lexer.h"
+#include "Parser.h"
+#include "Exceptions.h"
 
 using namespace Wisnia;
 using namespace Utils;

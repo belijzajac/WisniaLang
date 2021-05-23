@@ -6,8 +6,8 @@
 #include <vector>
 // Wisnia
 #include "Lexer.h"
-#include "../../utilities/Exceptions.h"
-#include "../basic/Token.h"
+#include "Exceptions.h"
+#include "Token.h"
 
 using namespace Wisnia;
 using namespace Basic;

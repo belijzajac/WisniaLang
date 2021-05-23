@@ -4,7 +4,7 @@
 // Wisnia
 #include "Root.h"
 #include "Types.h"
-#include "../../basic/TType.h"
+#include "TType.h"
 
 namespace Wisnia {
 namespace Basic {

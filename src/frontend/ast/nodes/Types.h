@@ -4,9 +4,9 @@
 #include <sstream>
 // Wisnia
 #include "Root.h"
-#include "../../basic/TType.h"
-#include "../../basic/Token.h"
-#include "../../../utilities/Exceptions.h"
+#include "TType.h"
+#include "Token.h"
+#include "Exceptions.h"
 
 namespace Wisnia {
 namespace AST {
