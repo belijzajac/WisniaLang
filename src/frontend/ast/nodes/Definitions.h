@@ -17,7 +17,7 @@ class Def : public Root {
   explicit Def(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
 
   // Getters
-  const std::string getName() const { return token_->getValueStr(); }
+  std::string getName() const { return token_->getValueStr(); }
 
   void print(size_t level) const override { Root::print(level); }
 };

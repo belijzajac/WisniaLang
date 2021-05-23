@@ -40,7 +40,7 @@ class Type : public Root {
   }
 
  public:
-  Type(const std::shared_ptr<Basic::Token> &tok) {
+  explicit Type(const std::shared_ptr<Basic::Token> &tok) {
     type_ = tok->getType();
     convertTypeToStr();
   }

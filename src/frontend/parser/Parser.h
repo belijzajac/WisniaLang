@@ -192,6 +192,7 @@ class Parser {
  private:
   std::vector<std::shared_ptr<Basic::Token>> tokens_;
 };
+
 }  // namespace Wisnia
 
 #endif  // PARSER_H
