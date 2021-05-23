@@ -1,5 +1,3 @@
-add_subdirectory(token)
-
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
   frontend/lexer/Lexer.h
