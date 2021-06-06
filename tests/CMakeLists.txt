@@ -1,12 +1,20 @@
+# Appends "../src/" to the list of sources to form absolute paths.
+function(modify_sources SourceFiles)
+  foreach(SRC IN LISTS WISNIA_SOURCES)
+    set(SRC "../src/${SRC}")
+    list(APPEND SRCS ${SRC})
+  endforeach()
+  set(${SourceFiles} ${SRCS} PARENT_SCOPE)
+endfunction()
+
 if (unittests)
   include(GoogleTest)
   enable_testing()
-  
-  add_subdirectory(lexical-analysis)
-  
-  #add_executable(wisnia-tests ../src/${WISNIA_SOURCES} ${TEST_FILES})
-  add_executable(wisnia-tests ${TEST_FILES} ../src/frontend/lexer/Lexer.h ../src/frontend/lexer/Lexer.cpp ../src/utilities/Exceptions.h ../src/frontend/basic/Token.h ../src/frontend/basic/TType.h)
 
+  add_subdirectory(lexical-analysis)
+
+  modify_sources(WISNIA_SOURCES)
+  add_executable(wisnia-tests ${TEST_FILES} ${WISNIA_SOURCES})
   target_link_libraries(wisnia-tests gtest_main)
   gtest_discover_tests(wisnia-tests)
 endif()
