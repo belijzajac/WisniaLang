@@ -1,6 +1,7 @@
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
   main.cpp
+  #PARENT_SCOPE
 )
 
 add_subdirectory(frontend)

@@ -65,12 +65,16 @@ class Lexer {
   // Continues to tokenize the next letter
   std::shared_ptr<Basic::Token> tokNext(char ch);
 
+  // Tokenizes whatever was passed to the tokenize function
+  void tokenizeInput();
+
  public:
   Lexer() = default;
   ~Lexer() = default;
 
-  // Tokenize the given source file
-  void tokenize(const std::string &input);
+  // Preps up tokenization
+  void tokenize(const std::string &filename);
+  void tokenize(std::istringstream &sstream);
 
   // Returns tokens
   std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return tokens_; }

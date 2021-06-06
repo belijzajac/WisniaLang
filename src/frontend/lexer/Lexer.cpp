@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -334,14 +335,27 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
   }
 }
 
-void Lexer::tokenize(const std::string &input) {
+void Lexer::tokenize(const std::string &filename) {
   // Opens the `input` file and copies its content into `data`
-  std::ifstream sourceFile{input};
+  std::ifstream sourceFile{filename};
   tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile),
                        std::istreambuf_iterator<char>()};
+  tokenState_.fileName_ = filename;
+  tokenizeInput();
+}
 
-  if (tokenState_.data_.empty())
-    throw LexerError{input + ":" + "Empty file"};
+void Lexer::tokenize(std::istringstream &sstream) {
+  tokenState_.data_ = {std::istreambuf_iterator<char>(sstream),
+                       std::istreambuf_iterator<char>()};
+  tokenState_.fileName_ = "string stream";
+  tokenizeInput();
+}
+
+void Lexer::tokenizeInput()
+{
+  assert(
+      !tokenState_.data_.empty() && !tokenState_.fileName_.empty() &&
+      "the provided input was either empty or Lexer::tokenize wasn't called");
 
   // Add a newline at the end of the data if there's none already.
   // This comes in handy to save the last token from getting dismissed
@@ -352,7 +366,6 @@ void Lexer::tokenize(const std::string &input) {
   // Set an iterator to the begin of the data
   // And file name for the file being tokenized at the moment
   tokenState_.it_ = tokenState_.data_.begin();
-  tokenState_.fileName_ = input;
   std::shared_ptr<Token> result;
 
   while (tokenState_.it_ != tokenState_.data_.end()) {
@@ -371,7 +384,7 @@ void Lexer::tokenize(const std::string &input) {
   }
 
   // Add the EOF token to mark the file's ending
-  auto pif = std::make_unique<PositionInFile>(input, tokenState_.lineNo);
+  auto pif = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.lineNo);
   auto token = std::make_shared<Token>(TType::TOK_EOF, "", std::move(pif));
   tokens_.push_back(token);
 }

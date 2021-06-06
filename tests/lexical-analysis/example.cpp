@@ -1,16 +1,26 @@
 #include <gtest/gtest.h>
 // Wisnia
 #include "Lexer.h"
-#include "AST.h"
+#include "Token.h"
 
-// Demonstrate some basic assertions.
-TEST(HelloTest, BasicAssertions) {
-  using namespace Wisnia;
+using namespace Wisnia;
+using namespace Basic;
+
+TEST(LexerTest, BasicIdentifier) {
+  std::string program = R"(ab + ac;)";
+  std::istringstream iss{program};
+
   auto lexer = std::make_unique<Lexer>();
-  auto root_node = std::make_unique<AST::Root>();
-  
-  // Expect two strings not to be equal.
-  EXPECT_STRNE("hello", "world");
-  // Expect equality.
-  EXPECT_EQ(7 * 6, 42);
+  lexer->tokenize(iss);
+  const auto &tokens = lexer->getTokens();
+
+  EXPECT_GT(tokens.size(), 0);
+  EXPECT_EQ(tokens.size(), 5);
+  EXPECT_EQ(tokens[0]->getType(), TType::IDENT);
+  EXPECT_EQ(tokens[0]->getValueStr(), "ab");
+  EXPECT_EQ(tokens[1]->getType(), TType::OP_ADD);
+  EXPECT_EQ(tokens[2]->getType(), TType::IDENT);
+  EXPECT_EQ(tokens[2]->getValueStr(), "ac");
+  EXPECT_EQ(tokens[3]->getType(), TType::OP_SEMICOLON);
+  EXPECT_EQ(tokens[4]->getType(), TType::TOK_EOF);
 }

@@ -24,5 +24,7 @@ include_directories(
   src/frontend/parser/
 )
 
+#set(WISNIA_SOURCES)
+
 add_subdirectory(src)
 add_subdirectory(tests)
