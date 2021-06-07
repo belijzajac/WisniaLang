@@ -46,6 +46,7 @@ enum class TType {
   OP_DIV,
   // Unary operations
   OP_UADD,
+  OP_USUB,
   OP_UNEG,
   // Logic operations
   OP_AND,
@@ -113,6 +114,7 @@ static inline std::unordered_map<TType, std::string> TokenTypeToStr = {
   {TType::OP_DIV, "OP_DIV"},
   // Unary operations
   {TType::OP_UADD, "OP_UADD"},
+  {TType::OP_USUB, "OP_USUB"},
   {TType::OP_UNEG, "OP_UNEG"},
   // Logic operations
   {TType::OP_AND, "OP_AND"},
@@ -165,6 +167,7 @@ static inline std::unordered_map<std::string, TType> StrToTokenOp = {
     {")", TType::OP_PAREN_C},     {"{", TType::OP_BRACE_O},
     {"}", TType::OP_BRACE_C},     {",", TType::OP_COMMA},
     {":", TType::OP_COL},         {";", TType::OP_SEMICOLON},
+    {"--", TType::OP_USUB},
 };
 
 }  // namespace Wisnia::Basic

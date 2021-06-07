@@ -105,7 +105,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         tokenState_.state_ = State::OP_PP;
 
       else if (ch == '-')
-        tokenState_.state_ = State::OP_ARROW;
+        tokenState_.state_ = State::OP_MM;
 
       else if (ch == '/') {
         tokenState_.state_ = State::CMT_MAYBE_MULTI_CMT;
@@ -271,12 +271,15 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       if (ch == '+') return finishTok(TType::OP_UADD);
       return finishTok(TType::OP_ADD, true);
 
-    /* ~~~ CASE: OP_ARROW ~~~ */
-    case State::OP_ARROW:
-      if (ch == '>') return finishTok(TType::OP_FN_ARROW);
+    /* ~~~ CASE: OP_MM ~~~ */
+    case State::OP_MM:
+      if (ch == '-')
+        return finishTok(TType::OP_USUB);
+      else if (ch == '>')
+        return finishTok(TType::OP_FN_ARROW);
       return finishTok(TType::OP_SUB, true);
 
-    /* ~~~ CASE: OP_ARROW ~~~ */
+    /* ~~~ CASE: CMT_SINGLE ~~~ */
     case State::CMT_SINGLE:
       if (ch == '\n') {
         tokenState_.state_ = State::START;

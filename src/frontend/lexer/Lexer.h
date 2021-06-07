@@ -24,7 +24,7 @@ class Lexer {
     LOGIC_AND,         // Logical AND: &&
     LOGIC_OR,          // Logical OR: ||
     OP_PP,             // Unary prefix: ++
-    OP_ARROW,          // Arrow: ->
+    OP_MM,             // Unary prefix: --
 
     ESCAPE_SEQ,        // Escapes \t, \n, etc.
     CMT_SINGLE,        // Single line comment: #

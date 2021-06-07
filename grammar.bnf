@@ -252,7 +252,7 @@
 <ADD_OP>           ::= "+" | "-"
 <EQUALITY_SYMB>    ::= "!=" | "=="
 <COMPARISON_SYMB>  ::= ">" | "<" | ">=" | "<="
-<UNARY_SYM>        ::= "!" | "-" | "++"
+<UNARY_SYM>        ::= "!" | "--" | "++"
 <ASSIGNMENT_OP>    ::= "="
 <BREAK_SYMB>       ::= "break"
 <CONTINUE_SYMB>    ::= "continue"
