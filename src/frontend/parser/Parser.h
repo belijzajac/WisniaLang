@@ -26,6 +26,14 @@ class Field;
 }  // namespace AST
 
 class Parser {
+ public:
+  explicit Parser(const Lexer &lexer);
+  ~Parser() = default;
+
+  // Starts parsing and returns the root node when done doing so
+  std::unique_ptr<AST::Root> parse();
+
+ private:
   // Checks if the current token is of type `token`
   bool has(const Basic::TType &token) const;
   bool has2(const Basic::TType &token) const;
@@ -42,6 +50,31 @@ class Parser {
   // Expects the following token to be of type `token`
   void expect(const Basic::TType &token);
 
+  // Returns an instance of the current token
+  const std::shared_ptr<Basic::Token> &curr() const { return tokens_.at(pos_); }
+
+  // Consumes and returns current token
+  // Used for obtaining tokens that represent names
+  const std::shared_ptr<Basic::Token> &getTokenName() {
+    consume();
+    return tokens_.at(pos_);
+  }
+
+  // Returns an instance of the following token (peeks)
+  const std::shared_ptr<Basic::Token> &peek() const {
+    return tokens_.at(pos_ + 1);
+  }
+
+  // Consumes token (skips current token position by 1)
+  void consume() { pos_++; }
+
+  // Checks if we haven't reached the end of token stream
+  bool hasNext() const { return pos_ + 1 < tokens_.size(); }
+
+  // Tokens stream copied from Lexer through constructor call
+  std::vector<std::shared_ptr<Basic::Token>> tokens_;
+
+ private:
   // Parses identifier
   std::unique_ptr<AST::Var> parseVar();
 
@@ -159,38 +192,6 @@ class Parser {
 
   // Parses class' fields
   std::unique_ptr<AST::Field> parseClassField();
-
- public:
-  explicit Parser(const Lexer &lexer);
-
-  ~Parser() = default;
-
-  // Returns an instance of the current token
-  const std::shared_ptr<Basic::Token> &curr() const { return tokens_.at(pos_); }
-
-  // Consumes and returns current token
-  // Used for obtaining tokens that represent names
-  const std::shared_ptr<Basic::Token> &getTokenName() {
-    consume();
-    return tokens_.at(pos_);
-  }
-
-  // Returns an instance of the following token (peeks)
-  const std::shared_ptr<Basic::Token> &peek() const {
-    return tokens_.at(pos_ + 1);
-  }
-
-  // Consumes token (skips current token position by 1)
-  void consume() { pos_++; }
-
-  // Checks if we haven't reached the end of token stream
-  bool hasNext() const { return pos_ + 1 < tokens_.size(); }
-
-  // Starts parsing
-  std::unique_ptr<AST::Root> parse();
-
- private:
-  std::vector<std::shared_ptr<Basic::Token>> tokens_;
 };
 
 }  // namespace Wisnia

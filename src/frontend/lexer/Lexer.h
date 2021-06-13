@@ -68,13 +68,14 @@ class Lexer {
   // Tokenizes whatever was passed to the tokenize function
   void tokenizeInput();
 
- public:
-  Lexer() = default;
-  ~Lexer() = default;
-
   // Preps up tokenization
   void tokenize(const std::string &filename);
   void tokenize(std::istringstream &sstream);
+
+ public:
+  explicit Lexer(const std::string &filename);
+  explicit Lexer(std::istringstream &sstream);
+  ~Lexer() = default;
 
   // Returns tokens
   std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return tokens_; }

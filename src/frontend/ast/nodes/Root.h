@@ -12,16 +12,16 @@ class Token;
 namespace AST {
 // Root node
 class Root {
+ public:
+  Root() = default;
+  virtual ~Root() = default;
  protected:
   std::vector<std::unique_ptr<Root>> children_;  // children nodes
   std::unique_ptr<Root> parent_;                 // parent node
   std::shared_ptr<Basic::Token> token_;          // token (for holding names, etc.)
- private:
+ public:
   std::vector<std::unique_ptr<Root>> globalClassDefs_;  // global class definitions
   std::vector<std::unique_ptr<Root>> globalFnDefs_;     // global function definitions
- public:
-  Root() = default;
-  virtual ~Root() = default;
 
   // Returns what kind of node it is
   virtual std::string kind() const { return "Root"; }

@@ -10,13 +10,7 @@ using namespace AST;
 using namespace Basic;
 using namespace Utils;
 
-Parser::Parser(const Lexer &lexer) {
-  tokens_ = lexer.getTokens();
-
-  // Parse and output Root
-  auto root = parse();
-  root->print();
-}
+Parser::Parser(const Lexer &lexer) : tokens_{lexer.getTokens()} {}
 
 bool Parser::has(const TType &token) const {
   return peek()->getType() == token;

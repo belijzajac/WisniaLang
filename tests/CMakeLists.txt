@@ -12,6 +12,7 @@ if (unittests)
   enable_testing()
 
   add_subdirectory(lexical-analysis)
+  add_subdirectory(syntax-analysis)
 
   modify_sources(WISNIA_SOURCES)
   add_executable(wisnia-tests ${TEST_FILES} ${WISNIA_SOURCES})

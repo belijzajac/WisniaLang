@@ -410,3 +410,6 @@ void Lexer::prettyPrint() {
     ++index;
   }
 }
+
+Lexer::Lexer(const std::string &filename) { tokenize(filename); }
+Lexer::Lexer(std::istringstream &sstream) { tokenize(sstream); }
