@@ -15,23 +15,20 @@ namespace AST {
 class Def : public Root {
  public:
   explicit Def(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-
-  // Getters
-  std::string getName() const { return token_->getValueStr(); }
-
+  std::string getName() const { return token_->getValue<std::string>(); }
   void print(size_t level) const override { Root::print(level); }
 };
 
 // An abstract definition for Def node
 class MethodDef : public Def {
- protected:
-  std::unique_ptr<Type> retType_;               // return type
-  std::vector<std::unique_ptr<Param>> params_;  // parameters
-  std::unique_ptr<Stmt> body_;  // body, surrounded by "{" and "}"
  public:
   explicit MethodDef(const std::shared_ptr<Basic::Token> &tok) : Def(tok) {
     token_ = tok;
   }
+
+  std::unique_ptr<Type> retType_;               // return type
+  std::vector<std::unique_ptr<Param>> params_;  // parameters
+  std::unique_ptr<Stmt> body_;                  // body, surrounded by "{" and "}"
 
   // A bunch of mutators
   void addRetType(std::unique_ptr<Type> type) { retType_ = std::move(type); }
@@ -123,7 +120,7 @@ class Field : public Root {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "Field" << " (" << name_->getValueStr() << ")";
+    ss << "Field" << " (" << name_->getValue<std::string>() << ")";
     return ss.str();
   }
 

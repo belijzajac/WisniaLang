@@ -12,9 +12,16 @@ namespace Wisnia {
 namespace AST {
 // An abstract definition for Type node
 class Type : public Root {
- protected:
+ public:
+  explicit Type(const std::shared_ptr<Basic::Token> &tok) {
+    type_ = tok->getType();
+    convertTypeToStr();
+  }
+
   Basic::TType type_;    // enum representing type
   std::string typeStr_;  // string representation of Type (for printing)
+
+  void print(size_t level) const override { Root::print(level); }
 
  private:
   void convertTypeToStr() {
@@ -38,14 +45,6 @@ class Type : public Root {
 
     typeStr_ = primTypeStr();
   }
-
- public:
-  explicit Type(const std::shared_ptr<Basic::Token> &tok) {
-    type_ = tok->getType();
-    convertTypeToStr();
-  }
-
-  void print(size_t level) const override { Root::print(level); }
 };
 
 // Function Type node

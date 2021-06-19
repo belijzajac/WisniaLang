@@ -19,10 +19,11 @@ class Stmt : public Root {
 
 // Statement block node
 class StmtBlock : public Stmt {
-  std::vector<std::unique_ptr<Stmt>> stmts_;
  public:
   explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   StmtBlock() = default;
+
+  std::vector<std::unique_ptr<Stmt>> stmts_;
 
   void addStmt(std::unique_ptr<Stmt> stmt) {
     stmts_.push_back(std::move(stmt));
@@ -41,10 +42,11 @@ class StmtBlock : public Stmt {
 
 // Return statement node
 class ReturnStmt : public Stmt {
-  std::unique_ptr<Expr> returnValue_;
  public:
   explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ReturnStmt() = default;
+
+  std::unique_ptr<Expr> returnValue_;
 
   void addReturnValue(std::unique_ptr<Expr> returnVal) {
     returnValue_ = std::move(returnVal);
@@ -56,8 +58,7 @@ class ReturnStmt : public Stmt {
     Stmt::print(level);
     level++;
 
-    if (returnValue_)
-      returnValue_->print(level);
+    returnValue_->print(level);
   }
 };
 
@@ -72,16 +73,17 @@ class LoopBrkStmt : public Stmt {
 
 // Variable declaration statement node
 class VarDeclStmt : public Stmt {
-  std::unique_ptr<Type> type_;          // variable type
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
  public:
   explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarDeclStmt() = default;
 
+  std::unique_ptr<Type> type_;          // variable type
+  std::shared_ptr<Basic::Token> name_;  // variable name
+  std::unique_ptr<Expr> value_;         // variable value
+
   std::string kind() const override {
     std::stringstream ss;
-    ss << "VarDeclStmt" << " (" << name_->getValueStr() << ")";
+    ss << "VarDeclStmt" << " (" << name_->getValue<std::string>() << ")";
     return ss.str();
   }
 
@@ -101,15 +103,17 @@ class VarDeclStmt : public Stmt {
 
 // Variable assignment statement node
 class VarAssignStmt : public Stmt {
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+
  public:
   explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarAssignStmt() = default;
 
+  std::shared_ptr<Basic::Token> name_;  // variable name
+  std::unique_ptr<Expr> value_;         // variable value
+
   std::string kind() const override {
     std::stringstream ss;
-    ss << "VarAssignStmt" << " (" << name_->getValueStr() << ")";
+    ss << "VarAssignStmt" << " (" << name_->getValue<std::string>() << ")";
     return ss.str();
   }
 
@@ -128,10 +132,11 @@ class VarAssignStmt : public Stmt {
 
 // Expression statement node
 class ExprStmt : public Stmt {
-  std::unique_ptr<Expr> expr_;
  public:
   explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ExprStmt() = default;
+
+  std::unique_ptr<Expr> expr_;
 
   std::string kind() const override { return "ExprStmt"; }
 
@@ -147,10 +152,11 @@ class ExprStmt : public Stmt {
 
 // Read IO statement node
 class readIOStmt : public Stmt {
-  std::vector<std::unique_ptr<Var>> vars_;
  public:
   explicit readIOStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   readIOStmt() = default;
+
+  std::vector<std::unique_ptr<Var>> vars_;
 
   std::string kind() const override { return "readIOStmt"; }
 
@@ -168,10 +174,11 @@ class readIOStmt : public Stmt {
 
 // Write IO statement node
 class writeIOStmt : public Stmt {
-  std::vector<std::unique_ptr<Expr>> exprs_;
  public:
   explicit writeIOStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   writeIOStmt() = default;
+
+  std::vector<std::unique_ptr<Expr>> exprs_;
 
   std::string kind() const override { return "writeIOStmt"; }
 

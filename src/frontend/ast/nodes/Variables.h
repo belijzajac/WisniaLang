@@ -16,11 +16,11 @@ class Var : public Expr {
   explicit Var(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   Var() = default;
 
-  std::string getValue() const { return token_->getValueStr(); }
+  std::string getValue() const { return token_->getValue<std::string>(); }
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "Var" << " (" << token_->getValueStr() << ")";
+    ss << "Var" << " (" << token_->getValue<std::string>() << ")";
     return ss.str();
   }
 

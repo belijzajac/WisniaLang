@@ -406,7 +406,8 @@ void Lexer::prettyPrint() {
   for (const auto &token : tokens_) {
     std::cout << std::left << std::setw(5) << index << " | " << std::setw(5)
               << token->getFileInfo()->getLineNo() << " | " << std::setw(15)
-              << token->getName() << " | " << token->getValueStr() << "\n";
+              << token->getName() << " | " << token->getValue<std::string>()
+              << "\n";
     ++index;
   }
 }

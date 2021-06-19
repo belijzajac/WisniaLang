@@ -20,11 +20,12 @@ class Expr : public Root {
 };
 
 class Param : public Root {
-  std::unique_ptr<Type> type_;
-  std::unique_ptr<Expr> value_;
  public:
   explicit Param(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   Param() = default;
+
+  std::unique_ptr<Type> type_;
+  std::unique_ptr<Expr> value_;
 
   // Mutators
   void addType(std::unique_ptr<Type> type) { type_ = std::move(type); }
@@ -36,8 +37,8 @@ class Param : public Root {
     Root::print(level);
     level++;
 
-    if (type_) type_->print(level);
-    if (value_) value_->print(level);
+    type_->print(level);
+    value_->print(level);
   }
 };
 
@@ -212,9 +213,10 @@ class FnCallExpr : public Expr {
     ss << "FnCallExpr";
 
     if (className_ != nullptr)
-      ss << " (" << className_->getValueStr() << "::" << token_->getValueStr() << ")";
+      ss << " (" << className_->getValue<std::string>()
+         << "::" << token_->getValue<std::string>() << ")";
     else
-      ss << " (" << token_->getValueStr() << ")";
+      ss << " (" << token_->getValue<std::string>() << ")";
 
     return ss.str();
   }
@@ -239,7 +241,7 @@ class ClassInitExpr : public Expr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "ClassInitExpr" << " (" << token_->getValueStr() << ")";
+    ss << "ClassInitExpr" << " (" << token_->getValue<std::string>() << ")";
     return ss.str();
   }
 
@@ -267,7 +269,7 @@ class ConstExpr : public Expr {
         case Basic::TType::KW_FALSE:
           return "false";
         default:
-          return token_->getValueStr();
+          return token_->getValue<std::string>();
       }
     };
 

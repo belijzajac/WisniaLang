@@ -18,8 +18,9 @@ class Root {
  protected:
   std::vector<std::unique_ptr<Root>> children_;  // children nodes
   std::unique_ptr<Root> parent_;                 // parent node
-  std::shared_ptr<Basic::Token> token_;          // token (for holding names, etc.)
  public:
+  // TODO: Root --> FnDef & ClassDef???
+  std::shared_ptr<Basic::Token> token_;                 // token (for holding names, etc.)
   std::vector<std::unique_ptr<Root>> globalClassDefs_;  // global class definitions
   std::vector<std::unique_ptr<Root>> globalFnDefs_;     // global function definitions
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <variant>
 // Wisnia
+#include "Exceptions.h"
 #include "PositionInFile.h"
 #include "TType.h"
 
@@ -30,26 +31,17 @@ class Token {
 
   ~Token() = default;
 
-  // Getters for token
-  TType getType() const { return type_; }
-
-  std::string getName() const { return TokenTypeToStr[type_]; }
-
-  // Returns a string representation of value_
-  std::string getValueStr() const {
-    std::string valueStr;
-
-    // Visit the variant (type-matching visitor)
-    std::visit(overloaded{[&](int arg) { valueStr = std::to_string(arg); },
-                          [&](float arg) { valueStr = std::to_string(arg); },
-                          [&](const std::string &arg) { valueStr = arg; },
-                          [&](nullptr_t arg) { valueStr = ""; }},
-               value_);
-
-    return valueStr;
+  template <typename T>
+  T getValue() {
+    try {
+      return std::get<T>(value_);
+    } catch (const std::bad_variant_access &ex) {
+      throw Wisnia::Utils::TokenError{ex.what()};
+    }
   }
 
-  // Getter for file information
+  TType getType() const { return type_; }
+  std::string getName() const { return TokenTypeToStr[type_]; }
   const PositionInFile *getFileInfo() const { return pif_.get(); }
 
  private:

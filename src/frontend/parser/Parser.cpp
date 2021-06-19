@@ -80,9 +80,14 @@ std::unique_ptr<Def> Parser::parseFnDef() {
 
 // <PARAM> ::= <IDENT> ":" <TYPE>
 std::unique_ptr<Param> Parser::parseParam() {
-  auto param = std::make_unique<Param>(getTokenName());  // parse <IDENT>
-  expect(TType::OP_COL);                                 // expect ":"
-  param->addType(parsePrimitiveType());                  // parse <TYPE>
+  // parse <IDENT>
+  auto var = parseVar();
+  auto param = std::make_unique<Param>(var->token_);
+  // expect ":"
+  expect(TType::OP_COL);
+  // parse <TYPE>
+  param->addType(parsePrimitiveType());
+  param->addValue(std::move(var));
 
   return param;
 }

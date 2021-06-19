@@ -2,6 +2,7 @@
 // Wisnia
 #include "Lexer.h"
 #include "Parser.h"
+#include "AST.h"
 #include "Exceptions.h"
 
 using namespace Wisnia;
@@ -13,7 +14,7 @@ int main(int argc, char *argv[]) {
 
     auto lexer = std::make_unique<Lexer>(argv[1]);
     auto parser = std::make_unique<Parser>(std::move(*lexer));
-    //lexer->prettyPrint();
+    // lexer->prettyPrint();
 
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";

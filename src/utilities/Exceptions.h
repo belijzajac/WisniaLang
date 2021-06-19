@@ -16,6 +16,14 @@ class WisniaError : public std::exception {
   std::string msg_;
 };
 
+// Token exception
+class TokenError : public WisniaError {
+ public:
+  explicit TokenError(const std::string& msg)
+      : WisniaError("Token Error: " + msg) {}
+  virtual const char* what() const throw() { return msg_.c_str(); }
+};
+
 // Lexer exception
 class LexerError : public WisniaError {
  public:
