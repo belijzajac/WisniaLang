@@ -11,17 +11,8 @@
 
 namespace Wisnia::Basic {
 
-// Variant, that holds all the possible values
+// Variant that holds all the possible values for token
 using TokenValue = std::variant<int, float, std::string, nullptr_t>;
-
-// Helper type for the visitor
-template <class... Ts>
-struct overloaded : Ts... {
-  using Ts::operator()...;
-};
-
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 class Token {
  public:
@@ -32,7 +23,7 @@ class Token {
   ~Token() = default;
 
   template <typename T>
-  T getValue() {
+  T getValue() const {
     try {
       return std::get<T>(value_);
     } catch (const std::bad_variant_access &ex) {
@@ -41,6 +32,7 @@ class Token {
   }
 
   TType getType() const { return type_; }
+  std::string getValueStr() const { return getValue<std::string>(); };
   std::string getName() const { return TokenTypeToStr[type_]; }
   const PositionInFile *getFileInfo() const { return pif_.get(); }
 

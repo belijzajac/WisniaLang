@@ -15,7 +15,7 @@ namespace AST {
 class Def : public Root {
  public:
   explicit Def(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  std::string getName() const { return token_->getValue<std::string>(); }
+  std::string getName() const { return token_->getValueStr(); }
   void print(size_t level) const override { Root::print(level); }
 };
 
@@ -120,7 +120,7 @@ class Field : public Root {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "Field" << " (" << name_->getValue<std::string>() << ")";
+    ss << "Field" << " (" << name_->getValueStr() << ")";
     return ss.str();
   }
 

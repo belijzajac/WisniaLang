@@ -213,10 +213,10 @@ class FnCallExpr : public Expr {
     ss << "FnCallExpr";
 
     if (className_ != nullptr)
-      ss << " (" << className_->getValue<std::string>()
-         << "::" << token_->getValue<std::string>() << ")";
+      ss << " (" << className_->getValueStr()
+         << "::" << token_->getValueStr() << ")";
     else
-      ss << " (" << token_->getValue<std::string>() << ")";
+      ss << " (" << token_->getValueStr() << ")";
 
     return ss.str();
   }
@@ -241,7 +241,7 @@ class ClassInitExpr : public Expr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "ClassInitExpr" << " (" << token_->getValue<std::string>() << ")";
+    ss << "ClassInitExpr" << " (" << token_->getValueStr() << ")";
     return ss.str();
   }
 
@@ -269,7 +269,7 @@ class ConstExpr : public Expr {
         case Basic::TType::KW_FALSE:
           return "false";
         default:
-          return token_->getValue<std::string>();
+          return token_->getValueStr();
       }
     };
 

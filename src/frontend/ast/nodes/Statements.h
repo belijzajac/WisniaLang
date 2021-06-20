@@ -83,7 +83,7 @@ class VarDeclStmt : public Stmt {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "VarDeclStmt" << " (" << name_->getValue<std::string>() << ")";
+    ss << "VarDeclStmt" << " (" << name_->getValueStr() << ")";
     return ss.str();
   }
 
@@ -113,7 +113,7 @@ class VarAssignStmt : public Stmt {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "VarAssignStmt" << " (" << name_->getValue<std::string>() << ")";
+    ss << "VarAssignStmt" << " (" << name_->getValueStr() << ")";
     return ss.str();
   }
 
