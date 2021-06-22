@@ -18,10 +18,9 @@ class Type : public Root {
     convertTypeToStr();
   }
 
-  Basic::TType type_;    // enum representing type
-  std::string typeStr_;  // string representation of Type (for printing)
-
-  void print(size_t level) const override { Root::print(level); }
+  void print(size_t level) const override {
+    Root::print(level);
+  }
 
  private:
   void convertTypeToStr() {
@@ -45,14 +44,16 @@ class Type : public Root {
 
     typeStr_ = primTypeStr();
   }
+
+ public:
+  Basic::TType type_;    // enum representing type
+  std::string typeStr_;  // string representation of Type (for printing)
 };
 
 // Function Type node
 class PrimitiveType : public Type {
  public:
-  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok) : Type(tok) {
-    token_ = tok;
-  }
+  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok) : Type(tok) { token_ = tok; }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -60,7 +61,9 @@ class PrimitiveType : public Type {
     return ss.str();
   }
 
-  void print(size_t level) const override { Root::print(level); }
+  void print(size_t level) const override {
+    Root::print(level);
+  }
 };
 
 }  // namespace AST

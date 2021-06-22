@@ -61,9 +61,7 @@ class Parser {
   }
 
   // Returns an instance of the following token (peeks)
-  const std::shared_ptr<Basic::Token> &peek() const {
-    return tokens_.at(pos_ + 1);
-  }
+  const std::shared_ptr<Basic::Token> &peek() const { return tokens_.at(pos_ + 1); }
 
   // Consumes token (skips current token position by 1)
   void consume() { pos_++; }

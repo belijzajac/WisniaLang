@@ -12,21 +12,14 @@ using namespace Utils;
 
 Parser::Parser(const Lexer &lexer) : tokens_{lexer.getTokens()} {}
 
-bool Parser::has(const TType &token) const {
-  return peek()->getType() == token;
-}
-
-bool Parser::has2(const TType &token) const {
-  return tokens_.at(pos_ + 2)->getType() == token;
-}
+bool Parser::has(const TType &token) const { return peek()->getType() == token; }
+bool Parser::has2(const TType &token) const { return tokens_.at(pos_ + 2)->getType() == token; }
 
 // TODO: Instead of throwing exceptions, make an option to instead print error
 // msg to STDERR
 void Parser::expect(const TType &token) {
   if (peek()->getType() != token)
-    throw ParserError{"Expected " +
-                      TokenTypeToStr[token] +
-                      " but found " +
+    throw ParserError{"Expected " + TokenTypeToStr[token] + " but found " +
                       TokenTypeToStr[peek()->getType()]};
   else
     consume();
@@ -47,8 +40,7 @@ std::unique_ptr<Root> Parser::parse() {
         root->addGlobalClassDef(parseClassDef());
         break;
       default:
-        throw ParserError{
-            "Not a global definition of either a class, or a function"};
+        throw ParserError{"Not a global definition of either a class, or a function"};
     }
   }
 
@@ -122,8 +114,7 @@ std::unique_ptr<Type> Parser::parsePrimitiveType() {
                   [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getTokenName());
   } else {
-    throw ParserError{
-        "Function definition doesn't have any of the supported types"};
+    throw ParserError{"Function definition doesn't have any of the supported types"};
   }
 }
 
@@ -346,8 +337,7 @@ std::unique_ptr<Expr> Parser::parseMultExpr() {
 // <UNARY_EXPR> ::= {UNARY_SYM} <SOME_EXPR>
 std::unique_ptr<Expr> Parser::parseUnaryExpr() {
   // Checks for acceptable token types
-  auto isAnyOf{
-      [&]() -> bool { return hasAnyOf(TType::OP_UNEG, TType::OP_UADD); }};
+  auto isAnyOf{[&]() -> bool { return hasAnyOf(TType::OP_UNEG, TType::OP_UADD); }};
 
   // {!|++} <SOME_EXPR>
   if (isAnyOf()) {
@@ -401,8 +391,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
       return parseFnCall();
 
     // <CLASS_M_CALL>
-    else if (has2(TType::OP_METHOD_CALL) ||
-             has2(TType::OP_FN_ARROW))  // a. or a->
+    else if (has2(TType::OP_METHOD_CALL) || has2(TType::OP_FN_ARROW))  // a. or a->
       return parseMethodCall();
 
     // <VAR>

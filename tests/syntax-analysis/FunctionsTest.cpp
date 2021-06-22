@@ -36,14 +36,10 @@ TEST(ParserTest, Functions) {
     EXPECT_EQ(fn->params_.size(), 2);
     EXPECT_EQ(fn->retType_->type_, TType::KW_INT);
     // argc : int
-    EXPECT_STREQ(
-        fn->params_[0]->value_->token_->getValue<std::string>().c_str(),
-        "argc");
+    EXPECT_STREQ(fn->params_[0]->value_->token_->getValue<std::string>().c_str(), "argc");
     EXPECT_EQ(fn->params_[0]->type_->token_->getType(), TType::KW_INT);
     // argv : string
-    EXPECT_STREQ(
-        fn->params_[1]->value_->token_->getValue<std::string>().c_str(),
-        "argv");
+    EXPECT_STREQ(fn->params_[1]->value_->token_->getValue<std::string>().c_str(), "argv");
     EXPECT_EQ(fn->params_[1]->type_->token_->getType(), TType::KW_STRING);
     // { return 5; }
     auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->body_);

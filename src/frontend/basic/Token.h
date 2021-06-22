@@ -16,10 +16,8 @@ using TokenValue = std::variant<int, float, std::string, nullptr_t>;
 
 class Token {
  public:
-  Token(TType type, const TokenValue &value,
-        std::unique_ptr<PositionInFile> pif)
+  Token(TType type, const TokenValue &value, std::unique_ptr<PositionInFile> pif)
       : type_{type}, value_{value}, pif_{std::move(pif)} {}
-
   ~Token() = default;
 
   template <typename T>

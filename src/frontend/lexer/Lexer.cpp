@@ -341,24 +341,21 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 void Lexer::tokenize(const std::string &filename) {
   // Opens the `input` file and copies its content into `data`
   std::ifstream sourceFile{filename};
-  tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile),
-                       std::istreambuf_iterator<char>()};
+  tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
   tokenState_.fileName_ = filename;
   tokenizeInput();
 }
 
 void Lexer::tokenize(std::istringstream &sstream) {
-  tokenState_.data_ = {std::istreambuf_iterator<char>(sstream),
-                       std::istreambuf_iterator<char>()};
+  tokenState_.data_ = {std::istreambuf_iterator<char>(sstream), std::istreambuf_iterator<char>()};
   tokenState_.fileName_ = "string stream";
   tokenizeInput();
 }
 
 void Lexer::tokenizeInput()
 {
-  assert(
-      !tokenState_.data_.empty() && !tokenState_.fileName_.empty() &&
-      "the provided input was either empty or Lexer::tokenize wasn't called");
+  assert(!tokenState_.data_.empty() && !tokenState_.fileName_.empty() &&
+         "the provided input was either empty or Lexer::tokenize wasn't called");
 
   // Add a newline at the end of the data if there's none already.
   // This comes in handy to save the last token from getting dismissed
@@ -377,8 +374,7 @@ void Lexer::tokenizeInput()
     // Put only valid tokens into the tokens vector
     if (result != nullptr) {
       if (result->getType() == TType::TOK_INVALID)
-        throw LexerError(tokenState_.fileName_ + ":" +
-                         std::to_string(tokenState_.lineNo) +
+        throw LexerError(tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) +
                          ": Invalid suffix for " + tokenState_.erroneousType_);
       else
         tokens_.push_back(result);

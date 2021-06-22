@@ -11,7 +11,6 @@ class WisniaError : public std::exception {
  public:
   explicit WisniaError(const std::string& msg) : msg_{msg} {}
   virtual const char* what() const throw() { return msg_.c_str(); }
-
  protected:
   std::string msg_;
 };
@@ -19,24 +18,21 @@ class WisniaError : public std::exception {
 // Token exception
 class TokenError : public WisniaError {
  public:
-  explicit TokenError(const std::string& msg)
-      : WisniaError("Token Error: " + msg) {}
+  explicit TokenError(const std::string& msg) : WisniaError("Token Error: " + msg) {}
   virtual const char* what() const throw() { return msg_.c_str(); }
 };
 
 // Lexer exception
 class LexerError : public WisniaError {
  public:
-  explicit LexerError(const std::string& msg)
-      : WisniaError("Lexical Analysis Error: " + msg) {}
+  explicit LexerError(const std::string& msg) : WisniaError("Lexical Analysis Error: " + msg) {}
   virtual const char* what() const throw() { return msg_.c_str(); }
 };
 
 // Parser exception
 class ParserError : public WisniaError {
  public:
-  explicit ParserError(const std::string& msg)
-      : WisniaError("Syntax Analysis Error: " + msg) {}
+  explicit ParserError(const std::string& msg) : WisniaError("Syntax Analysis Error: " + msg) {}
   virtual const char* what() const throw() { return msg_.c_str(); }
 };
 
