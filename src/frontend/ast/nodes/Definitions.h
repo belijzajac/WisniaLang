@@ -30,6 +30,15 @@ class MethodDef : public Def {
  public:
   explicit MethodDef(const std::shared_ptr<Basic::Token> &tok) : Def(tok) { token_ = tok; }
 
+  void print(size_t level) const override {
+    Def::print(level); level++;
+    for (const auto &param : params_)
+      param->print(level);
+
+    if (retType_)
+      retType_->print(level);
+  }
+
   void addRetType(std::unique_ptr<Type> type) {
     retType_ = std::move(type);
   }
@@ -40,15 +49,6 @@ class MethodDef : public Def {
 
   void addBody(std::unique_ptr<Stmt> body) {
     body_ = std::move(body);
-  }
-
-  void print(size_t level) const override {
-    Def::print(level); level++;
-    for (const auto &param : params_)
-      param->print(level);
-
-    if (retType_)
-      retType_->print(level);
   }
 
  public:
@@ -153,22 +153,6 @@ class ClassDef : public Def {
   explicit ClassDef(const std::shared_ptr<Basic::Token> &tok)
       : Def(tok) { token_ = tok; }
 
-  void addConstructor(std::unique_ptr<Def> ctor) {
-    ctor_ = std::move(ctor);
-  }
-
-  void addDestructor(std::unique_ptr<Def> dtor) {
-    dtor_ = std::move(dtor);
-  }
-
-  void addMethod(std::unique_ptr<Def> method) {
-    methods_.push_back(std::move(method));
-  }
-
-  void addField(std::unique_ptr<Field> field) {
-    fields_.push_back(std::move(field));
-  }
-
   std::string kind() const override {
     std::stringstream ss;
     ss << "ClassDef" << " (" << Def::getName() << ")";
@@ -185,6 +169,22 @@ class ClassDef : public Def {
       method->print(level);
     for (const auto &field : fields_)
       field->print(level);
+  }
+
+  void addConstructor(std::unique_ptr<Def> ctor) {
+    ctor_ = std::move(ctor);
+  }
+
+  void addDestructor(std::unique_ptr<Def> dtor) {
+    dtor_ = std::move(dtor);
+  }
+
+  void addMethod(std::unique_ptr<Def> method) {
+    methods_.push_back(std::move(method));
+  }
+
+  void addField(std::unique_ptr<Field> field) {
+    fields_.push_back(std::move(field));
   }
 
  public:

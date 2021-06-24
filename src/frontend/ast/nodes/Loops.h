@@ -97,7 +97,6 @@ class ForEachLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    // Print header
     printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
     elem_->print(level);
     iterElem_->print(level);

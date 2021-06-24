@@ -30,18 +30,18 @@ class Param : public Root {
     return "Param";
   }
 
+  void print(size_t level) const override {
+    Root::print(level); level++;
+    type_->print(level);
+    value_->print(level);
+  }
+
   void addType(std::unique_ptr<Type> type) {
     type_ = std::move(type);
   }
 
   void addValue(std::unique_ptr<Expr> value) {
     value_ = std::move(value);
-  }
-
-  void print(size_t level) const override {
-    Root::print(level); level++;
-    type_->print(level);
-    value_->print(level);
   }
 
  public:
@@ -200,21 +200,13 @@ class FnCallExpr : public Expr {
   explicit FnCallExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   FnCallExpr() = default;
 
-  void addClassName(std::shared_ptr<Basic::Token> className) {
-    className_ = className;
-  }
-
-  void addArgs(std::vector<std::unique_ptr<Param>> args) {
-    args_ = std::move(args);
-  }
-
   std::string kind() const override {
     std::stringstream ss;
     ss << "FnCallExpr";
 
     if (className_ != nullptr)
       ss << " (" << className_->getValueStr()
-         << "::" << token_->getValueStr() << ")";
+      << "::" << token_->getValueStr() << ")";
     else
       ss << " (" << token_->getValueStr() << ")";
 
@@ -225,6 +217,14 @@ class FnCallExpr : public Expr {
     Expr::print(level); level++;
     for (const auto &arg : args_)
       arg->print(level);
+  }
+
+  void addClassName(std::shared_ptr<Basic::Token> className) {
+    className_ = className;
+  }
+
+  void addArgs(std::vector<std::unique_ptr<Param>> args) {
+    args_ = std::move(args);
   }
 
   std::shared_ptr<Basic::Token> getClassName() const { return className_; }
@@ -240,10 +240,6 @@ class ClassInitExpr : public Expr {
  public:
   explicit ClassInitExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
 
-  void addArgs(std::vector<std::unique_ptr<Param>> args) {
-    args_ = std::move(args);
-  }
-
   std::string kind() const override {
     std::stringstream ss;
     ss << "ClassInitExpr" << " (" << token_->getValueStr() << ")";
@@ -256,9 +252,12 @@ class ClassInitExpr : public Expr {
       arg->print(level);
   }
 
+  void addArgs(std::vector<std::unique_ptr<Param>> args) {
+    args_ = std::move(args);
+  }
+
  public:
   std::vector<std::unique_ptr<Param>> args_;  // function arguments
-
 };
 
 // An abstract definition for constant expression node

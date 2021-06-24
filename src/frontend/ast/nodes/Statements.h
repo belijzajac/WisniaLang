@@ -29,14 +29,14 @@ class StmtBlock : public Stmt {
     return "StmtBlock";
   }
 
-  void addStmt(std::unique_ptr<Stmt> stmt) {
-    stmts_.push_back(std::move(stmt));
-  }
-
   void print(size_t level) const override {
     Stmt::print(level); level++;
     for (const auto &stmt : stmts_)
       stmt->print(level);
+  }
+
+  void addStmt(std::unique_ptr<Stmt> stmt) {
+    stmts_.push_back(std::move(stmt));
   }
 
  public:
@@ -53,13 +53,13 @@ class ReturnStmt : public Stmt {
     return "ReturnStmt";
   }
 
-  void addReturnValue(std::unique_ptr<Expr> returnVal) {
-    returnValue_ = std::move(returnVal);
-  }
-
   void print(size_t level) const override {
     Stmt::print(level); level++;
     returnValue_->print(level);
+  }
+
+  void addReturnValue(std::unique_ptr<Expr> returnVal) {
+    returnValue_ = std::move(returnVal);
   }
 
  public:
