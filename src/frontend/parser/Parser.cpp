@@ -49,7 +49,7 @@ std::unique_ptr<Root> Parser::parse() {
 
 std::unique_ptr<Var> Parser::parseVar() {
   if (has(TType::IDENT)) {
-    return std::make_unique<Var>(getTokenName());
+    return std::make_unique<Var>(getNextToken());
   } else {
     throw ParserError{"Not a variable name"};
   }
@@ -60,7 +60,7 @@ std::unique_ptr<Def> Parser::parseFnDef() {
   expect(TType::KW_FN);                     // expect "fn"
 
   // parse <IDENT>
-  auto fnDef = std::make_unique<FnDef>(getTokenName());
+  auto fnDef = std::make_unique<FnDef>(getNextToken());
 
   fnDef->addParams(parseParamsList());      // parse <PARAMS>
   expect(TType::OP_FN_ARROW);               // expect "->"
@@ -112,7 +112,7 @@ static inline std::vector<TType> PrimTypes{TType::KW_VOID, TType::KW_INT,
 std::unique_ptr<Type> Parser::parsePrimitiveType() {
   if (std::any_of(PrimTypes.begin(), PrimTypes.end(),
                   [&](TType t) { return peek()->getType() == t; })) {
-    return std::make_unique<PrimitiveType>(getTokenName());
+    return std::make_unique<PrimitiveType>(getNextToken());
   } else {
     throw ParserError{"Function definition doesn't have any of the supported types"};
   }
@@ -405,7 +405,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
 
 // <FN_CALL> ::= <IDENT> <ARGUMENTS>
 std::unique_ptr<Expr> Parser::parseFnCall() {
-  auto fnCallPtr = std::make_unique<FnCallExpr>(getTokenName());
+  auto fnCallPtr = std::make_unique<FnCallExpr>(getNextToken());
   fnCallPtr->addArgs(parseArgsList());
   return fnCallPtr;
 }
@@ -413,21 +413,21 @@ std::unique_ptr<Expr> Parser::parseFnCall() {
 // <CLASS_M_CALL> ::= <IDENT> <CLASS_M_CALL_SYM> <VAR> <ARGUMENTS
 // {<CLASS_M_CALL_SYM> <VAR> <ARGUMENTS}
 std::unique_ptr<Expr> Parser::parseMethodCall() {
-  auto className = getTokenName();
+  auto className = getNextToken();
 
   // eat "." or "->"
   hasAnyOf(TType::OP_METHOD_CALL, TType::OP_FN_ARROW)
       ? consume()
       : throw ParserError{"Unknown method call symbol"};
 
-  auto methodCallPtr = std::make_unique<FnCallExpr>(getTokenName());
+  auto methodCallPtr = std::make_unique<FnCallExpr>(getNextToken());
   methodCallPtr->addClassName(className);
   methodCallPtr->addArgs(parseArgsList());
 
   while (hasAnyOf(TType::OP_METHOD_CALL, TType::OP_FN_ARROW)) {
     consume();  // eat "." or "->"
 
-    auto rhs = std::make_unique<FnCallExpr>(getTokenName());
+    auto rhs = std::make_unique<FnCallExpr>(getNextToken());
     rhs->addClassName(methodCallPtr->getFnName());
     rhs->addArgs(parseArgsList());
 
@@ -481,7 +481,7 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
 // <CLASS_INIT> ::= "new" <IDENT> <ARGUMENTS>
 std::unique_ptr<Expr> Parser::parseClassInit() {
   expect(TType::KW_CLASS_INIT);  // expect "new"
-  auto classInitPtr = std::make_unique<ClassInitExpr>(getTokenName());
+  auto classInitPtr = std::make_unique<ClassInitExpr>(getNextToken());
   classInitPtr->addArgs(parseArgsList());
   return classInitPtr;
 }
@@ -491,23 +491,23 @@ std::unique_ptr<Expr> Parser::parseConstExpr() {
   switch (peek()->getType()) {
     // <NUMERIC_CONSTANT> : integer
     case TType::LIT_INT: {
-      auto intExpr = std::make_unique<IntExpr>(getTokenName());
+      auto intExpr = std::make_unique<IntExpr>(getNextToken());
       return intExpr;
     }
     // <NUMERIC_CONSTANT> : float
     case TType::LIT_FLT: {
-      auto fltExpr = std::make_unique<FloatExpr>(getTokenName());
+      auto fltExpr = std::make_unique<FloatExpr>(getNextToken());
       return fltExpr;
     }
     // <BOOL_CONSTANT>
     case TType::KW_TRUE:
     case TType::KW_FALSE: {
-      auto boolExpr = std::make_unique<BoolExpr>(getTokenName());
+      auto boolExpr = std::make_unique<BoolExpr>(getNextToken());
       return boolExpr;
     }
     // <STRING>
     case TType::LIT_STR: {
-      auto strExpr = std::make_unique<StringExpr>(getTokenName());
+      auto strExpr = std::make_unique<StringExpr>(getNextToken());
       return strExpr;
     }
   }
@@ -537,7 +537,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
 
   varDeclPtr->addType(parsePrimitiveType());
-  varDeclPtr->addName(getTokenName());
+  varDeclPtr->addName(getNextToken());
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -566,7 +566,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
 std::unique_ptr<Stmt> Parser::parseVarAssignStmt(bool expect_semicolon) {
   auto varAssignPtr = std::make_unique<VarAssignStmt>();
 
-  varAssignPtr->addName(getTokenName());
+  varAssignPtr->addName(getNextToken());
   expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=
   varAssignPtr->addValue(parseExpr());
 
@@ -645,9 +645,8 @@ std::unique_ptr<Loop> Parser::parseLoops() {
 
 // <WHILE_LOOP> ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
 std::unique_ptr<Loop> Parser::parseWhileLoop() {
-  auto whileLoopPtr = std::make_unique<WhileLoop>();
+  auto whileLoopPtr = std::make_unique<WhileLoop>(getNextToken());
 
-  consume();                                // eat "while"
   expect(TType::OP_PAREN_O);                // expect "("
   whileLoopPtr->addCond(parseExpr());       // <EXPRESSION>
   expect(TType::OP_PAREN_C);                // expect ")"
@@ -659,14 +658,10 @@ std::unique_ptr<Loop> Parser::parseWhileLoop() {
 // <FOR_LOOP> ::= "for" "(" <FOR_CONDITION> ")" <STMT_BLOCK>
 // <FOR_CONDITION> ::= <VAR_DECL> ";" <EXPRESSION> ";" <EXPRESSION>
 std::unique_ptr<Loop> Parser::parseForLoop() {
-  auto forLoopPtr = std::make_unique<ForLoop>();
+  auto forLoopPtr = std::make_unique<ForLoop>(getNextToken());
 
-  consume();                  // eat "for"
   expect(TType::OP_PAREN_O);  // expect "("
-
-  // For loop body
-  forLoopPtr->addInit(parseVarDeclStmt());  // parses var declaration, which is
-                                            // expected to end with a semicolon
+  forLoopPtr->addInit(parseVarDeclStmt());
   forLoopPtr->addCond(parseExpr());
   expect(TType::OP_SEMICOLON);
   forLoopPtr->addIncDec(parseVarAssignStmt(false));
@@ -679,16 +674,12 @@ std::unique_ptr<Loop> Parser::parseForLoop() {
 // <FOREACH_LOOP> ::= "for_each" "(" <FOREACH_CONDITION> ")" <STMT_BLOCK>
 // <FOREACH_CONDITION> ::= <VAR> "in" <EXPRESSION>
 std::unique_ptr<Loop> Parser::parseForEachLoop() {
-  auto foreachLoopPtr = std::make_unique<ForEachLoop>();
+  auto foreachLoopPtr = std::make_unique<ForEachLoop>(getNextToken());
 
-  expect(TType::KW_FOREACH);  // expect "for_each"
   expect(TType::OP_PAREN_O);  // expect "("
-
-  // Foreach loop body
   foreachLoopPtr->addElem(parseVar());
   expect(TType::KW_FOREACH_IN);
   foreachLoopPtr->addIterElem(parseExpr());
-
   expect(TType::OP_PAREN_C);                  // expect ")"
   foreachLoopPtr->addBody(parseStmtBlock());  // { ... }
 
@@ -771,7 +762,7 @@ std::unique_ptr<Def> Parser::parseClassDef() {
   expect(TType::KW_CLASS);  // expect "class"
 
   // parse <IDENT>
-  auto classDef = std::make_unique<ClassDef>(getTokenName());
+  auto classDef = std::make_unique<ClassDef>(getNextToken());
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
@@ -810,7 +801,7 @@ std::unique_ptr<Def> Parser::parseClassCtorDef() {
   expect(TType::KW_CLASS_DEF);  // expect "def"
 
   // parse <IDENT>
-  auto ctorDef = std::make_unique<ConstructorDef>(getTokenName());
+  auto ctorDef = std::make_unique<ConstructorDef>(getNextToken());
 
   ctorDef->addParams(parseParamsList());  // parse <PARAMS>
   ctorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
@@ -822,7 +813,7 @@ std::unique_ptr<Def> Parser::parseClassDtorDef() {
   expect(TType::KW_CLASS_REM);  // expect "rem"
 
   // parse <IDENT>
-  auto dtorDef = std::make_unique<DestructorDef>(getTokenName());
+  auto dtorDef = std::make_unique<DestructorDef>(getNextToken());
 
   dtorDef->addParams(parseParamsList());  // parse <PARAMS>
   dtorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
@@ -835,7 +826,7 @@ std::unique_ptr<Field> Parser::parseClassField() {
   auto varDeclPtr = std::make_unique<Field>();
 
   varDeclPtr->addType(parsePrimitiveType());
-  varDeclPtr->addName(getTokenName());
+  varDeclPtr->addName(getNextToken());
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>

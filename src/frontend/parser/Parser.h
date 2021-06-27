@@ -55,7 +55,7 @@ class Parser {
 
   // Consumes and returns current token
   // Used for obtaining tokens that represent names
-  const std::shared_ptr<Basic::Token> &getTokenName() {
+  const std::shared_ptr<Basic::Token> &getNextToken() {
     consume();
     return tokens_.at(pos_);
   }
