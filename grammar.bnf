@@ -71,7 +71,7 @@
                     | <TYPE> <VAR> "=" <EXPRESSION>
                     | <TYPE> <VAR> "{" <EXPRESSION> "}"
 
-<ASSIGNMENT_STMT> ::= <VAR> "=" <EXPRESSION>
+<ASSIGNMENT_STMT> ::= <VAR> {"=" | "+=" | "-=" | "*=" | "/="} <EXPRESSION>
 
 //----------------------------------------------------------------------
 // Expression statements

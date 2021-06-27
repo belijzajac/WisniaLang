@@ -104,7 +104,7 @@ class Parser {
   std::unique_ptr<AST::Stmt> parseVarDeclStmt();
 
   // Parses variable assignment statement
-  std::unique_ptr<AST::Stmt> parseVarAssignStmt();
+  std::unique_ptr<AST::Stmt> parseVarAssignStmt(bool expect_semicolon = true);
 
   // Parses expression statement
   std::unique_ptr<AST::Stmt> parseExprStmt();

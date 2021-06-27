@@ -562,15 +562,15 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
 }
 
 // <ASSIGNMENT_STMT> <STMT_END>
-// <ASSIGNMENT_STMT> ::= <VAR> "=" <EXPRESSION>
-std::unique_ptr<Stmt> Parser::parseVarAssignStmt() {
+// <ASSIGNMENT_STMT> ::= <VAR> {"=" | "+=" | "-=" | "*=" | "/="} <EXPRESSION>
+std::unique_ptr<Stmt> Parser::parseVarAssignStmt(bool expect_semicolon) {
   auto varAssignPtr = std::make_unique<VarAssignStmt>();
 
   varAssignPtr->addName(getTokenName());
-  expect(TType::OP_ASSN);  // eat "="
+  expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=
   varAssignPtr->addValue(parseExpr());
 
-  expect(TType::OP_SEMICOLON);
+  if (expect_semicolon) expect(TType::OP_SEMICOLON);
   return varAssignPtr;
 }
 
@@ -669,8 +669,7 @@ std::unique_ptr<Loop> Parser::parseForLoop() {
                                             // expected to end with a semicolon
   forLoopPtr->addCond(parseExpr());
   expect(TType::OP_SEMICOLON);
-  forLoopPtr->addIncDec(parseExpr());
-
+  forLoopPtr->addIncDec(parseVarAssignStmt(false));
   expect(TType::OP_PAREN_C);              // expect ")"
   forLoopPtr->addBody(parseStmtBlock());  // { ... }
 

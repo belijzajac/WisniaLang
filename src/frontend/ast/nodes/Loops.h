@@ -76,14 +76,14 @@ class ForLoop : public Loop {
     cond_ = std::move(expr);
   }
 
-  void addIncDec(std::unique_ptr<Expr> expr) {
-    incdec_ = std::move(expr);
+  void addIncDec(std::unique_ptr<Stmt> stmt) {
+    incdec_ = std::move(stmt);
   }
 
  public:
   std::unique_ptr<Stmt> init_;
   std::unique_ptr<Expr> cond_;
-  std::unique_ptr<Expr> incdec_;
+  std::unique_ptr<Stmt> incdec_;
 };
 
 // ForEach loop statement node
