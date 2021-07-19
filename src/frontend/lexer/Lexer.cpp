@@ -108,7 +108,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         tokenState_.state_ = State::OP_MM;
 
       else if (ch == '/') {
-        tokenState_.state_ = State::CMT_MAYBE_MULTI_CMT;
+        tokenState_.state_ = State::CMT_I;
         return nullptr;
       }
 
@@ -287,11 +287,11 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       }
       return nullptr;
 
-    /* ~~~ CASE: CMT_MAYBE_MULTI_CMT ~~~ */
-    case State::CMT_MAYBE_MULTI_CMT:
+    /* ~~~ CASE: CMT_I ~~~ */
+    case State::CMT_I:
       // It's indeed a multi-line comment
       if (ch == '*') {
-        tokenState_.state_ = State::CMT_MULTI;
+        tokenState_.state_ = State::CMT_II;
         return nullptr;
       }
       // It was just a division symbol
@@ -300,10 +300,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         return finishTok(TType::OP_DIV, true);
       }
 
-    /* ~~~ CASE: CMT_MULTI ~~~ */
-    case State::CMT_MULTI:
+    /* ~~~ CASE: CMT_II ~~~ */
+    case State::CMT_II:
       // Maybe we've reach the multi-line comment closing
-      if (ch == '*') tokenState_.state_ = State::CMT_MAYBE_FINISH_MULTI;
+      if (ch == '*') tokenState_.state_ = State::CMT_III;
       // Newline
       else if (ch == '\n')
         ++tokenState_.lineNo;
@@ -315,8 +315,8 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
       return nullptr;
 
-    /* ~~~ CASE: CMT_MAYBE_FINISH_MULTI ~~~ */
-    case State::CMT_MAYBE_FINISH_MULTI:
+    /* ~~~ CASE: CMT_III ~~~ */
+    case State::CMT_III:
       // It was indeed a multi-line comment closing
       if (ch == '/') tokenState_.state_ = State::START;
       // Reached EOF
@@ -327,7 +327,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
       // Any other symbol other than '/' must be skipped
       else if (ch != '*')
-        tokenState_.state_ = State::CMT_MULTI;
+        tokenState_.state_ = State::CMT_II;
       return nullptr;
 
     /* ~~~ CASE: ERRONEOUS ~~~ */

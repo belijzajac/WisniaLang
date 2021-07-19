@@ -29,10 +29,10 @@ class Lexer {
     ESCAPE_SEQ,        // Escapes \t, \n, etc.
     CMT_SINGLE,        // Single line comment: #
 
-    // The following states are just to escape multi-line comments
-    CMT_MAYBE_MULTI_CMT,
-    CMT_MULTI,
-    CMT_MAYBE_FINISH_MULTI,
+    // Escape multi-line comments
+    CMT_I,
+    CMT_II,
+    CMT_III,
   };
 
   struct TokenState {
