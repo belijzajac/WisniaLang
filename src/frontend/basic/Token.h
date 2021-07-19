@@ -12,7 +12,7 @@
 namespace Wisnia::Basic {
 
 // Variant that holds all the possible values for token
-using TokenValue = std::variant<int, float, std::string, nullptr_t>;
+using TokenValue = std::variant<int, float, bool, std::string, nullptr_t>;
 
 class Token {
  public:

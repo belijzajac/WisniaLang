@@ -41,6 +41,10 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type_, bool backtrack) {
       // Float
       case TType::LIT_FLT:
         return std::stof(tokenState_.buff_);
+      // Bool
+      case TType::KW_TRUE:
+      case TType::KW_FALSE:
+        return tokenState_.buff_ == "true";
       // String
       case TType::LIT_STR:
       case TType::IDENT:

@@ -688,11 +688,10 @@ std::unique_ptr<Loop> Parser::parseForEachLoop() {
 
 // <IF_STMT> ::= <IF_BLOCK> [<MULTIPLE_ELSE_IF_BLOCK>]
 std::unique_ptr<BaseIf> Parser::parseIfBlock() {
-  auto ifStmtPtr = std::make_unique<IfStmt>();
+  auto ifStmtPtr = std::make_unique<IfStmt>(getNextToken());
 
   // <IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")"
   auto ifCond = [&]() -> std::unique_ptr<Expr> {
-    expect(TType::KW_IF);       // expect "if"
     expect(TType::OP_PAREN_O);  // expect "("
     auto cond = parseExpr();    // parse if header condition
     expect(TType::OP_PAREN_C);  // expect ")"
