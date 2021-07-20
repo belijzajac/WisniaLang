@@ -11,16 +11,16 @@ TEST(ParserTest, Conditionals) {
   std::string program = R"(
   fn conditionals () -> void {
     if (true) {
-      f(5 - 1);
+      f(5 - 1, 5);
     }
     elif (3 == "3") {
-      f(3 - 2);
+      f(0);
     }
     elif (abc) {
-      break;
+      continue;
     }
     else {
-      f(0);
+      break;
     }
   }
   )";
@@ -29,6 +29,7 @@ TEST(ParserTest, Conditionals) {
   auto lexer = std::make_unique<Lexer>(iss);
   auto parser = std::make_unique<Parser>(std::move(*lexer));
   const auto &root = parser->parse();
+  root->print();
 
   EXPECT_EQ(root->globalFnDefs_.size(), 1);
   // fn empty () -> void {}
@@ -42,13 +43,28 @@ TEST(ParserTest, Conditionals) {
     auto ifStmt = dynamic_cast<AST::IfStmt *>(&*stmtBlock->stmts_[0]);
     EXPECT_NE(ifStmt, nullptr);
     EXPECT_EQ(ifStmt->token_->getType(), TType::KW_IF);
+    EXPECT_EQ(ifStmt->elseBlcks_.size(), 3);
     // true
     auto ifCond = dynamic_cast<AST::BoolExpr *>(&*ifStmt->cond_);
     EXPECT_NE(ifCond, nullptr);
     EXPECT_EQ(ifCond->token_->getType(), TType::KW_TRUE);
     EXPECT_EQ(ifCond->token_->getValue<bool>(), true);
     // { f(5 - 1); }
-    // TODO
+    auto baseOfIf = dynamic_cast<AST::BaseIf *>(&*stmtBlock->stmts_[0]);
+    EXPECT_NE(baseOfIf, nullptr);
+    auto baseOfIfBody = dynamic_cast<AST::StmtBlock *>(&*baseOfIf->body_);
+    EXPECT_NE(baseOfIfBody, nullptr);
+    EXPECT_EQ(baseOfIfBody->stmts_.size(), 1);
+    //auto ifFnCall = dynamic_cast<AST::FnCallExpr *>(&*baseOfIfBody->stmts_[0]);
+    //EXPECT_NE(ifFnCall, nullptr); // <-- fails
+
+
+    //EXPECT_EQ(ifFnCall->returnValue_->token_->getType(), TType::LIT_INT);
+    //EXPECT_EQ(ifFnCall->returnValue_->token_->getValue<int>(), 5);
+
+
+
+
   } else {
     FAIL() << "Invalid cast to type AST::FnDef";
   }

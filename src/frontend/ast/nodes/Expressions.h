@@ -257,7 +257,7 @@ class ClassInitExpr : public Expr {
   }
 
  public:
-  std::vector<std::unique_ptr<Param>> args_;  // function arguments
+  std::vector<std::unique_ptr<Param>> args_;
 };
 
 // An abstract definition for constant expression node
@@ -265,21 +265,7 @@ class ConstExpr : public Expr {
  public:
   std::string kind() const override {
     std::stringstream ss;
-
-    // Returns a string representation of the value that a token holds
-    // It's needed because boolean expressions normally don't hold a value
-    auto valueStr = [&]() -> std::string {
-      switch (token_->getType()) {
-        case Basic::TType::KW_TRUE:
-          return "true";
-        case Basic::TType::KW_FALSE:
-          return "false";
-        default:
-          return token_->getValueStr();
-      }
-    };
-
-    ss << "ConstExpr" << " (" << valueStr() << ")";
+    ss << "ConstExpr" << " (" << token_->getValueStr() << ")";
     return ss.str();
   }
 };
