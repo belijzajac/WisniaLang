@@ -25,10 +25,6 @@ class Var : public Expr {
   void print(size_t level) const override {
     Root::print(level);
   }
-
-  std::string getValue() const {
-    return token_->getValueStr();
-  }
 };
 
 }  // namespace AST

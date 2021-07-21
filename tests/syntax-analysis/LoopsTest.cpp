@@ -24,7 +24,7 @@ TEST(ParserTest, Loops) {
   EXPECT_EQ(root->globalFnDefs_.size(), 1);
   // fn loops () -> void
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->globalFnDefs_[0])) {
-    EXPECT_STREQ(fn->getName().c_str(), "loops");
+    EXPECT_STREQ(fn->token_->getValue<std::string>().c_str(), "loops");
     EXPECT_EQ(fn->params_.size(), 0);
     EXPECT_EQ(fn->retType_->type_, TType::KW_VOID);
     auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->body_);
@@ -40,7 +40,7 @@ TEST(ParserTest, Loops) {
     auto whileLoopConditionVar = dynamic_cast<AST::Var *>(&*whileLoopCondition->lhs());
     EXPECT_NE(whileLoopConditionVar, nullptr);
     EXPECT_EQ(whileLoopConditionVar->token_->getType(), TType::IDENT);
-    EXPECT_STREQ(whileLoopConditionVar->getValue().c_str(), "i");
+    EXPECT_STREQ(whileLoopConditionVar->token_->getValue<std::string>().c_str(), "i");
     // 5
     auto whileLoopConditionIntConst = dynamic_cast<AST::IntExpr *>(&*whileLoopCondition->rhs());
     EXPECT_NE(whileLoopConditionIntConst, nullptr);
@@ -60,7 +60,7 @@ TEST(ParserTest, Loops) {
     EXPECT_EQ(forLoopInit->type_->type_, TType::KW_INT);
     // i
     EXPECT_EQ(forLoopInit->name_->getType(), TType::IDENT);
-    EXPECT_STREQ(forLoopInit->name_->getValueStr().c_str(), "i");
+    EXPECT_STREQ(forLoopInit->name_->getValue<std::string>().c_str(), "i");
     // 0
     auto forLoopInitConstExpr = dynamic_cast<AST::IntExpr *>(&*forLoopInit->value_);
     EXPECT_NE(forLoopInitConstExpr, nullptr);
@@ -73,7 +73,7 @@ TEST(ParserTest, Loops) {
     auto forLoopComparisonVar = dynamic_cast<AST::Var *>(&*forLoopComparisonExpr->lhs());
     EXPECT_NE(forLoopComparisonVar, nullptr);
     EXPECT_EQ(forLoopComparisonVar->token_->getType(), TType::IDENT);
-    EXPECT_STREQ(forLoopComparisonVar->getValue().c_str(), "six");
+    EXPECT_STREQ(forLoopComparisonVar->token_->getValue<std::string>().c_str(), "six");
     // 6.59
     auto forLoopComparisonFltConst = dynamic_cast<AST::FloatExpr *>(&*forLoopComparisonExpr->rhs());
     EXPECT_NE(forLoopComparisonFltConst, nullptr);
@@ -84,7 +84,7 @@ TEST(ParserTest, Loops) {
     EXPECT_NE(forLoopIncDec, nullptr);
     // i
     EXPECT_EQ(forLoopIncDec->name_->getType(), TType::IDENT);
-    EXPECT_STREQ(forLoopIncDec->name_->getValueStr().c_str(), "i");
+    EXPECT_STREQ(forLoopIncDec->name_->getValue<std::string>().c_str(), "i");
     // i + "1"
     auto forLoopIncDecAddExpr = dynamic_cast<AST::AddExpr *>(&*forLoopIncDec->value_);
     EXPECT_NE(forLoopIncDecAddExpr, nullptr);
@@ -92,7 +92,7 @@ TEST(ParserTest, Loops) {
     auto forLoopIncDecLhs = dynamic_cast<AST::Var *>(&*forLoopIncDecAddExpr->lhs());
     EXPECT_NE(forLoopIncDecLhs, nullptr);
     EXPECT_EQ(forLoopIncDecLhs->token_->getType(), TType::IDENT);
-    EXPECT_STREQ(forLoopIncDecLhs->getValue().c_str(), "i");
+    EXPECT_STREQ(forLoopIncDecLhs->token_->getValue<std::string>().c_str(), "i");
     // "1"
     auto forLoopIncDecRhs = dynamic_cast<AST::StringExpr *>(&*forLoopIncDecAddExpr->rhs());
     EXPECT_NE(forLoopIncDecRhs, nullptr);
@@ -109,12 +109,12 @@ TEST(ParserTest, Loops) {
     auto forEachElem = dynamic_cast<AST::Var *>(&*forEachLoopStmt->elem_);
     EXPECT_NE(forEachElem, nullptr);
     EXPECT_EQ(forEachElem->token_->getType(), TType::IDENT);
-    EXPECT_STREQ(forEachElem->getValue().c_str(), "elem");
+    EXPECT_STREQ(forEachElem->token_->getValue<std::string>().c_str(), "elem");
     // elems
     auto forEachIterElem = dynamic_cast<AST::Var *>(&*forEachLoopStmt->iterElem_);
     EXPECT_NE(forEachIterElem, nullptr);
     EXPECT_EQ(forEachIterElem->token_->getType(), TType::IDENT);
-    EXPECT_STREQ(forEachIterElem->getValue().c_str(), "elems");
+    EXPECT_STREQ(forEachIterElem->token_->getValue<std::string>().c_str(), "elems");
     // {}
     auto forEachLoopStmtBlock = dynamic_cast<AST::StmtBlock *>(&*forEachLoopStmt->body_);
     EXPECT_EQ(forEachLoopStmtBlock->stmts_.size(), 0);

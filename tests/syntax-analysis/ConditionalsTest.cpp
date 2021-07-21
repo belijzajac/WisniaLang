@@ -34,7 +34,7 @@ TEST(ParserTest, Conditionals) {
   EXPECT_EQ(root->globalFnDefs_.size(), 1);
   // fn empty () -> void {}
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->globalFnDefs_[0])) {
-    EXPECT_STREQ(fn->getName().c_str(), "conditionals");
+    EXPECT_STREQ(fn->token_->getValue<std::string>().c_str(), "conditionals");
     EXPECT_EQ(fn->params_.size(), 0);
     EXPECT_EQ(fn->retType_->type_, TType::KW_VOID);
     auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->body_);

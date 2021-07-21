@@ -21,7 +21,7 @@ TEST(ParserTest, Functions) {
   EXPECT_EQ(root->globalFnDefs_.size(), 2);
   // fn empty () -> void {}
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->globalFnDefs_[0])) {
-    EXPECT_STREQ(fn->getName().c_str(), "empty");
+    EXPECT_STREQ(fn->token_->getValue<std::string>().c_str(), "empty");
     EXPECT_EQ(fn->params_.size(), 0);
     EXPECT_EQ(fn->retType_->type_, TType::KW_VOID);
     // {}
@@ -32,7 +32,7 @@ TEST(ParserTest, Functions) {
   }
   // fn main (argc : int, argv : string) -> int { return 5; }
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->globalFnDefs_[1])) {
-    EXPECT_STREQ(fn->getName().c_str(), "main");
+    EXPECT_STREQ(fn->token_->getValue<std::string>().c_str(), "main");
     EXPECT_EQ(fn->params_.size(), 2);
     EXPECT_EQ(fn->retType_->type_, TType::KW_INT);
     // argc : int
