@@ -448,7 +448,7 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
 }
 
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
-std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
+std::vector<std::unique_ptr<Expr>> Parser::parseArgsList() {
   // To map possible argsBody types to their selectable closing body types
   std::unordered_map<TType, TType> expectBodyType = {
       {TType::OP_PAREN_O, TType::OP_PAREN_C},
@@ -457,15 +457,13 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
   consume();  // idk why's this required,
               // but it solved the issue with incorrect token types
 
-  auto argsCurrType = curr()->getType();  // either "(" or "{"
+  auto argsCurrType = curr()->getType();               // either "(" or "{"
   auto argsExpType = expectBodyType.at(argsCurrType);  // the opposite of argsCurrType
-  std::vector<std::unique_ptr<Param>> argsList;        // function arguments
+  std::vector<std::unique_ptr<Expr>> argsList;         // function arguments
 
   // <EXPR_LIST> ::= <EXPRESSION> | <EXPR_LIST> "," <EXPRESSION>
   while (hasNext() && !has(argsExpType)) {
-    // Parse a single argument
-    auto arg = std::make_unique<Param>();
-    arg->addValue(parseExpr());  // parse <EXPRESSION>
+    auto arg = parseExpr();
     argsList.push_back(std::move(arg));
 
     // Check whether we've parsed all args

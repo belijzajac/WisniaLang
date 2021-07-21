@@ -38,9 +38,9 @@ class Token {
     std::visit(overloaded{
                    [&](int arg) { result = std::to_string(arg); },
                    [&](float arg) { result = std::to_string(arg); },
-                   [&](bool arg) { result = std::to_string(arg); },
-                   [&](const std::string &arg) { result = arg; },
-                   [&](nullptr_t arg) { result = "NULL"; },
+                   [&](bool arg) { result = arg ? "true" : "false"; },
+                   [&](const std::string &arg) { result = "\"" + arg + "\""; },
+                   [&](nullptr_t arg) { result = "null"; },
                },
                value_);
     return result;

@@ -170,8 +170,8 @@ class Parser {
   // e.g. classPtr->getObj()->...->calculateFib(5)
   std::unique_ptr<AST::Expr> parseMethodCall();
 
-  // Parses function, ctor/dtor arguments list
-  std::vector<std::unique_ptr<AST::Param>> parseArgsList();
+  // Parses argument list for function, class initialization, and method call
+  std::vector<std::unique_ptr<AST::Expr>> parseArgsList();
 
   // Parses class initialization expression
   std::unique_ptr<AST::Expr> parseClassInit();

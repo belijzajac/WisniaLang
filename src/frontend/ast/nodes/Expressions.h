@@ -21,34 +21,6 @@ class Expr : public Root {
   }
 };
 
-class Param : public Root {
- public:
-  explicit Param(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  Param() = default;
-
-  std::string kind() const override {
-    return "Param";
-  }
-
-  void print(size_t level) const override {
-    Root::print(level); level++;
-    type_->print(level);
-    value_->print(level);
-  }
-
-  void addType(std::unique_ptr<Type> type) {
-    type_ = std::move(type);
-  }
-
-  void addValue(std::unique_ptr<Expr> value) {
-    value_ = std::move(value);
-  }
-
- public:
-  std::unique_ptr<Type> type_;
-  std::unique_ptr<Expr> value_;
-};
-
 // Binary Expression node
 class BinaryExpr : public Expr {
  public:
@@ -223,7 +195,7 @@ class FnCallExpr : public Expr {
     className_ = className;
   }
 
-  void addArgs(std::vector<std::unique_ptr<Param>> args) {
+  void addArgs(std::vector<std::unique_ptr<Expr>> args) {
     args_ = std::move(args);
   }
 
@@ -232,7 +204,7 @@ class FnCallExpr : public Expr {
 
  public:
   std::shared_ptr<Basic::Token> className_;
-  std::vector<std::unique_ptr<Param>> args_;
+  std::vector<std::unique_ptr<Expr>> args_;
 };
 
 // Function Expression node
@@ -252,12 +224,12 @@ class ClassInitExpr : public Expr {
       arg->print(level);
   }
 
-  void addArgs(std::vector<std::unique_ptr<Param>> args) {
+  void addArgs(std::vector<std::unique_ptr<Expr>> args) {
     args_ = std::move(args);
   }
 
  public:
-  std::vector<std::unique_ptr<Param>> args_;
+  std::vector<std::unique_ptr<Expr>> args_;
 };
 
 // An abstract definition for constant expression node

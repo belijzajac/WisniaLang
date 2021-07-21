@@ -11,6 +11,34 @@ class Token;
 
 namespace AST {
 
+class Param : public Root {
+ public:
+  explicit Param(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  Param() = default;
+
+  std::string kind() const override {
+    return "Param";
+  }
+
+  void print(size_t level) const override {
+    Root::print(level); level++;
+    type_->print(level);
+    value_->print(level);
+  }
+
+  void addType(std::unique_ptr<Type> type) {
+    type_ = std::move(type);
+  }
+
+  void addValue(std::unique_ptr<Expr> value) {
+    value_ = std::move(value);
+  }
+
+ public:
+  std::unique_ptr<Type> type_;
+  std::unique_ptr<Expr> value_;
+};
+
 // An abstract definition for Def node
 class Def : public Root {
  public:
