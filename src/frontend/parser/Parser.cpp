@@ -517,12 +517,12 @@ std::unique_ptr<Expr> Parser::parseConstExpr() {
 std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
   // expect either "break" or "continue"
   if (hasAnyOf(TType::KW_BREAK, TType::KW_CONTINUE)) {
-    consume();  // eat either "break" or "continue"
+    auto tokenName = getNextToken(); // eat either "break" or "continue"
 
     // if the following token is ";"
     if (has(TType::OP_SEMICOLON)) {
       consume();  // eat ";"
-      return std::make_unique<LoopBrkStmt>();
+      return std::make_unique<LoopBrkStmt>(tokenName);
     }
   }
   throw ParserError{"Unterminated loop break statement"};
@@ -721,7 +721,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
 
   // <ELIF_BLOCK> ::= "elif" "(" <EXPRESSION> ")" <STMT_BLOCK>
   auto elifBodyPtr = [&]() -> std::unique_ptr<ElseIfStmt> {
-    expect(TType::KW_ELIF);
+    auto tokenName = getNextToken();
 
     // parse elif condition
     expect(TType::OP_PAREN_O);  // expect "("
@@ -729,7 +729,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
     expect(TType::OP_PAREN_C);  // expect ")"
 
     // construct elif statement pointer
-    auto elifStmtPtr = std::make_unique<ElseIfStmt>();
+    auto elifStmtPtr = std::make_unique<ElseIfStmt>(tokenName);
     elifStmtPtr->addCond(std::move(cond));
     elifStmtPtr->addBody(parseStmtBlock());
     return elifStmtPtr;
@@ -737,8 +737,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
 
   // <ELSE_BLOCK> ::= "else" <STMT_BLOCK>
   auto elseBodyPtr = [&]() -> std::unique_ptr<ElseStmt> {
-    expect(TType::KW_ELSE);
-    auto elseStmtPtr = std::make_unique<ElseStmt>();
+    auto elseStmtPtr = std::make_unique<ElseStmt>(getNextToken());
     elseStmtPtr->addBody(parseStmtBlock());
     return elseStmtPtr;
   };
