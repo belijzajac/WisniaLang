@@ -2,6 +2,7 @@
 // Wisnia
 #include "Lexer.h"
 #include "Parser.h"
+#include "AST.h"
 #include "Exceptions.h"
 
 using namespace Wisnia;
@@ -11,15 +12,9 @@ int main(int argc, char *argv[]) {
   try {
     if (argc < 2) throw WisniaError{"No arguments provided"};
 
-    // Tokenize a single file
-    auto lexer = std::make_unique<Lexer>();
-    lexer->tokenize(argv[1]);
-
-    // Output the tokens to STDOUT
-    // lexer->prettyPrint();
-
-    // Pass tokens to the parser
+    auto lexer = std::make_unique<Lexer>(argv[1]);
     auto parser = std::make_unique<Parser>(std::move(*lexer));
+    const auto &root = parser->parse();
 
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";

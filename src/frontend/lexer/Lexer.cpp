@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -40,6 +41,10 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type_, bool backtrack) {
       // Float
       case TType::LIT_FLT:
         return std::stof(tokenState_.buff_);
+      // Bool
+      case TType::KW_TRUE:
+      case TType::KW_FALSE:
+        return tokenState_.buff_ == "true";
       // String
       case TType::LIT_STR:
       case TType::IDENT:
@@ -104,10 +109,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         tokenState_.state_ = State::OP_PP;
 
       else if (ch == '-')
-        tokenState_.state_ = State::OP_ARROW;
+        tokenState_.state_ = State::OP_MM;
 
       else if (ch == '/') {
-        tokenState_.state_ = State::CMT_MAYBE_MULTI_CMT;
+        tokenState_.state_ = State::CMT_I;
         return nullptr;
       }
 
@@ -270,12 +275,15 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       if (ch == '+') return finishTok(TType::OP_UADD);
       return finishTok(TType::OP_ADD, true);
 
-    /* ~~~ CASE: OP_ARROW ~~~ */
-    case State::OP_ARROW:
-      if (ch == '>') return finishTok(TType::OP_FN_ARROW);
+    /* ~~~ CASE: OP_MM ~~~ */
+    case State::OP_MM:
+      if (ch == '-')
+        return finishTok(TType::OP_USUB);
+      else if (ch == '>')
+        return finishTok(TType::OP_FN_ARROW);
       return finishTok(TType::OP_SUB, true);
 
-    /* ~~~ CASE: OP_ARROW ~~~ */
+    /* ~~~ CASE: CMT_SINGLE ~~~ */
     case State::CMT_SINGLE:
       if (ch == '\n') {
         tokenState_.state_ = State::START;
@@ -283,11 +291,11 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       }
       return nullptr;
 
-    /* ~~~ CASE: CMT_MAYBE_MULTI_CMT ~~~ */
-    case State::CMT_MAYBE_MULTI_CMT:
+    /* ~~~ CASE: CMT_I ~~~ */
+    case State::CMT_I:
       // It's indeed a multi-line comment
       if (ch == '*') {
-        tokenState_.state_ = State::CMT_MULTI;
+        tokenState_.state_ = State::CMT_II;
         return nullptr;
       }
       // It was just a division symbol
@@ -296,10 +304,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         return finishTok(TType::OP_DIV, true);
       }
 
-    /* ~~~ CASE: CMT_MULTI ~~~ */
-    case State::CMT_MULTI:
+    /* ~~~ CASE: CMT_II ~~~ */
+    case State::CMT_II:
       // Maybe we've reach the multi-line comment closing
-      if (ch == '*') tokenState_.state_ = State::CMT_MAYBE_FINISH_MULTI;
+      if (ch == '*') tokenState_.state_ = State::CMT_III;
       // Newline
       else if (ch == '\n')
         ++tokenState_.lineNo;
@@ -311,8 +319,8 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
       return nullptr;
 
-    /* ~~~ CASE: CMT_MAYBE_FINISH_MULTI ~~~ */
-    case State::CMT_MAYBE_FINISH_MULTI:
+    /* ~~~ CASE: CMT_III ~~~ */
+    case State::CMT_III:
       // It was indeed a multi-line comment closing
       if (ch == '/') tokenState_.state_ = State::START;
       // Reached EOF
@@ -323,7 +331,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
       // Any other symbol other than '/' must be skipped
       else if (ch != '*')
-        tokenState_.state_ = State::CMT_MULTI;
+        tokenState_.state_ = State::CMT_II;
       return nullptr;
 
     /* ~~~ CASE: ERRONEOUS ~~~ */
@@ -334,14 +342,24 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
   }
 }
 
-void Lexer::tokenize(const std::string &input) {
+void Lexer::tokenize(const std::string &filename) {
   // Opens the `input` file and copies its content into `data`
-  std::ifstream sourceFile{input};
-  tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile),
-                       std::istreambuf_iterator<char>()};
+  std::ifstream sourceFile{filename};
+  tokenState_.data_ = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
+  tokenState_.fileName_ = filename;
+  tokenizeInput();
+}
 
-  if (tokenState_.data_.empty())
-    throw LexerError{input + ":" + "Empty file"};
+void Lexer::tokenize(std::istringstream &sstream) {
+  tokenState_.data_ = {std::istreambuf_iterator<char>(sstream), std::istreambuf_iterator<char>()};
+  tokenState_.fileName_ = "string stream";
+  tokenizeInput();
+}
+
+void Lexer::tokenizeInput()
+{
+  assert(!tokenState_.data_.empty() && !tokenState_.fileName_.empty() &&
+         "the provided input was either empty or Lexer::tokenize wasn't called");
 
   // Add a newline at the end of the data if there's none already.
   // This comes in handy to save the last token from getting dismissed
@@ -352,7 +370,6 @@ void Lexer::tokenize(const std::string &input) {
   // Set an iterator to the begin of the data
   // And file name for the file being tokenized at the moment
   tokenState_.it_ = tokenState_.data_.begin();
-  tokenState_.fileName_ = input;
   std::shared_ptr<Token> result;
 
   while (tokenState_.it_ != tokenState_.data_.end()) {
@@ -361,8 +378,7 @@ void Lexer::tokenize(const std::string &input) {
     // Put only valid tokens into the tokens vector
     if (result != nullptr) {
       if (result->getType() == TType::TOK_INVALID)
-        throw LexerError(tokenState_.fileName_ + ":" +
-                         std::to_string(tokenState_.lineNo) +
+        throw LexerError(tokenState_.fileName_ + ":" + std::to_string(tokenState_.lineNo) +
                          ": Invalid suffix for " + tokenState_.erroneousType_);
       else
         tokens_.push_back(result);
@@ -371,7 +387,7 @@ void Lexer::tokenize(const std::string &input) {
   }
 
   // Add the EOF token to mark the file's ending
-  auto pif = std::make_unique<PositionInFile>(input, tokenState_.lineNo);
+  auto pif = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.lineNo);
   auto token = std::make_shared<Token>(TType::TOK_EOF, "", std::move(pif));
   tokens_.push_back(token);
 }
@@ -394,3 +410,6 @@ void Lexer::prettyPrint() {
     ++index;
   }
 }
+
+Lexer::Lexer(const std::string &filename) { tokenize(filename); }
+Lexer::Lexer(std::istringstream &sstream) { tokenize(sstream); }

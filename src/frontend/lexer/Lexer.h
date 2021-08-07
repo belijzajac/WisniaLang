@@ -24,15 +24,15 @@ class Lexer {
     LOGIC_AND,         // Logical AND: &&
     LOGIC_OR,          // Logical OR: ||
     OP_PP,             // Unary prefix: ++
-    OP_ARROW,          // Arrow: ->
+    OP_MM,             // Unary prefix: --
 
     ESCAPE_SEQ,        // Escapes \t, \n, etc.
     CMT_SINGLE,        // Single line comment: #
 
-    // The following states are just to escape multi-line comments
-    CMT_MAYBE_MULTI_CMT,
-    CMT_MULTI,
-    CMT_MAYBE_FINISH_MULTI,
+    // Escape multi-line comments
+    CMT_I,
+    CMT_II,
+    CMT_III,
   };
 
   struct TokenState {
@@ -65,12 +65,17 @@ class Lexer {
   // Continues to tokenize the next letter
   std::shared_ptr<Basic::Token> tokNext(char ch);
 
- public:
-  Lexer() = default;
-  ~Lexer() = default;
+  // Tokenizes whatever was passed to the tokenize function
+  void tokenizeInput();
 
-  // Tokenize the given source file
-  void tokenize(const std::string &input);
+  // Preps up tokenization
+  void tokenize(const std::string &filename);
+  void tokenize(std::istringstream &sstream);
+
+ public:
+  explicit Lexer(const std::string &filename);
+  explicit Lexer(std::istringstream &sstream);
+  ~Lexer() = default;
 
   // Returns tokens
   std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return tokens_; }

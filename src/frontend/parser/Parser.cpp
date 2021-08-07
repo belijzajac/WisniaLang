@@ -10,29 +10,16 @@ using namespace AST;
 using namespace Basic;
 using namespace Utils;
 
-Parser::Parser(const Lexer &lexer) {
-  tokens_ = lexer.getTokens();
+Parser::Parser(const Lexer &lexer) : tokens_{lexer.getTokens()} {}
 
-  // Parse and output Root
-  auto root = parse();
-  root->print();
-}
-
-bool Parser::has(const TType &token) const {
-  return peek()->getType() == token;
-}
-
-bool Parser::has2(const TType &token) const {
-  return tokens_.at(pos_ + 2)->getType() == token;
-}
+bool Parser::has(const TType &token) const { return peek()->getType() == token; }
+bool Parser::has2(const TType &token) const { return tokens_.at(pos_ + 2)->getType() == token; }
 
 // TODO: Instead of throwing exceptions, make an option to instead print error
 // msg to STDERR
 void Parser::expect(const TType &token) {
   if (peek()->getType() != token)
-    throw ParserError{"Expected " +
-                      TokenTypeToStr[token] +
-                      " but found " +
+    throw ParserError{"Expected " + TokenTypeToStr[token] + " but found " +
                       TokenTypeToStr[peek()->getType()]};
   else
     consume();
@@ -53,8 +40,7 @@ std::unique_ptr<Root> Parser::parse() {
         root->addGlobalClassDef(parseClassDef());
         break;
       default:
-        throw ParserError{
-            "Not a global definition of either a class, or a function"};
+        throw ParserError{"Not a global definition of either a class, or a function"};
     }
   }
 
@@ -63,7 +49,7 @@ std::unique_ptr<Root> Parser::parse() {
 
 std::unique_ptr<Var> Parser::parseVar() {
   if (has(TType::IDENT)) {
-    return std::make_unique<Var>(getTokenName());
+    return std::make_unique<Var>(getNextToken());
   } else {
     throw ParserError{"Not a variable name"};
   }
@@ -74,7 +60,7 @@ std::unique_ptr<Def> Parser::parseFnDef() {
   expect(TType::KW_FN);                     // expect "fn"
 
   // parse <IDENT>
-  auto fnDef = std::make_unique<FnDef>(getTokenName());
+  auto fnDef = std::make_unique<FnDef>(getNextToken());
 
   fnDef->addParams(parseParamsList());      // parse <PARAMS>
   expect(TType::OP_FN_ARROW);               // expect "->"
@@ -86,9 +72,14 @@ std::unique_ptr<Def> Parser::parseFnDef() {
 
 // <PARAM> ::= <IDENT> ":" <TYPE>
 std::unique_ptr<Param> Parser::parseParam() {
-  auto param = std::make_unique<Param>(getTokenName());  // parse <IDENT>
-  expect(TType::OP_COL);                                 // expect ":"
-  param->addType(parsePrimitiveType());                  // parse <TYPE>
+  // parse <IDENT>
+  auto var = parseVar();
+  auto param = std::make_unique<Param>(var->token_);
+  // expect ":"
+  expect(TType::OP_COL);
+  // parse <TYPE>
+  param->addType(parsePrimitiveType());
+  param->addValue(std::move(var));
 
   return param;
 }
@@ -121,10 +112,9 @@ static inline std::vector<TType> PrimTypes{TType::KW_VOID, TType::KW_INT,
 std::unique_ptr<Type> Parser::parsePrimitiveType() {
   if (std::any_of(PrimTypes.begin(), PrimTypes.end(),
                   [&](TType t) { return peek()->getType() == t; })) {
-    return std::make_unique<PrimitiveType>(getTokenName());
+    return std::make_unique<PrimitiveType>(getNextToken());
   } else {
-    throw ParserError{
-        "Function definition doesn't have any of the supported types"};
+    throw ParserError{"Function definition doesn't have any of the supported types"};
   }
 }
 
@@ -347,8 +337,7 @@ std::unique_ptr<Expr> Parser::parseMultExpr() {
 // <UNARY_EXPR> ::= {UNARY_SYM} <SOME_EXPR>
 std::unique_ptr<Expr> Parser::parseUnaryExpr() {
   // Checks for acceptable token types
-  auto isAnyOf{
-      [&]() -> bool { return hasAnyOf(TType::OP_UNEG, TType::OP_UADD); }};
+  auto isAnyOf{[&]() -> bool { return hasAnyOf(TType::OP_UNEG, TType::OP_UADD); }};
 
   // {!|++} <SOME_EXPR>
   if (isAnyOf()) {
@@ -402,8 +391,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
       return parseFnCall();
 
     // <CLASS_M_CALL>
-    else if (has2(TType::OP_METHOD_CALL) ||
-             has2(TType::OP_FN_ARROW))  // a. or a->
+    else if (has2(TType::OP_METHOD_CALL) || has2(TType::OP_FN_ARROW))  // a. or a->
       return parseMethodCall();
 
     // <VAR>
@@ -417,7 +405,7 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
 
 // <FN_CALL> ::= <IDENT> <ARGUMENTS>
 std::unique_ptr<Expr> Parser::parseFnCall() {
-  auto fnCallPtr = std::make_unique<FnCallExpr>(getTokenName());
+  auto fnCallPtr = std::make_unique<FnCallExpr>(getNextToken());
   fnCallPtr->addArgs(parseArgsList());
   return fnCallPtr;
 }
@@ -425,21 +413,21 @@ std::unique_ptr<Expr> Parser::parseFnCall() {
 // <CLASS_M_CALL> ::= <IDENT> <CLASS_M_CALL_SYM> <VAR> <ARGUMENTS
 // {<CLASS_M_CALL_SYM> <VAR> <ARGUMENTS}
 std::unique_ptr<Expr> Parser::parseMethodCall() {
-  auto className = getTokenName();
+  auto className = getNextToken();
 
   // eat "." or "->"
   hasAnyOf(TType::OP_METHOD_CALL, TType::OP_FN_ARROW)
       ? consume()
       : throw ParserError{"Unknown method call symbol"};
 
-  auto methodCallPtr = std::make_unique<FnCallExpr>(getTokenName());
+  auto methodCallPtr = std::make_unique<FnCallExpr>(getNextToken());
   methodCallPtr->addClassName(className);
   methodCallPtr->addArgs(parseArgsList());
 
   while (hasAnyOf(TType::OP_METHOD_CALL, TType::OP_FN_ARROW)) {
     consume();  // eat "." or "->"
 
-    auto rhs = std::make_unique<FnCallExpr>(getTokenName());
+    auto rhs = std::make_unique<FnCallExpr>(getNextToken());
     rhs->addClassName(methodCallPtr->getFnName());
     rhs->addArgs(parseArgsList());
 
@@ -460,7 +448,7 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
 }
 
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
-std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
+std::vector<std::unique_ptr<Expr>> Parser::parseArgsList() {
   // To map possible argsBody types to their selectable closing body types
   std::unordered_map<TType, TType> expectBodyType = {
       {TType::OP_PAREN_O, TType::OP_PAREN_C},
@@ -469,15 +457,13 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
   consume();  // idk why's this required,
               // but it solved the issue with incorrect token types
 
-  auto argsCurrType = curr()->getType();  // either "(" or "{"
+  auto argsCurrType = curr()->getType();               // either "(" or "{"
   auto argsExpType = expectBodyType.at(argsCurrType);  // the opposite of argsCurrType
-  std::vector<std::unique_ptr<Param>> argsList;        // function arguments
+  std::vector<std::unique_ptr<Expr>> argsList;         // function arguments
 
   // <EXPR_LIST> ::= <EXPRESSION> | <EXPR_LIST> "," <EXPRESSION>
   while (hasNext() && !has(argsExpType)) {
-    // Parse a single argument
-    auto arg = std::make_unique<Param>();
-    arg->addValue(parseExpr());  // parse <EXPRESSION>
+    auto arg = parseExpr();
     argsList.push_back(std::move(arg));
 
     // Check whether we've parsed all args
@@ -493,7 +479,7 @@ std::vector<std::unique_ptr<Param>> Parser::parseArgsList() {
 // <CLASS_INIT> ::= "new" <IDENT> <ARGUMENTS>
 std::unique_ptr<Expr> Parser::parseClassInit() {
   expect(TType::KW_CLASS_INIT);  // expect "new"
-  auto classInitPtr = std::make_unique<ClassInitExpr>(getTokenName());
+  auto classInitPtr = std::make_unique<ClassInitExpr>(getNextToken());
   classInitPtr->addArgs(parseArgsList());
   return classInitPtr;
 }
@@ -503,23 +489,23 @@ std::unique_ptr<Expr> Parser::parseConstExpr() {
   switch (peek()->getType()) {
     // <NUMERIC_CONSTANT> : integer
     case TType::LIT_INT: {
-      auto intExpr = std::make_unique<IntExpr>(getTokenName());
+      auto intExpr = std::make_unique<IntExpr>(getNextToken());
       return intExpr;
     }
     // <NUMERIC_CONSTANT> : float
     case TType::LIT_FLT: {
-      auto fltExpr = std::make_unique<FloatExpr>(getTokenName());
+      auto fltExpr = std::make_unique<FloatExpr>(getNextToken());
       return fltExpr;
     }
     // <BOOL_CONSTANT>
     case TType::KW_TRUE:
     case TType::KW_FALSE: {
-      auto boolExpr = std::make_unique<BoolExpr>(getTokenName());
+      auto boolExpr = std::make_unique<BoolExpr>(getNextToken());
       return boolExpr;
     }
     // <STRING>
     case TType::LIT_STR: {
-      auto strExpr = std::make_unique<StringExpr>(getTokenName());
+      auto strExpr = std::make_unique<StringExpr>(getNextToken());
       return strExpr;
     }
   }
@@ -531,12 +517,12 @@ std::unique_ptr<Expr> Parser::parseConstExpr() {
 std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
   // expect either "break" or "continue"
   if (hasAnyOf(TType::KW_BREAK, TType::KW_CONTINUE)) {
-    consume();  // eat either "break" or "continue"
+    auto tokenName = getNextToken(); // eat either "break" or "continue"
 
     // if the following token is ";"
     if (has(TType::OP_SEMICOLON)) {
       consume();  // eat ";"
-      return std::make_unique<LoopBrkStmt>();
+      return std::make_unique<LoopBrkStmt>(tokenName);
     }
   }
   throw ParserError{"Unterminated loop break statement"};
@@ -549,7 +535,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
 
   varDeclPtr->addType(parsePrimitiveType());
-  varDeclPtr->addName(getTokenName());
+  varDeclPtr->addName(getNextToken());
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -574,15 +560,15 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
 }
 
 // <ASSIGNMENT_STMT> <STMT_END>
-// <ASSIGNMENT_STMT> ::= <VAR> "=" <EXPRESSION>
-std::unique_ptr<Stmt> Parser::parseVarAssignStmt() {
+// <ASSIGNMENT_STMT> ::= <VAR> {"=" | "+=" | "-=" | "*=" | "/="} <EXPRESSION>
+std::unique_ptr<Stmt> Parser::parseVarAssignStmt(bool expect_semicolon) {
   auto varAssignPtr = std::make_unique<VarAssignStmt>();
 
-  varAssignPtr->addName(getTokenName());
-  expect(TType::OP_ASSN);  // eat "="
+  varAssignPtr->addName(getNextToken());
+  expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=
   varAssignPtr->addValue(parseExpr());
 
-  expect(TType::OP_SEMICOLON);
+  if (expect_semicolon) expect(TType::OP_SEMICOLON);
   return varAssignPtr;
 }
 
@@ -657,9 +643,8 @@ std::unique_ptr<Loop> Parser::parseLoops() {
 
 // <WHILE_LOOP> ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
 std::unique_ptr<Loop> Parser::parseWhileLoop() {
-  auto whileLoopPtr = std::make_unique<WhileLoop>();
+  auto whileLoopPtr = std::make_unique<WhileLoop>(getNextToken());
 
-  consume();                                // eat "while"
   expect(TType::OP_PAREN_O);                // expect "("
   whileLoopPtr->addCond(parseExpr());       // <EXPRESSION>
   expect(TType::OP_PAREN_C);                // expect ")"
@@ -671,18 +656,13 @@ std::unique_ptr<Loop> Parser::parseWhileLoop() {
 // <FOR_LOOP> ::= "for" "(" <FOR_CONDITION> ")" <STMT_BLOCK>
 // <FOR_CONDITION> ::= <VAR_DECL> ";" <EXPRESSION> ";" <EXPRESSION>
 std::unique_ptr<Loop> Parser::parseForLoop() {
-  auto forLoopPtr = std::make_unique<ForLoop>();
+  auto forLoopPtr = std::make_unique<ForLoop>(getNextToken());
 
-  consume();                  // eat "for"
   expect(TType::OP_PAREN_O);  // expect "("
-
-  // For loop body
-  forLoopPtr->addInit(parseVarDeclStmt());  // parses var declaration, which is
-                                            // expected to end with a semicolon
+  forLoopPtr->addInit(parseVarDeclStmt());
   forLoopPtr->addCond(parseExpr());
   expect(TType::OP_SEMICOLON);
-  forLoopPtr->addIncDec(parseExpr());
-
+  forLoopPtr->addIncDec(parseVarAssignStmt(false));
   expect(TType::OP_PAREN_C);              // expect ")"
   forLoopPtr->addBody(parseStmtBlock());  // { ... }
 
@@ -692,16 +672,12 @@ std::unique_ptr<Loop> Parser::parseForLoop() {
 // <FOREACH_LOOP> ::= "for_each" "(" <FOREACH_CONDITION> ")" <STMT_BLOCK>
 // <FOREACH_CONDITION> ::= <VAR> "in" <EXPRESSION>
 std::unique_ptr<Loop> Parser::parseForEachLoop() {
-  auto foreachLoopPtr = std::make_unique<ForEachLoop>();
+  auto foreachLoopPtr = std::make_unique<ForEachLoop>(getNextToken());
 
-  expect(TType::KW_FOREACH);  // expect "for_each"
   expect(TType::OP_PAREN_O);  // expect "("
-
-  // Foreach loop body
   foreachLoopPtr->addElem(parseVar());
   expect(TType::KW_FOREACH_IN);
   foreachLoopPtr->addIterElem(parseExpr());
-
   expect(TType::OP_PAREN_C);                  // expect ")"
   foreachLoopPtr->addBody(parseStmtBlock());  // { ... }
 
@@ -710,11 +686,10 @@ std::unique_ptr<Loop> Parser::parseForEachLoop() {
 
 // <IF_STMT> ::= <IF_BLOCK> [<MULTIPLE_ELSE_IF_BLOCK>]
 std::unique_ptr<BaseIf> Parser::parseIfBlock() {
-  auto ifStmtPtr = std::make_unique<IfStmt>();
+  auto ifStmtPtr = std::make_unique<IfStmt>(getNextToken());
 
   // <IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")"
   auto ifCond = [&]() -> std::unique_ptr<Expr> {
-    expect(TType::KW_IF);       // expect "if"
     expect(TType::OP_PAREN_O);  // expect "("
     auto cond = parseExpr();    // parse if header condition
     expect(TType::OP_PAREN_C);  // expect ")"
@@ -746,7 +721,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
 
   // <ELIF_BLOCK> ::= "elif" "(" <EXPRESSION> ")" <STMT_BLOCK>
   auto elifBodyPtr = [&]() -> std::unique_ptr<ElseIfStmt> {
-    expect(TType::KW_ELIF);
+    auto tokenName = getNextToken();
 
     // parse elif condition
     expect(TType::OP_PAREN_O);  // expect "("
@@ -754,7 +729,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
     expect(TType::OP_PAREN_C);  // expect ")"
 
     // construct elif statement pointer
-    auto elifStmtPtr = std::make_unique<ElseIfStmt>();
+    auto elifStmtPtr = std::make_unique<ElseIfStmt>(tokenName);
     elifStmtPtr->addCond(std::move(cond));
     elifStmtPtr->addBody(parseStmtBlock());
     return elifStmtPtr;
@@ -762,8 +737,7 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
 
   // <ELSE_BLOCK> ::= "else" <STMT_BLOCK>
   auto elseBodyPtr = [&]() -> std::unique_ptr<ElseStmt> {
-    expect(TType::KW_ELSE);
-    auto elseStmtPtr = std::make_unique<ElseStmt>();
+    auto elseStmtPtr = std::make_unique<ElseStmt>(getNextToken());
     elseStmtPtr->addBody(parseStmtBlock());
     return elseStmtPtr;
   };
@@ -784,7 +758,7 @@ std::unique_ptr<Def> Parser::parseClassDef() {
   expect(TType::KW_CLASS);  // expect "class"
 
   // parse <IDENT>
-  auto classDef = std::make_unique<ClassDef>(getTokenName());
+  auto classDef = std::make_unique<ClassDef>(getNextToken());
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
@@ -823,7 +797,7 @@ std::unique_ptr<Def> Parser::parseClassCtorDef() {
   expect(TType::KW_CLASS_DEF);  // expect "def"
 
   // parse <IDENT>
-  auto ctorDef = std::make_unique<ConstructorDef>(getTokenName());
+  auto ctorDef = std::make_unique<ConstructorDef>(getNextToken());
 
   ctorDef->addParams(parseParamsList());  // parse <PARAMS>
   ctorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
@@ -835,7 +809,7 @@ std::unique_ptr<Def> Parser::parseClassDtorDef() {
   expect(TType::KW_CLASS_REM);  // expect "rem"
 
   // parse <IDENT>
-  auto dtorDef = std::make_unique<DestructorDef>(getTokenName());
+  auto dtorDef = std::make_unique<DestructorDef>(getNextToken());
 
   dtorDef->addParams(parseParamsList());  // parse <PARAMS>
   dtorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
@@ -848,7 +822,7 @@ std::unique_ptr<Field> Parser::parseClassField() {
   auto varDeclPtr = std::make_unique<Field>();
 
   varDeclPtr->addType(parsePrimitiveType());
-  varDeclPtr->addName(getTokenName());
+  varDeclPtr->addName(getNextToken());
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>

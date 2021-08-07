@@ -1,25 +1,12 @@
-set(WISNIA_SOURCES
-  ${WISNIA_SOURCES}
-  main.cpp
-)
-
 add_subdirectory(frontend)
 add_subdirectory(backend)
 add_subdirectory(utilities)
 
-set(WISNIA_TARGET "wisnia")
-
-add_executable(${WISNIA_TARGET}
+# Make WISNIA_SOURCES visible to the root CMakeLists file
+set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
+  PARENT_SCOPE
 )
 
-# In order to have shorter paths to header files.
-# Instead of having to write something like #include "../../lole.h",
-# we would write #include "lole.h"
-include_directories(
-  ./utilities/
-  ./frontend/basic/
-  ./frontend/ast/
-  ./frontend/lexer/
-  ./frontend/parser/
-)
+set(WISNIA_TARGET "wisnia")
+add_executable(${WISNIA_TARGET} main.cpp ${WISNIA_SOURCES})
