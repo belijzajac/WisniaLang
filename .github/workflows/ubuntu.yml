@@ -1,0 +1,30 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake -Dunittests=ON -DCMAKE_BUILD_TYPE=Debug ..
+        make -j$(nproc) wisnia wisnia-tests
+    - name: test
+      run: |
+        cd tests
+        ctest
+        cd ../../
+    - name: collect code coverage
+      run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
