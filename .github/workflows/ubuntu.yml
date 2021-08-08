@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 env:
+  CTEST_OUTPUT_ON_FAILURE: ON
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
     - name: build
       run: |
         mkdir build && cd build
-        cmake -Dunittests=ON -DCMAKE_BUILD_TYPE=Debug ..
+        cmake -Dunittests=ON -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON ..
         make -j$(nproc) wisnia wisnia-tests
     - name: test
       run: |
