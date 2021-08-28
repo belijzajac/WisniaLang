@@ -16,11 +16,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install packages
-      run: sudo apt install lcov
+      run: |
+        sudo apt install lcov
     - name: build
       run: |
         mkdir build && cd build
         cmake -DCMAKE_BUILD_TYPE=Coverage ..
         make -j$(nproc) wisnia wisnia-tests wisnia-coverage
     - name: collect code coverage
-      run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+      run: |
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        codecov -f build/wisnia-coverage.info
