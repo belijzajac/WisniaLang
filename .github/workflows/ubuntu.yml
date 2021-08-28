@@ -12,19 +12,13 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: build
       run: |
         mkdir build && cd build
-        cmake -Dunittests=ON -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON ..
-        make -j$(nproc) wisnia wisnia-tests
-    - name: test
-      run: |
-        cd build/tests/
-        ctest
+        cmake -DCMAKE_BUILD_TYPE=Coverage ..
+        make -j$(nproc) wisnia wisnia-tests wisnia-coverage
     - name: collect code coverage
       run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"

@@ -1,4 +1,4 @@
-# Appends "../src/" to the list of sources to form absolute paths.
+# Appends "../src/" to the list of sources to form absolute paths
 function(modify_sources SourceFiles)
   foreach(SRC IN LISTS WISNIA_SOURCES)
     set(SRC "../src/${SRC}")
@@ -7,7 +7,7 @@ function(modify_sources SourceFiles)
   set(${SourceFiles} ${SRCS} PARENT_SCOPE)
 endfunction()
 
-if (unittests)
+if(UNIT_TESTS)
   include(GoogleTest)
   enable_testing()
 
