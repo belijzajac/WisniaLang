@@ -10,3 +10,8 @@ set(WISNIA_SOURCES
 
 set(WISNIA_TARGET "wisnia")
 add_executable(${WISNIA_TARGET} main.cpp ${WISNIA_SOURCES})
+
+target_link_libraries(${WISNIA_TARGET}
+  PRIVATE
+  fmt::fmt
+)
