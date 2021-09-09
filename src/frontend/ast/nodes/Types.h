@@ -38,7 +38,7 @@ class Type : public Root {
         case Basic::TType::KW_STRING:
           return "string";
         default:
-          throw Utils::NotImplementedError{Basic::TokenTypeToStr[type_]};
+          throw Utils::NotImplementedError{Basic::TokenType2Str[type_]};
       }
     };
 

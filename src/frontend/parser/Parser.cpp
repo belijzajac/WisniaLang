@@ -19,8 +19,8 @@ bool Parser::has2(const TType &token) const { return tokens_.at(pos_ + 2)->getTy
 // msg to STDERR
 void Parser::expect(const TType &token) {
   if (peek()->getType() != token)
-    throw ParserError{"Expected " + TokenTypeToStr[token] + " but found " +
-                      TokenTypeToStr[peek()->getType()]};
+    throw ParserError{"Expected " + TokenType2Str[token] + " but found " +
+                      TokenType2Str[peek()->getType()]};
   else
     consume();
 }
