@@ -367,19 +367,12 @@ void Lexer::tokenizeInput()
 
 void Lexer::prettyPrint() {
   size_t index = 0;
-
-  // Print place-holder
-  std::cout << std::left << std::setw(5) << "ID"
-            << " | " << std::setw(5) << "LN"
-            << " | " << std::setw(15) << "TYPE"
-            << " | "
-            << "VALUE\n";
-  std::cout << "------+-------+-----------------+-----------------\n";
-
+  fmt::print("{:^6}|{:^6}|{:^17}|{:^17}\n", "ID", "LN", "TYPE", "VALUE");
+  fmt::print("------+------+-----------------+-----------------\n");
   for (const auto &token : tokens_) {
-    std::cout << std::left << std::setw(5) << index << " | " << std::setw(5)
-              << token->getFileInfo()->getLineNo() << " | " << std::setw(15)
-              << token->getName() << " | " << token->getValueStr() << "\n";
+    fmt::print("{:^6}|{:^6}|{:^17}|{:^17}\n",
+               index, token->getFileInfo()->getLineNo(),
+               token->getName(), token->getValueStr());
     ++index;
   }
 }
