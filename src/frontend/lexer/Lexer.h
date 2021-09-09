@@ -49,7 +49,7 @@ class Lexer {
     int lineNo{1};
 
     // String info
-    int stringStart{0};
+    size_t stringStart{0};
 
     // Temp info
     std::string erroneousType_;

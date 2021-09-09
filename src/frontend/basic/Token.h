@@ -11,8 +11,13 @@
 
 namespace Wisnia::Basic {
 
+// For language-specific keywords & operands
+typedef struct {
+  std::string value_;
+} reserved_t;
+
 // Variant that holds all the possible values for token
-using TokenValue = std::variant<int, float, bool, std::string, nullptr_t>;
+using TokenValue = std::variant<int, float, bool, std::string, reserved_t, nullptr_t>;
 
 // Helper type for the visitor
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -41,6 +46,7 @@ class Token {
                    [&](float arg) { result = std::to_string(arg); },
                    [&](bool arg) { result = arg ? "true" : "false"; },
                    [&](const std::string &arg) { result = "\"" + arg + "\""; },
+                   [&](const reserved_t &arg) { result = arg.value_; },
                    [&](nullptr_t arg) { result = "null"; },
                },
                value_);
@@ -48,7 +54,7 @@ class Token {
   };
 
   TType getType() const { return type_; }
-  std::string getName() const { return TokenTypeToStr[type_]; }
+  std::string getName() const { return TokenType2Str[type_]; }
   const PositionInFile *getFileInfo() const { return pif_.get(); }
 
  private:

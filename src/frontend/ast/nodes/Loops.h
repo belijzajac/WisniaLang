@@ -14,8 +14,7 @@ namespace AST {
 class Loop : public Stmt {
  public:
   void print(size_t level) const override {
-    Root::print(level); level++;
-    body_->print(level);
+    Root::print(level);
   }
 
   void addBody(std::unique_ptr<Stmt> body) {
@@ -37,7 +36,7 @@ class WhileLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
+    Loop::print(level); level++;
     cond_->print(level);
     body_->print(level);
   }
@@ -61,7 +60,7 @@ class ForLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
+    Loop::print(level); level++;
     init_->print(level);
     cond_->print(level);
     incdec_->print(level);
@@ -97,7 +96,7 @@ class ForEachLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
+    Loop::print(level); level++;
     elem_->print(level);
     iterElem_->print(level);
     body_->print(level);

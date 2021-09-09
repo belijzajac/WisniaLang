@@ -15,7 +15,14 @@ if(UNIT_TESTS)
   add_subdirectory(syntax-analysis)
 
   modify_sources(WISNIA_SOURCES)
-  add_executable(wisnia-tests ${TEST_FILES} ${WISNIA_SOURCES})
-  target_link_libraries(wisnia-tests gtest_main)
+  add_executable(wisnia-tests
+    ${TEST_FILES}
+    ${WISNIA_SOURCES}
+  )
+  target_link_libraries(wisnia-tests
+    PRIVATE
+    fmt::fmt
+    gtest_main
+  )
   gtest_discover_tests(wisnia-tests)
 endif()

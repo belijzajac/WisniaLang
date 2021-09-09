@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <fmt/format.h>
 
 namespace Wisnia {
 namespace Basic {
@@ -22,8 +23,7 @@ class Root {
   }
 
   virtual void print(size_t level = 0) const {
-    printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
-
+    fmt::print("{:>{}}{}\n", "", level * 2, kind()); level++;
     for (const auto &globalClass : globalClassDefs_)
       globalClass->print(level);
     for (const auto &globalFn : globalFnDefs_)

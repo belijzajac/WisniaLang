@@ -38,10 +38,10 @@ class IfStmt : public BaseIf {
   }
 
   void print(size_t level) const override {
-    printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
+    BaseIf::print(level); level++;
     cond_->print(level);
     body_->print(level);
-
+    level--; // reset for else statements
     for (const auto &elseBl : elseBlcks_)
       elseBl->print(level);
   }
@@ -85,7 +85,7 @@ class ElseIfStmt : public BaseIf {
   }
 
   void print(size_t level) const override {
-    printf("%s%s\n", std::string(level * 2, ' ').c_str(), kind().c_str()); level++;
+    BaseIf::print(level); level++;
     cond_->print(level);
     body_->print(level);
   }
