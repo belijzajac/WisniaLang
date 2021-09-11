@@ -27,7 +27,7 @@ TEST(ParserTest, Conditionals) {
   std::istringstream iss{program};
 
   auto lexer = std::make_unique<Lexer>(iss);
-  auto parser = std::make_unique<Parser>(std::move(*lexer));
+  auto parser = std::make_unique<Parser>(*lexer);
   const auto &root = parser->parse();
 
   EXPECT_EQ(root->globalFnDefs_.size(), 1);

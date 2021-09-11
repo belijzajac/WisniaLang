@@ -13,9 +13,10 @@ int main(int argc, char *argv[]) {
     if (argc < 2) throw WisniaError{"No arguments provided"};
 
     auto lexer = std::make_unique<Lexer>(argv[1]);
-    auto parser = std::make_unique<Parser>(std::move(*lexer));
+    auto parser = std::make_unique<Parser>(*lexer);
     const auto &root = parser->parse();
-
+    //lexer->prettyPrint();
+    //root->print();
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;
