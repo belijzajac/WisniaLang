@@ -119,7 +119,7 @@ TEST(ParserTest, Conditionals) {
     EXPECT_NE(elifSecondStmt, nullptr);
     EXPECT_EQ(elifSecondStmt->token_->getType(), TType::KW_ELIF);
     // (abc)
-    auto elifSecondCondExpr = dynamic_cast<AST::Var *>(&*elifSecondStmt->cond_);
+    auto elifSecondCondExpr = dynamic_cast<AST::VarExpr *>(&*elifSecondStmt->cond_);
     EXPECT_NE(elifSecondCondExpr, nullptr);
     EXPECT_EQ(elifSecondCondExpr->token_->getType(), TType::IDENT);
     EXPECT_STREQ(elifSecondCondExpr->token_->getValue<std::string>().c_str(), "abc");

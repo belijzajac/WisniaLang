@@ -47,9 +47,9 @@ std::unique_ptr<Root> Parser::parse() {
   return root;
 }
 
-std::unique_ptr<Var> Parser::parseVar() {
+std::unique_ptr<Expr> Parser::parseVar() {
   if (has(TType::IDENT)) {
-    return std::make_unique<Var>(getNextToken());
+    return std::make_unique<VarExpr>(getNextToken());
   } else {
     throw ParserError{"Not a variable name"};
   }

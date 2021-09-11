@@ -4,7 +4,6 @@
 // Wisnia
 #include "nodes/Types.h"
 #include "nodes/Expressions.h"
-#include "nodes/Variables.h"
 #include "nodes/Statements.h"
 #include "nodes/Definitions.h"
 #include "nodes/Loops.h"

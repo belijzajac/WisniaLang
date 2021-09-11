@@ -21,7 +21,6 @@ class Type;
 class Stmt;
 class Loop;
 class BaseIf;
-class Var;
 class Field;
 }  // namespace AST
 
@@ -74,7 +73,7 @@ class Parser {
 
  private:
   // Parses identifier
-  std::unique_ptr<AST::Var> parseVar();
+  std::unique_ptr<AST::Expr> parseVar();
 
   // Parses function definitions
   std::unique_ptr<AST::Def> parseFnDef();
