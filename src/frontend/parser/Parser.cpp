@@ -15,14 +15,13 @@ Parser::Parser(const Lexer &lexer) : tokens_{lexer.getTokens()} {}
 bool Parser::has(const TType &token) const { return peek()->getType() == token; }
 bool Parser::has2(const TType &token) const { return tokens_.at(pos_ + 2)->getType() == token; }
 
-// TODO: Instead of throwing exceptions, make an option to instead print error
-// msg to STDERR
 void Parser::expect(const TType &token) {
-  if (peek()->getType() != token)
+  if (peek()->getType() == token) {
+    consume();
+  } else {
     throw ParserError{"Expected " + TokenType2Str[token] + " but found " +
                       TokenType2Str[peek()->getType()]};
-  else
-    consume();
+  }
 }
 
 std::unique_ptr<Root> Parser::parse() {
@@ -50,18 +49,15 @@ std::unique_ptr<Root> Parser::parse() {
 std::unique_ptr<Expr> Parser::parseVar() {
   if (has(TType::IDENT)) {
     return std::make_unique<VarExpr>(getNextToken());
-  } else {
-    throw ParserError{"Not a variable name"};
   }
+  throw ParserError{"Not a variable name"};
 }
 
 // <FN_DECL> ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseFnDef() {
   expect(TType::KW_FN);                     // expect "fn"
 
-  // parse <IDENT>
   auto fnDef = std::make_unique<FnDef>(getNextToken());
-
   fnDef->addParams(parseParamsList());      // parse <PARAMS>
   expect(TType::OP_FN_ARROW);               // expect "->"
   fnDef->addRetType(parsePrimitiveType());  // <TYPE>
@@ -80,7 +76,6 @@ std::unique_ptr<Param> Parser::parseParam() {
   // parse <TYPE>
   param->addType(parsePrimitiveType());
   param->addValue(std::move(var));
-
   return param;
 }
 
@@ -92,10 +87,8 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
   // <PARAMS_SEQ> ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
   while (hasNext() && !has(TType::OP_PAREN_C)) {
     paramsList.push_back(parseParam());
-
     // Check whether we've parsed all params already
     if (has(TType::OP_PAREN_C)) break;
-
     // If not, continue parsing
     expect(TType::OP_COMMA);
   }
@@ -104,18 +97,16 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
 }
 
 // Primitive function return types
-static inline std::vector<TType> PrimTypes{TType::KW_VOID, TType::KW_INT,
-                                           TType::KW_BOOL, TType::KW_FLOAT,
-                                           TType::KW_STRING};
+constexpr std::array<TType, 5> primTypes{TType::KW_VOID, TType::KW_INT, TType::KW_BOOL,
+                                         TType::KW_FLOAT, TType::KW_STRING};
 
 // <TYPE> ::= "void" | "int" | "bool" | "float" | "string"
 std::unique_ptr<Type> Parser::parsePrimitiveType() {
-  if (std::any_of(PrimTypes.begin(), PrimTypes.end(),
+  if (std::any_of(primTypes.begin(), primTypes.end(),
                   [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
-  } else {
-    throw ParserError{"Function definition doesn't have any of the supported types"};
   }
+  throw ParserError{"Function definition doesn't have any of the supported types"};
 }
 
 // <STMT_BLOCK> ::= "{" "}" | "{" <STMTS> "}"
@@ -123,15 +114,11 @@ std::unique_ptr<Stmt> Parser::parseStmtBlock() {
   if (has(TType::OP_BRACE_O)) {
     consume();  // eat "{"
     auto stmtBlock = std::make_unique<StmtBlock>();
-
-    while (hasNext() && !has(TType::OP_BRACE_C))
-      stmtBlock->addStmt(parseStmt());
-
+    while (hasNext() && !has(TType::OP_BRACE_C)) stmtBlock->addStmt(parseStmt());
     expect(TType::OP_BRACE_C);  // expect "}"
     return stmtBlock;
-  } else {
-    return parseStmt();
   }
+  return parseStmt();
 }
 
 // <STMT> ::= <FN_RETURN_STMT> <STMT_END>
@@ -147,12 +134,10 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
     // <FN_RETURN_STMT>
     case TType::KW_RETURN:
       return parseReturnStmt();
-    
     // <LOOP_BREAK_STMT>
     case TType::KW_BREAK:
     case TType::KW_CONTINUE:
       return parseLoopBrkStmt();
-    
     // <VAR_DECL>
     case TType::KW_VOID:
     case TType::KW_INT:
@@ -160,7 +145,6 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
     case TType::KW_FLOAT:
     case TType::KW_STRING:
       if (has2(TType::IDENT)) return parseVarDeclStmt();
-    
     // <ASSIGNMENT_STMT>
     case TType::IDENT: {         // "a"
       if (has2(TType::OP_ASSN))  // "a="
@@ -168,22 +152,18 @@ std::unique_ptr<Stmt> Parser::parseStmt() {
       else  // "a(", "a{", "a.", "a->"
         return parseExprStmt();
     }
-    
     // <IO_STMT>
     case TType::KW_READ:
     case TType::KW_PRINT:
       return parseIOStmt();
-
     // <LOOP_STMT>
     case TType::KW_WHILE:
     case TType::KW_FOR:
     case TType::KW_FOREACH:
       return parseLoops();
-
     // <IF_STMT>
     case TType::KW_IF:
       return parseIfBlock();
-
     // <EXPRESSION>
     default:
       return parseExprStmt();
@@ -353,9 +333,9 @@ std::unique_ptr<Expr> Parser::parseUnaryExpr() {
       lhs->addNode(std::move(rhs));
     }
     return lhs;
-  } else {  // <SOME_EXPR>
-    return parseSomeExpr();
   }
+  // <SOME_EXPR>
+  return parseSomeExpr();
 }
 
 // <SOME_EXPR> ::= "(" <EXPRESSION> ")" | <VAR> | <FN_CALL> | <CLASS_M_CALL> |
@@ -372,11 +352,9 @@ std::unique_ptr<Expr> Parser::parseSomeExpr() {
     // <VAR> | <FN_CALL> | <CLASS_M_CALL>
     case TType::IDENT:
       return parseVarExp();
-
     // <CLASS_INIT>
     case TType::KW_CLASS_INIT:
       return parseClassInit();
-
     // <CONSTANT_LIT>
     default:
       return parseConstExpr();
@@ -389,16 +367,12 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
     // <FN_CALL>
     if (has2(TType::OP_PAREN_O) || has2(TType::OP_BRACE_O))  // a( or a{
       return parseFnCall();
-
     // <CLASS_M_CALL>
     else if (has2(TType::OP_METHOD_CALL) || has2(TType::OP_FN_ARROW))  // a. or a->
       return parseMethodCall();
-
     // <VAR>
     else
       return parseVar();
-  } else {
-    ;  // do nothing. The branch is never reached
   }
   throw ParserError{"Undefined expression"};
 }
@@ -465,10 +439,8 @@ std::vector<std::unique_ptr<Expr>> Parser::parseArgsList() {
   while (hasNext() && !has(argsExpType)) {
     auto arg = parseExpr();
     argsList.push_back(std::move(arg));
-
     // Check whether we've parsed all args
     if (has(argsExpType)) break;
-
     // If not, continue parsing
     expect(TType::OP_COMMA);
   }
@@ -518,7 +490,6 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
   // expect either "break" or "continue"
   if (hasAnyOf(TType::KW_BREAK, TType::KW_CONTINUE)) {
     auto tokenName = getNextToken(); // eat either "break" or "continue"
-
     // if the following token is ";"
     if (has(TType::OP_SEMICOLON)) {
       consume();  // eat ";"
@@ -584,8 +555,7 @@ std::unique_ptr<Stmt> Parser::parseExprStmt() {
 std::unique_ptr<Stmt> Parser::parseIOStmt() {
   if (has(TType::KW_READ))
     return parseReadIOStmt();
-  else
-    return parseWriteIOStmt();
+  return parseWriteIOStmt();
 }
 
 // <INPUT_STMT> ::= "read" <INPUT_SEQ>
@@ -597,7 +567,6 @@ std::unique_ptr<Stmt> Parser::parseReadIOStmt() {
   // <INPUT_SEQ>
   while (hasNext()) {  // a, b, c
     readIO->addVar(parseVar());
-
     if (has(TType::OP_COMMA))
       consume();  // eat ","
     else
@@ -617,7 +586,6 @@ std::unique_ptr<Stmt> Parser::parseWriteIOStmt() {
   // <OUTPUT_SEQ>
   while (hasNext()) {  // a, b, c
     writeIO->addExpr(parseExpr());
-
     if (has(TType::OP_COMMA))
       consume();  // eat ","
     else
@@ -685,7 +653,7 @@ std::unique_ptr<Loop> Parser::parseForEachLoop() {
 }
 
 // <IF_STMT> ::= <IF_BLOCK> [<MULTIPLE_ELSE_IF_BLOCK>]
-std::unique_ptr<BaseIf> Parser::parseIfBlock() {
+std::unique_ptr<Cond> Parser::parseIfBlock() {
   auto ifStmtPtr = std::make_unique<IfStmt>(getNextToken());
 
   // <IF_ELSE_COND_BODY> ::= "(" <EXPRESSION> ")"
@@ -700,15 +668,13 @@ std::unique_ptr<BaseIf> Parser::parseIfBlock() {
   ifStmtPtr->addBody(parseStmtBlock());
 
   // a vector of else statement blocks
-  std::vector<std::unique_ptr<BaseIf>> elseBlocks;
+  std::vector<std::unique_ptr<Cond>> elseBlocks;
 
   // Parse else blocks
   // [<MULTIPLE_ELSE_IF_BLOCK>]
   if (hasAnyOf(TType::KW_ELIF, TType::KW_ELSE)) {
     elseBlocks = parseMultipleElseBlock();
     ifStmtPtr->addElseBlocks(std::move(elseBlocks));
-  } else {
-    return ifStmtPtr;
   }
 
   return ifStmtPtr;
@@ -716,8 +682,8 @@ std::unique_ptr<BaseIf> Parser::parseIfBlock() {
 
 // <MULTIPLE_ELSE_IF_BLOCK> ::= <MULTIPLE_ELIF> | <ELSE_BLOCK>
 // <MULTIPLE_ELIF> ::= <ELIF_BLOCK> {<ELIF_BLOCK>}
-std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
-  std::vector<std::unique_ptr<BaseIf>> elseBlocks;
+std::vector<std::unique_ptr<Cond>> Parser::parseMultipleElseBlock() {
+  std::vector<std::unique_ptr<Cond>> elseBlocks;
 
   // <ELIF_BLOCK> ::= "elif" "(" <EXPRESSION> ")" <STMT_BLOCK>
   auto elifBodyPtr = [&]() -> std::unique_ptr<ElseIfStmt> {
@@ -744,11 +710,11 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
 
   // Parse elif blocks while there are any left
   while (has(TType::KW_ELIF))
-    elseBlocks.push_back(std::move(elifBodyPtr()));
+    elseBlocks.push_back(elifBodyPtr());
 
   // Eventually, parse the else block
   if (has(TType::KW_ELSE))
-    elseBlocks.push_back(std::move(elseBodyPtr()));
+    elseBlocks.push_back(elseBodyPtr());
 
   return elseBlocks;
 }
@@ -794,11 +760,8 @@ std::unique_ptr<Def> Parser::parseClassDef() {
 
 // <CONSTRUCTOR_DECL> ::= <CONSTRUCTOR_DEF> <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseClassCtorDef() {
-  expect(TType::KW_CLASS_DEF);  // expect "def"
-
-  // parse <IDENT>
+  expect(TType::KW_CLASS_DEF);            // expect "def"
   auto ctorDef = std::make_unique<ConstructorDef>(getNextToken());
-
   ctorDef->addParams(parseParamsList());  // parse <PARAMS>
   ctorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return ctorDef;
@@ -806,14 +769,10 @@ std::unique_ptr<Def> Parser::parseClassCtorDef() {
 
 // <DESTRUCTOR_DECL> ::= <DESTRUCTOR_DEF>  <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseClassDtorDef() {
-  expect(TType::KW_CLASS_REM);  // expect "rem"
-
-  // parse <IDENT>
+  expect(TType::KW_CLASS_REM);            // expect "rem"
   auto dtorDef = std::make_unique<DestructorDef>(getNextToken());
-
   dtorDef->addParams(parseParamsList());  // parse <PARAMS>
   dtorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
-
   return dtorDef;
 }
 
