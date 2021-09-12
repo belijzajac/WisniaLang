@@ -27,7 +27,7 @@ TEST(ParserTest, Conditionals) {
   std::istringstream iss{program};
 
   auto lexer = std::make_unique<Lexer>(iss);
-  auto parser = std::make_unique<Parser>(std::move(*lexer));
+  auto parser = std::make_unique<Parser>(*lexer);
   const auto &root = parser->parse();
 
   EXPECT_EQ(root->globalFnDefs_.size(), 1);
@@ -119,7 +119,7 @@ TEST(ParserTest, Conditionals) {
     EXPECT_NE(elifSecondStmt, nullptr);
     EXPECT_EQ(elifSecondStmt->token_->getType(), TType::KW_ELIF);
     // (abc)
-    auto elifSecondCondExpr = dynamic_cast<AST::Var *>(&*elifSecondStmt->cond_);
+    auto elifSecondCondExpr = dynamic_cast<AST::VarExpr *>(&*elifSecondStmt->cond_);
     EXPECT_NE(elifSecondCondExpr, nullptr);
     EXPECT_EQ(elifSecondCondExpr->token_->getType(), TType::IDENT);
     EXPECT_STREQ(elifSecondCondExpr->token_->getValue<std::string>().c_str(), "abc");

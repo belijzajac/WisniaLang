@@ -12,9 +12,9 @@
 namespace Wisnia::Basic {
 
 // For language-specific keywords & operands
-typedef struct {
+struct reserved_t {
   std::string value_;
-} reserved_t;
+};
 
 // Variant that holds all the possible values for token
 using TokenValue = std::variant<int, float, bool, std::string, reserved_t, nullptr_t>;

@@ -12,7 +12,7 @@ class Token;
 namespace AST {
 
 // An abstract definition for if statement node
-class BaseIf : public Stmt {
+class Cond : public Stmt {
  public:
   void print(size_t level) const override {
     Stmt::print(level); level++;
@@ -28,7 +28,7 @@ class BaseIf : public Stmt {
 };
 
 // If statement node
-class IfStmt : public BaseIf {
+class IfStmt : public Cond {
  public:
   explicit IfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   IfStmt() = default;
@@ -38,7 +38,7 @@ class IfStmt : public BaseIf {
   }
 
   void print(size_t level) const override {
-    BaseIf::print(level); level++;
+    Cond::print(level); level++;
     cond_->print(level);
     body_->print(level);
     level--; // reset for else statements
@@ -50,17 +50,17 @@ class IfStmt : public BaseIf {
     cond_ = std::move(expr);
   }
 
-  void addElseBlocks(std::vector<std::unique_ptr<BaseIf>> expr) {
+  void addElseBlocks(std::vector<std::unique_ptr<Cond>> expr) {
     elseBlcks_ = std::move(expr);
   }
 
  public:
-  std::unique_ptr<Expr> cond_;                      // if condition
-  std::vector<std::unique_ptr<BaseIf>> elseBlcks_;  // else blocks
+  std::unique_ptr<Expr> cond_;                    // if condition
+  std::vector<std::unique_ptr<Cond>> elseBlcks_;  // else blocks
 };
 
 // Else statement node
-class ElseStmt : public BaseIf {
+class ElseStmt : public Cond {
  public:
   explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ElseStmt() = default;
@@ -70,12 +70,12 @@ class ElseStmt : public BaseIf {
   }
 
   void print(size_t level) const override {
-    BaseIf::print(level);
+    Cond::print(level);
   }
 };
 
 // Else If statement node
-class ElseIfStmt : public BaseIf {
+class ElseIfStmt : public Cond {
  public:
   explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ElseIfStmt() = default;
@@ -85,7 +85,7 @@ class ElseIfStmt : public BaseIf {
   }
 
   void print(size_t level) const override {
-    BaseIf::print(level); level++;
+    Cond::print(level); level++;
     cond_->print(level);
     body_->print(level);
   }

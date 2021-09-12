@@ -182,12 +182,12 @@ class readIOStmt : public Stmt {
       var->print(level);
   }
 
-  void addVar(std::unique_ptr<Var> var) {
+  void addVar(std::unique_ptr<Expr> var) {
     vars_.push_back(std::move(var));
   }
 
  public:
-  std::vector<std::unique_ptr<Var>> vars_;
+  std::vector<std::unique_ptr<Expr>> vars_;
 };
 
 // Write IO statement node

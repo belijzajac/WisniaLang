@@ -20,8 +20,7 @@ class Expr;
 class Type;
 class Stmt;
 class Loop;
-class BaseIf;
-class Var;
+class Cond;
 class Field;
 }  // namespace AST
 
@@ -74,7 +73,7 @@ class Parser {
 
  private:
   // Parses identifier
-  std::unique_ptr<AST::Var> parseVar();
+  std::unique_ptr<AST::Expr> parseVar();
 
   // Parses function definitions
   std::unique_ptr<AST::Def> parseFnDef();
@@ -131,10 +130,10 @@ class Parser {
   std::unique_ptr<AST::Loop> parseForEachLoop();
 
   // Parses if condition block statement
-  std::unique_ptr<AST::BaseIf> parseIfBlock();
+  std::unique_ptr<AST::Cond> parseIfBlock();
 
   // Parses multiple else block statements
-  std::vector<std::unique_ptr<AST::BaseIf>> parseMultipleElseBlock();
+  std::vector<std::unique_ptr<AST::Cond>> parseMultipleElseBlock();
 
   // Parses expression -- starts the whole parsing from this function
   std::unique_ptr<AST::Expr> parseExpr();
