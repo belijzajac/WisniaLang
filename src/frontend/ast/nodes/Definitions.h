@@ -103,14 +103,14 @@ class FnDef : public MethodDef {
 };
 
 // Constructor Definition node
-class ConstructorDef : public MethodDef {
+class CtorDef : public MethodDef {
  public:
-  explicit ConstructorDef(const std::shared_ptr<Basic::Token> &tok)
+  explicit CtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) { token_ = tok; }
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "ConstructorDef" << " (" << Def::getName() << ")";
+    ss << "CtorDef" << " (" << Def::getName() << ")";
     return ss.str();
   }
 
@@ -121,14 +121,14 @@ class ConstructorDef : public MethodDef {
 };
 
 // Destructor Definition node
-class DestructorDef : public MethodDef {
+class DtorDef : public MethodDef {
  public:
-  explicit DestructorDef(const std::shared_ptr<Basic::Token> &tok)
+  explicit DtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) { token_ = tok; }
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "DestructorDef" << " (" << Def::getName() << ")";
+    ss << "DtorDef" << " (" << Def::getName() << ")";
     return ss.str();
   }
 

@@ -493,7 +493,7 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
     // if the following token is ";"
     if (has(TType::OP_SEMICOLON)) {
       consume();  // eat ";"
-      return std::make_unique<LoopBrkStmt>(tokenName);
+      return std::make_unique<BreakStmt>(tokenName);
     }
   }
   throw ParserError{"Unterminated loop break statement"};
@@ -562,7 +562,7 @@ std::unique_ptr<Stmt> Parser::parseIOStmt() {
 // <INPUT_SEQ>  ::= <VAR> | <INPUT_SEQ> "," <VAR>
 std::unique_ptr<Stmt> Parser::parseReadIOStmt() {
   expect(TType::KW_READ);  // expect "read"
-  auto readIO = std::make_unique<readIOStmt>();
+  auto readIO = std::make_unique<ReadStmt>();
 
   // <INPUT_SEQ>
   while (hasNext()) {  // a, b, c
@@ -581,7 +581,7 @@ std::unique_ptr<Stmt> Parser::parseReadIOStmt() {
 // <OUTPUT_SEQ>  ::= <EXPRESSION> | <OUTPUT_SEQ> "," <EXPRESSION>
 std::unique_ptr<Stmt> Parser::parseWriteIOStmt() {
   expect(TType::KW_PRINT);  // expect "print"
-  auto writeIO = std::make_unique<writeIOStmt>();
+  auto writeIO = std::make_unique<WriteStmt>();
 
   // <OUTPUT_SEQ>
   while (hasNext()) {  // a, b, c
@@ -761,7 +761,7 @@ std::unique_ptr<Def> Parser::parseClassDef() {
 // <CONSTRUCTOR_DECL> ::= <CONSTRUCTOR_DEF> <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseClassCtorDef() {
   expect(TType::KW_CLASS_DEF);            // expect "def"
-  auto ctorDef = std::make_unique<ConstructorDef>(getNextToken());
+  auto ctorDef = std::make_unique<CtorDef>(getNextToken());
   ctorDef->addParams(parseParamsList());  // parse <PARAMS>
   ctorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return ctorDef;
@@ -770,7 +770,7 @@ std::unique_ptr<Def> Parser::parseClassCtorDef() {
 // <DESTRUCTOR_DECL> ::= <DESTRUCTOR_DEF>  <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseClassDtorDef() {
   expect(TType::KW_CLASS_REM);            // expect "rem"
-  auto dtorDef = std::make_unique<DestructorDef>(getNextToken());
+  auto dtorDef = std::make_unique<DtorDef>(getNextToken());
   dtorDef->addParams(parseParamsList());  // parse <PARAMS>
   dtorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return dtorDef;

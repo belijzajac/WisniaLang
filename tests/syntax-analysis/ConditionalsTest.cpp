@@ -127,7 +127,7 @@ TEST(ParserTest, Conditionals) {
     auto elifSecondBody = dynamic_cast<AST::StmtBlock *>(&*elifSecondStmt->body_);
     EXPECT_NE(elifSecondBody, nullptr);
     EXPECT_EQ(elifSecondBody->stmts_.size(), 1);
-    auto continueExprStmt = dynamic_cast<AST::LoopBrkStmt *>(&*elifSecondBody->stmts_[0]);
+    auto continueExprStmt = dynamic_cast<AST::BreakStmt *>(&*elifSecondBody->stmts_[0]);
     EXPECT_NE(continueExprStmt, nullptr);
     EXPECT_EQ(continueExprStmt->token_->getType(), TType::KW_CONTINUE);
     // else
@@ -138,7 +138,7 @@ TEST(ParserTest, Conditionals) {
     auto elseBody = dynamic_cast<AST::StmtBlock *>(&*elseStmt->body_);
     EXPECT_NE(elseBody, nullptr);
     EXPECT_EQ(elseBody->stmts_.size(), 1);
-    auto breakExprStmt = dynamic_cast<AST::LoopBrkStmt *>(&*elseBody->stmts_[0]);
+    auto breakExprStmt = dynamic_cast<AST::BreakStmt *>(&*elseBody->stmts_[0]);
     EXPECT_NE(breakExprStmt, nullptr);
     EXPECT_EQ(breakExprStmt->token_->getType(), TType::KW_BREAK);
   } else {

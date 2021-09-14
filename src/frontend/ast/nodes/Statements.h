@@ -67,13 +67,13 @@ class ReturnStmt : public Stmt {
 };
 
 // Loop break statement node
-class LoopBrkStmt : public Stmt {
+class BreakStmt : public Stmt {
  public:
-  explicit LoopBrkStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  LoopBrkStmt() = default;
+  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  BreakStmt() = default;
 
   std::string kind() const override {
-    return "LoopBrkStmt";
+    return "BreakStmt";
   }
 };
 
@@ -167,13 +167,13 @@ class ExprStmt : public Stmt {
 };
 
 // Read IO statement node
-class readIOStmt : public Stmt {
+class ReadStmt : public Stmt {
  public:
-  explicit readIOStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  readIOStmt() = default;
+  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  ReadStmt() = default;
 
   std::string kind() const override {
-    return "readIOStmt";
+    return "ReadStmt";
   }
 
   void print(size_t level) const override {
@@ -191,13 +191,13 @@ class readIOStmt : public Stmt {
 };
 
 // Write IO statement node
-class writeIOStmt : public Stmt {
+class WriteStmt : public Stmt {
  public:
-  explicit writeIOStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  writeIOStmt() = default;
+  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  WriteStmt() = default;
 
   std::string kind() const override {
-    return "writeIOStmt";
+    return "WriteStmt";
   }
 
   void print(size_t level) const override {
