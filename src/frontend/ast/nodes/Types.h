@@ -18,6 +18,8 @@ class Type : public Root {
     convertTypeToStr();
   }
 
+  void accept(Visitor *v) override = 0;
+
   void print(size_t level) const override {
     Root::print(level);
   }
@@ -54,6 +56,10 @@ class Type : public Root {
 class PrimitiveType : public Type {
  public:
   explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok) : Type(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;

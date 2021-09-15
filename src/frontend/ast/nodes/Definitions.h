@@ -16,6 +16,10 @@ class Param : public Root {
   explicit Param(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   Param() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     return "Param";
   }
@@ -44,6 +48,8 @@ class Def : public Root {
  public:
   explicit Def(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
 
+  void accept(Visitor *v) override = 0;
+
   std::string getName() const {
     return token_->getValueStr();
   }
@@ -56,7 +62,10 @@ class Def : public Root {
 // An abstract definition for Def node
 class MethodDef : public Def {
  public:
-  explicit MethodDef(const std::shared_ptr<Basic::Token> &tok) : Def(tok) { token_ = tok; }
+  explicit MethodDef(const std::shared_ptr<Basic::Token> &tok)
+      : Def(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
     Def::print(level); level++;
@@ -88,7 +97,12 @@ class MethodDef : public Def {
 // Function Definition node
 class FnDef : public MethodDef {
  public:
-  explicit FnDef(const std::shared_ptr<Basic::Token> &tok) : MethodDef(tok) { token_ = tok; }
+  explicit FnDef(const std::shared_ptr<Basic::Token> &tok)
+      : MethodDef(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -108,6 +122,10 @@ class CtorDef : public MethodDef {
   explicit CtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) { token_ = tok; }
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "CtorDef" << " (" << Def::getName() << ")";
@@ -126,6 +144,10 @@ class DtorDef : public MethodDef {
   explicit DtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) { token_ = tok; }
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "DtorDef" << " (" << Def::getName() << ")";
@@ -143,6 +165,10 @@ class Field : public Root {
  public:
   explicit Field(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   Field() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -180,6 +206,10 @@ class ClassDef : public Def {
  public:
   explicit ClassDef(const std::shared_ptr<Basic::Token> &tok)
       : Def(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;

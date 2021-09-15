@@ -14,6 +14,8 @@ namespace AST {
 // An abstract definition for Stmt (statement) node
 class Stmt : public Root {
  public:
+  void accept(Visitor *v) override = 0;
+
   void print(size_t level) const override {
     Root::print(level);
   }
@@ -24,6 +26,10 @@ class StmtBlock : public Stmt {
  public:
   explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   StmtBlock() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "StmtBlock";
@@ -49,6 +55,10 @@ class ReturnStmt : public Stmt {
   explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ReturnStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     return "ReturnStmt";
   }
@@ -72,6 +82,10 @@ class BreakStmt : public Stmt {
   explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   BreakStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     return "BreakStmt";
   }
@@ -82,6 +96,10 @@ class VarDeclStmt : public Stmt {
  public:
   explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarDeclStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -119,6 +137,10 @@ class VarAssignStmt : public Stmt {
   explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarAssignStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "VarAssignStmt" << " (" << name_->getValueStr() << ")";
@@ -149,6 +171,10 @@ class ExprStmt : public Stmt {
   explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ExprStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     return "ExprStmt";
   }
@@ -171,6 +197,10 @@ class ReadStmt : public Stmt {
  public:
   explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ReadStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "ReadStmt";
@@ -195,6 +225,10 @@ class WriteStmt : public Stmt {
  public:
   explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   WriteStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "WriteStmt";

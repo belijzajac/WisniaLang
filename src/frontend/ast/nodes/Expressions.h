@@ -19,12 +19,18 @@ class Expr : public Root {
   void print(size_t level) const override {
     Root::print(level);
   }
+
+  void accept(Visitor *v) override = 0;
 };
 
 class VarExpr : public Expr {
  public:
   explicit VarExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarExpr() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -90,6 +96,10 @@ class BinaryExpr : public Expr {
   }
 
  public:
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   void print(size_t level) const override {
     Root::print(level); level++;
     lhs()->print(level);
@@ -109,6 +119,10 @@ class BooleanExpr : public BinaryExpr {
  public:
   explicit BooleanExpr(Basic::TType opType) : BinaryExpr(opType) {}
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "BooleanExpr" << " (" << opStr_ << ")";
@@ -120,6 +134,10 @@ class BooleanExpr : public BinaryExpr {
 class EqExpr : public BinaryExpr {
  public:
   explicit EqExpr(Basic::TType opType) : BinaryExpr(opType) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -133,6 +151,10 @@ class CompExpr : public BinaryExpr {
  public:
   explicit CompExpr(Basic::TType opType) : BinaryExpr(opType) {}
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "CompExpr" << " (" << opStr_ << ")";
@@ -144,6 +166,10 @@ class CompExpr : public BinaryExpr {
 class AddExpr : public BinaryExpr {
  public:
   explicit AddExpr(Basic::TType opType) : BinaryExpr(opType) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -157,6 +183,10 @@ class MultExpr : public BinaryExpr {
  public:
   explicit MultExpr(Basic::TType opType) : BinaryExpr(opType) {}
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "MultExpr" << " (" << opStr_ << ")";
@@ -168,6 +198,10 @@ class MultExpr : public BinaryExpr {
 class UnaryExpr : public BinaryExpr {
  public:
   explicit UnaryExpr(Basic::TType opType) : BinaryExpr(opType) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -187,6 +221,10 @@ class FnCallExpr : public Expr {
  public:
   explicit FnCallExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   FnCallExpr() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;
@@ -228,6 +266,10 @@ class ClassInitExpr : public Expr {
  public:
   explicit ClassInitExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "ClassInitExpr" << " (" << token_->getValueStr() << ")";
@@ -251,6 +293,10 @@ class ClassInitExpr : public Expr {
 // An abstract definition for constant expression node
 class ConstExpr : public Expr {
  public:
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     std::stringstream ss;
     ss << "ConstExpr" << " (" << token_->getValueStr() << ")";
@@ -263,6 +309,10 @@ class IntExpr : public ConstExpr {
  public:
   explicit IntExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   IntExpr() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 };
 
 // A node for Float expression
@@ -270,6 +320,10 @@ class FloatExpr : public ConstExpr {
  public:
   explicit FloatExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   FloatExpr() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 };
 
 // A node for Bool expression
@@ -277,6 +331,10 @@ class BoolExpr : public ConstExpr {
  public:
   explicit BoolExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   BoolExpr() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 };
 
 // A node for String expression
@@ -284,6 +342,10 @@ class StringExpr : public ConstExpr {
  public:
   explicit StringExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   StringExpr() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 };
 
 }  // namespace AST

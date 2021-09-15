@@ -5,22 +5,31 @@
 #include <vector>
 #include <fmt/format.h>
 
+#include "Visitor.h"
+
 namespace Wisnia {
 namespace Basic {
 class Token;
 }
 
 namespace AST {
+
+class IVisitable {
+ public:
+  virtual void accept(Visitor *v) = 0;
+};
+
 // Root node
-class Root {
+class Root : public IVisitable {
  public:
   Root() = default;
   virtual ~Root() = default;
-
  public:
-  virtual std::string kind() const {
-    return "Root";
+  void accept(Visitor *v) override {
+    v->visit(this);
   }
+
+  virtual std::string kind() const { return "Root"; }
 
   virtual void print(size_t level = 0) const {
     fmt::print("{:>{}}{}\n", "", level * 2, kind()); level++;
