@@ -1,8 +1,9 @@
 #include <iostream>
 // Wisnia
+#include "AST.h"
 #include "Lexer.h"
 #include "Parser.h"
-#include "AST.h"
+#include "NameResolver.h"
 #include "Exceptions.h"
 
 using namespace Wisnia;
@@ -15,6 +16,10 @@ int main(int argc, char *argv[]) {
     auto lexer = std::make_unique<Lexer>(argv[1]);
     auto parser = std::make_unique<Parser>(*lexer);
     const auto &root = parser->parse();
+
+    NameResolver resolver{};
+    root->accept(&resolver);
+
     //lexer->prettyPrint();
     //root->print();
   } catch (const WisniaError &ex) {
