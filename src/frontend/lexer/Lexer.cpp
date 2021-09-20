@@ -40,17 +40,9 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type_, bool backtrack) {
       case TType::KW_TRUE:
       case TType::KW_FALSE:
         return tokenState_.buff_ == "true";
-      // String
-      case TType::LIT_STR:
-      case TType::IDENT:
-        return tokenState_.buff_;
       default:
-        if (auto searchKw = Str2TokenKw.find(tokenState_.buff_); searchKw != Str2TokenKw.end())
-          return reserved_t{tokenState_.buff_};
-        if (auto searchOp = Str2TokenOp.find(tokenState_.buff_); searchOp != Str2TokenOp.end())
-          return reserved_t{tokenState_.buff_};
+        return tokenState_.buff_;
     }
-    return nullptr;
   };
 
   auto token = std::make_shared<Token>(type_, TokValue(), std::move(pif));
@@ -361,7 +353,7 @@ void Lexer::tokenizeInput()
 
   // Add the EOF token to mark the file's ending
   auto pif = std::make_unique<PositionInFile>(tokenState_.fileName_, tokenState_.lineNo);
-  auto token = std::make_shared<Token>(TType::TOK_EOF, reserved_t{"EOF"}, std::move(pif));
+  auto token = std::make_shared<Token>(TType::TOK_EOF, "[EOF]", std::move(pif));
   tokens_.push_back(token);
 }
 
