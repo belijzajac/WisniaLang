@@ -4,7 +4,6 @@
 #include "Visitor.h"
 
 namespace Wisnia {
-class Visitor;
 
 class NameResolver : public Visitor {
  public:
