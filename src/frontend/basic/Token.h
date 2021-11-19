@@ -37,10 +37,10 @@ class Token {
   std::string getValueStr() const {
     std::string result{};
     std::visit(overloaded{
+                   [&](const std::string &arg) { result = (type_ == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
                    [&](int arg) { result = std::to_string(arg); },
                    [&](float arg) { result = std::to_string(arg); },
                    [&](bool arg) { result = arg ? "true" : "false"; },
-                   [&](const std::string &arg) { result = (type_ == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
                    [&](nullptr_t arg) { result = "null"; },
                },
                value_);
