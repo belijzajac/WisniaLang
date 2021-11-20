@@ -26,21 +26,21 @@ class Param : public Root {
 
   void print(size_t level) const override {
     Root::print(level); level++;
-    type_->print(level);
-    value_->print(level);
+    var_->print(level);
   }
 
-  void addType(std::unique_ptr<Type> type) {
-    type_ = std::move(type);
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
   }
 
-  void addValue(std::unique_ptr<Expr> value) {
-    value_ = std::move(value);
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
  public:
-  std::unique_ptr<Type> type_;
-  std::unique_ptr<Expr> value_;
+  std::unique_ptr<Expr> var_;
 };
 
 // An abstract definition for Def node
@@ -55,8 +55,22 @@ class Def : public Root {
   }
 
   void print(size_t level) const override {
-    Root::print(level);
+    Root::print(level); level++;
+    if (var_) var_->print(level); // TODO: fixme for classes
   }
+
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
+  }
+
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
+  }
+
+ public:
+  std::unique_ptr<Expr> var_;
 };
 
 // An abstract definition for Def node
@@ -71,13 +85,12 @@ class MethodDef : public Def {
     Def::print(level); level++;
     for (const auto &param : params_)
       param->print(level);
-
-    if (retType_)
-      retType_->print(level);
   }
 
   void addRetType(std::unique_ptr<Type> type) {
-    retType_ = std::move(type);
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
   }
 
   void addParams(std::vector<std::unique_ptr<Param>> params) {
@@ -89,7 +102,6 @@ class MethodDef : public Def {
   }
 
  public:
-  std::unique_ptr<Type> retType_;               // return type
   std::vector<std::unique_ptr<Param>> params_;  // parameters
   std::unique_ptr<Stmt> body_;                  // body, surrounded by "{" and "}"
 };
@@ -105,9 +117,7 @@ class FnDef : public MethodDef {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "FnDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "FnDef";
   }
 
   void print(size_t level) const override {
@@ -171,24 +181,22 @@ class Field : public Root {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "Field" << " (" << name_->getValueStr() << ")";
-    return ss.str();
+    return "Field";
   }
 
   void print(size_t level) const override {
     Root::print(level); level++;
-
-    if (type_) type_->print(level);
-    if (value_) value_->print(level);
+    var_->print(level);
   }
 
-  void addType(std::unique_ptr<Type> varType) {
-    type_ = std::move(varType);
+  void addType(std::unique_ptr<Type> varType) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(varType));
+    }
   }
 
-  void addName(std::shared_ptr<Basic::Token> varName) {
-    name_ = varName;
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
   void addValue(std::unique_ptr<Expr> varValue) {
@@ -196,9 +204,8 @@ class Field : public Root {
   }
 
  public:
-  std::unique_ptr<Type> type_;          // variable type
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+  std::unique_ptr<Expr> var_;   // variable value
+  std::unique_ptr<Expr> value_; // variable value
 };
 
 // Class Definition node

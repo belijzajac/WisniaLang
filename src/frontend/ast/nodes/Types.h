@@ -40,7 +40,7 @@ class Type : public Root {
         case Basic::TType::KW_STRING:
           return "string";
         default:
-          throw Utils::NotImplementedError{Basic::TokenType2Str[type_]};
+          return "null";
       }
     };
 

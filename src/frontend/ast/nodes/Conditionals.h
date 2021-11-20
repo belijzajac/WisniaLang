@@ -17,8 +17,7 @@ class Cond : public Stmt {
   void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    body_->print(level);
+    Stmt::print(level);
   }
 
   void addBody(std::unique_ptr<Stmt> body) {
@@ -80,7 +79,8 @@ class ElseStmt : public Cond {
   }
 
   void print(size_t level) const override {
-    Cond::print(level);
+    Cond::print(level); level++;
+    body_->print(level);
   }
 };
 

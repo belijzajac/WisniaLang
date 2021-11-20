@@ -55,14 +55,14 @@ std::unique_ptr<Expr> Parser::parseVar() {
 
 // <FN_DECL> ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseFnDef() {
-  expect(TType::KW_FN);                     // expect "fn"
-
-  auto fnDef = std::make_unique<FnDef>(getNextToken());
-  fnDef->addParams(parseParamsList());      // parse <PARAMS>
-  expect(TType::OP_FN_ARROW);               // expect "->"
-  fnDef->addRetType(parsePrimitiveType());  // <TYPE>
-  fnDef->addBody(parseStmtBlock());         // <STMT_BLOCK>
-
+  expect(TType::KW_FN);                 // expect "fn"
+  auto var = parseVar();
+  auto fnDef = std::make_unique<FnDef>(var->token_);
+  fnDef->addVar(std::move(var));
+  fnDef->addParams(parseParamsList());  // parse <PARAMS>
+  expect(TType::OP_FN_ARROW);           // expect "->"
+  fnDef->addType(parsePrimitiveType()); // <TYPE>
+  fnDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return fnDef;
 }
 
@@ -74,8 +74,8 @@ std::unique_ptr<Param> Parser::parseParam() {
   // expect ":"
   expect(TType::OP_COL);
   // parse <TYPE>
+  param->addVar(std::move(var));
   param->addType(parsePrimitiveType());
-  param->addValue(std::move(var));
   return param;
 }
 
@@ -504,9 +504,9 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
 // "{" <EXPRESSION> "}"
 std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
-
-  varDeclPtr->addType(parsePrimitiveType());
-  varDeclPtr->addName(getNextToken());
+  auto varType = parsePrimitiveType();
+  varDeclPtr->addVar(parseVar());
+  varDeclPtr->addType(std::move(varType));
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -534,8 +534,8 @@ std::unique_ptr<Stmt> Parser::parseVarDeclStmt() {
 // <ASSIGNMENT_STMT> ::= <VAR> {"=" | "+=" | "-=" | "*=" | "/="} <EXPRESSION>
 std::unique_ptr<Stmt> Parser::parseVarAssignStmt(bool expect_semicolon) {
   auto varAssignPtr = std::make_unique<VarAssignStmt>();
+  varAssignPtr->addVar(parseVar());
 
-  varAssignPtr->addName(getNextToken());
   expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=
   varAssignPtr->addValue(parseExpr());
 
@@ -781,7 +781,7 @@ std::unique_ptr<Field> Parser::parseClassField() {
   auto varDeclPtr = std::make_unique<Field>();
 
   varDeclPtr->addType(parsePrimitiveType());
-  varDeclPtr->addName(getNextToken());
+  varDeclPtr->addVar(parseVar());
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>

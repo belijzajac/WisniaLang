@@ -114,8 +114,7 @@ void NameResolver::visit(AST::WriteStmt *node) {
 
 void NameResolver::visit(AST::Param *node) {
   fmt::print("{}\n", node->kind());
-  node->type_->accept(this);
-  node->value_->accept(this);
+  node->var_->accept(this);
 }
 
 void NameResolver::visit(AST::FnDef *node) {

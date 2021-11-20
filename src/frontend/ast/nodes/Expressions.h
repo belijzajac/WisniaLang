@@ -33,14 +33,21 @@ class VarExpr : public Expr {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "Var" << " (" << token_->getValueStr() << ")";
-    return ss.str();
+    return fmt::format("Var (name={0}, type={1})",
+                       token_->getValueStr(),
+                       type_ ? type_->typeStr_ : "null");
   }
 
   void print(size_t level) const override {
     Root::print(level);
   }
+
+  void addType(std::unique_ptr<Type> type) {
+    type_ = std::move(type);
+  }
+
+ public:
+  std::unique_ptr<Type> type_;  // int, bool, float, str, later fn ...
 };
 
 // Binary Expression node
@@ -227,16 +234,9 @@ class FnCallExpr : public Expr {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "FnCallExpr";
-
-    if (className_ != nullptr)
-      ss << " (" << className_->getValueStr()
-      << "::" << token_->getValueStr() << ")";
-    else
-      ss << " (" << token_->getValueStr() << ")";
-
-    return ss.str();
+    return className_
+        ? fmt::format("FnCallExpr ({}::{})", className_->getValueStr(), token_->getValueStr())
+        : fmt::format("FnCallExpr ({})", token_->getValueStr());
   }
 
   void print(size_t level) const override {

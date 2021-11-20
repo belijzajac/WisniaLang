@@ -102,23 +102,23 @@ class VarDeclStmt : public Stmt {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "VarDeclStmt" << " (" << name_->getValueStr() << ")";
-    return ss.str();
+    return "VarDeclStmt";
   }
 
   void print(size_t level) const override {
     Stmt::print(level); level++;
-    if (type_) type_->print(level);
+    var_->print(level);
     if (value_) value_->print(level);
   }
 
-  void addType(std::unique_ptr<Type> varType) {
-    type_ = std::move(varType);
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
   }
 
-  void addName(std::shared_ptr<Basic::Token> varName) {
-    name_ = varName;
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
   void addValue(std::unique_ptr<Expr> varValue) {
@@ -126,9 +126,8 @@ class VarDeclStmt : public Stmt {
   }
 
  public:
-  std::unique_ptr<Type> type_;          // variable type
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+  std::unique_ptr<Expr> var_;   // name + type
+  std::unique_ptr<Expr> value_; // variable's value
 };
 
 // Variable assignment statement node
@@ -142,18 +141,23 @@ class VarAssignStmt : public Stmt {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "VarAssignStmt" << " (" << name_->getValueStr() << ")";
-    return ss.str();
+    return "VarAssignStmt";
   }
 
   void print(size_t level) const override {
     Stmt::print(level); level++;
+    var_->print(level);
     value_->print(level);
   }
 
-  void addName(std::shared_ptr<Basic::Token> varName) {
-    name_ = varName;
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
+  }
+
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
   void addValue(std::unique_ptr<Expr> varValue) {
@@ -161,8 +165,8 @@ class VarAssignStmt : public Stmt {
   }
 
  public:
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+  std::unique_ptr<Expr> var_;   // name + type
+  std::unique_ptr<Expr> value_; // variable's value
 };
 
 // Expression statement node
