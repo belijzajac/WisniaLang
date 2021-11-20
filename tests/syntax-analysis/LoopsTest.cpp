@@ -26,7 +26,8 @@ TEST(ParserTest, Loops) {
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->globalFnDefs_[0])) {
     EXPECT_STREQ(fn->token_->getValue<std::string>().c_str(), "loops");
     EXPECT_EQ(fn->params_.size(), 0);
-    EXPECT_EQ(fn->retType_->type_, TType::KW_VOID);
+    auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->var_);
+    EXPECT_EQ(fnVar->type_->type_, TType::KW_VOID);
     auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->body_);
     EXPECT_EQ(stmtBlock->stmts_.size(), 3);
     // while (i < 5) {}
@@ -57,10 +58,11 @@ TEST(ParserTest, Loops) {
     auto forLoopInit = dynamic_cast<AST::VarDeclStmt *>(&*forLoopStmt->init_);
     EXPECT_NE(forLoopInit, nullptr);
     // int
-    EXPECT_EQ(forLoopInit->type_->type_, TType::KW_INT);
+    auto forLoopInitVar = dynamic_cast<AST::VarExpr *>(&*forLoopInit->var_);
+    EXPECT_EQ(forLoopInitVar->type_->type_, TType::KW_INT);
     // i
-    EXPECT_EQ(forLoopInit->name_->getType(), TType::IDENT);
-    EXPECT_STREQ(forLoopInit->name_->getValue<std::string>().c_str(), "i");
+    EXPECT_EQ(forLoopInitVar->token_->getType(), TType::IDENT);
+    EXPECT_STREQ(forLoopInitVar->token_->getValue<std::string>().c_str(), "i");
     // 0
     auto forLoopInitConstExpr = dynamic_cast<AST::IntExpr *>(&*forLoopInit->value_);
     EXPECT_NE(forLoopInitConstExpr, nullptr);
@@ -83,8 +85,9 @@ TEST(ParserTest, Loops) {
     auto forLoopIncDec = dynamic_cast<AST::VarAssignStmt *>(&*forLoopStmt->incdec_);
     EXPECT_NE(forLoopIncDec, nullptr);
     // i
-    EXPECT_EQ(forLoopIncDec->name_->getType(), TType::IDENT);
-    EXPECT_STREQ(forLoopIncDec->name_->getValue<std::string>().c_str(), "i");
+    auto forLoopIncDecVar = dynamic_cast<AST::VarExpr *>(&*forLoopIncDec->var_);
+    EXPECT_EQ(forLoopIncDecVar->token_->getType(), TType::IDENT);
+    EXPECT_STREQ(forLoopIncDecVar->token_->getValue<std::string>().c_str(), "i");
     // i + "1"
     auto forLoopIncDecAddExpr = dynamic_cast<AST::AddExpr *>(&*forLoopIncDec->value_);
     EXPECT_NE(forLoopIncDecAddExpr, nullptr);
