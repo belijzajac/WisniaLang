@@ -29,6 +29,7 @@ class NameResolver : public Visitor {
   void visit(AST::StmtBlock *node) override;
   void visit(AST::ReturnStmt *node) override;
   void visit(AST::BreakStmt *node) override;
+  void visit(AST::ContinueStmt *node) override;
   void visit(AST::VarDeclStmt *node) override;
   void visit(AST::VarAssignStmt *node) override;
   void visit(AST::ExprStmt *node) override;

@@ -493,7 +493,10 @@ std::unique_ptr<Stmt> Parser::parseLoopBrkStmt() {
     // if the following token is ";"
     if (has(TType::OP_SEMICOLON)) {
       consume();  // eat ";"
-      return std::make_unique<BreakStmt>(tokenName);
+      if (tokenName->getType() == TType::KW_BREAK) {
+        return std::make_unique<BreakStmt>(tokenName);
+      }
+      return std::make_unique<ContinueStmt>(tokenName);
     }
   }
   throw ParserError{"Unterminated loop break statement"};

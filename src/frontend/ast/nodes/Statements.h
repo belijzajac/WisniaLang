@@ -91,6 +91,21 @@ class BreakStmt : public Stmt {
   }
 };
 
+// Loop continue statement node
+class ContinueStmt : public Stmt {
+ public:
+  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  ContinueStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
+  std::string kind() const override {
+    return "ContinueStmt";
+  }
+};
+
 // Variable declaration statement node
 class VarDeclStmt : public Stmt {
  public:

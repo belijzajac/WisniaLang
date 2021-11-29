@@ -22,6 +22,7 @@ class BoolExpr;
 class StringExpr;
 class StmtBlock;
 class ReturnStmt;
+class ContinueStmt;
 class BreakStmt;
 class VarDeclStmt;
 class VarAssignStmt;
@@ -65,6 +66,7 @@ class Visitor {
   virtual void visit(AST::StmtBlock *node) = 0;
   virtual void visit(AST::ReturnStmt *node) = 0;
   virtual void visit(AST::BreakStmt *node) = 0;
+  virtual void visit(AST::ContinueStmt *node) = 0;
   virtual void visit(AST::VarDeclStmt *node) = 0;
   virtual void visit(AST::VarAssignStmt *node) = 0;
   virtual void visit(AST::ExprStmt *node) = 0;

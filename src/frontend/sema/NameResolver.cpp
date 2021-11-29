@@ -90,6 +90,10 @@ void NameResolver::visit(AST::BreakStmt *node) {
   fmt::print("{}\n", node->kind());
 }
 
+void NameResolver::visit(AST::ContinueStmt *node) {
+  fmt::print("{}\n", node->kind());
+}
+
 void NameResolver::visit(AST::VarDeclStmt *node) {
   fmt::print("{}\n", node->kind());
 }
