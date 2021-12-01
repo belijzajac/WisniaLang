@@ -363,7 +363,7 @@ void Lexer::prettyPrint() {
   fmt::print("------+------+-----------------+-----------------\n");
   for (const auto &token : tokens_) {
     fmt::print("{:^6}|{:^6}|{:^17}|{:^17}\n",
-               index, token->getFileInfo()->getLineNo(),
+               index, token->getFileInfo().getLineNo(),
                token->getName(), token->getValueStr());
     ++index;
   }
