@@ -22,6 +22,10 @@ class Token {
  public:
   Token(TType type, const TokenValue &value, std::unique_ptr<PositionInFile> pif)
       : type_{type}, value_{value}, pif_{std::move(pif)} {}
+
+  Token(TType type, const TokenValue &value, const PositionInFile &pif)
+      : type_{type}, value_{value}, pif_{std::make_unique<PositionInFile>(pif)} {}
+
   ~Token() = default;
 
   template <typename T>
@@ -48,8 +52,8 @@ class Token {
   };
 
   TType getType() const { return type_; }
-  std::string getName() const { return TokenType2Str[type_]; }
-  const PositionInFile *getFileInfo() const { return pif_.get(); }
+  std::string &getName() const { return TokenType2Str[type_]; }
+  PositionInFile &getFileInfo() const { return *pif_; }
 
  private:
   TType type_;
