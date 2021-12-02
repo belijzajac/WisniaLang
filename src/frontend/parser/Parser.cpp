@@ -379,7 +379,9 @@ std::unique_ptr<Expr> Parser::parseVarExp() {
 
 // <FN_CALL> ::= <IDENT> <ARGUMENTS>
 std::unique_ptr<Expr> Parser::parseFnCall() {
-  auto fnCallPtr = std::make_unique<FnCallExpr>(getNextToken());
+  auto var = parseVar();
+  auto fnCallPtr = std::make_unique<FnCallExpr>(var->token_);
+  fnCallPtr->addVar(std::move(var));
   fnCallPtr->addArgs(parseArgsList());
   return fnCallPtr;
 }
@@ -394,14 +396,28 @@ std::unique_ptr<Expr> Parser::parseMethodCall() {
       ? consume()
       : throw ParserError{"Unknown method call symbol"};
 
-  auto methodCallPtr = std::make_unique<FnCallExpr>(getNextToken());
+  // Creates a `VarExpr` of concatenated class and var names, i.e. class::var
+  auto methodVarExpr = [this, &className]() {
+    auto tempVar = parseVar();
+    auto methodTok = std::make_shared<Token>(
+        tempVar->token_->getType(),
+        className->getValueStr() + "::" + tempVar->token_->getValueStr(),
+        tempVar->token_->getFileInfo());
+    return std::make_unique<VarExpr>(methodTok);
+  };
+
+  auto lhsVar = methodVarExpr();
+  auto methodCallPtr = std::make_unique<FnCallExpr>(lhsVar->token_);
+  methodCallPtr->addVar(std::move(lhsVar));
   methodCallPtr->addClassName(className);
   methodCallPtr->addArgs(parseArgsList());
 
   while (hasAnyOf(TType::OP_METHOD_CALL, TType::OP_FN_ARROW)) {
     consume();  // eat "." or "->"
 
-    auto rhs = std::make_unique<FnCallExpr>(getNextToken());
+    auto rhsVar = methodVarExpr();
+    auto rhs = std::make_unique<FnCallExpr>(rhsVar->token_);
+    rhs->addVar(std::move(rhsVar));
     rhs->addClassName(methodCallPtr->getFnName());
     rhs->addArgs(parseArgsList());
 
@@ -451,7 +467,9 @@ std::vector<std::unique_ptr<Expr>> Parser::parseArgsList() {
 // <CLASS_INIT> ::= "new" <IDENT> <ARGUMENTS>
 std::unique_ptr<Expr> Parser::parseClassInit() {
   expect(TType::KW_CLASS_INIT);  // expect "new"
-  auto classInitPtr = std::make_unique<ClassInitExpr>(getNextToken());
+  auto var = parseVar();
+  auto classInitPtr = std::make_unique<ClassInitExpr>(var->token_);
+  classInitPtr->addVar(std::move(var));
   classInitPtr->addArgs(parseArgsList());
   return classInitPtr;
 }
@@ -727,7 +745,9 @@ std::unique_ptr<Def> Parser::parseClassDef() {
   expect(TType::KW_CLASS);  // expect "class"
 
   // parse <IDENT>
-  auto classDef = std::make_unique<ClassDef>(getNextToken());
+  auto var = parseVar();
+  auto classDef = std::make_unique<ClassDef>(var->token_);
+  classDef->addVar(std::move(var));
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
@@ -764,7 +784,9 @@ std::unique_ptr<Def> Parser::parseClassDef() {
 // <CONSTRUCTOR_DECL> ::= <CONSTRUCTOR_DEF> <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseClassCtorDef() {
   expect(TType::KW_CLASS_DEF);            // expect "def"
-  auto ctorDef = std::make_unique<CtorDef>(getNextToken());
+  auto var = parseVar();
+  auto ctorDef = std::make_unique<CtorDef>(var->token_);
+  ctorDef->addVar(std::move(var));
   ctorDef->addParams(parseParamsList());  // parse <PARAMS>
   ctorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return ctorDef;
@@ -773,7 +795,9 @@ std::unique_ptr<Def> Parser::parseClassCtorDef() {
 // <DESTRUCTOR_DECL> ::= <DESTRUCTOR_DEF>  <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<Def> Parser::parseClassDtorDef() {
   expect(TType::KW_CLASS_REM);            // expect "rem"
-  auto dtorDef = std::make_unique<DtorDef>(getNextToken());
+  auto var = parseVar();
+  auto dtorDef = std::make_unique<DtorDef>(var->token_);
+  dtorDef->addVar(std::move(var));
   dtorDef->addParams(parseParamsList());  // parse <PARAMS>
   dtorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return dtorDef;
