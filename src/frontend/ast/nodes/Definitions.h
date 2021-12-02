@@ -50,13 +50,9 @@ class Def : public Root {
 
   void accept(Visitor *v) override = 0;
 
-  std::string getName() const {
-    return token_->getValueStr();
-  }
-
   void print(size_t level) const override {
     Root::print(level); level++;
-    if (var_) var_->print(level); // TODO: fixme for classes
+    var_->print(level);
   }
 
   void addType(std::unique_ptr<Type> type) const {
@@ -137,9 +133,7 @@ class CtorDef : public MethodDef {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "CtorDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "CtorDef";
   }
 
   void print(size_t level) const override {
@@ -159,13 +153,11 @@ class DtorDef : public MethodDef {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "DtorDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "DtorDef";
   }
 
   void print(size_t level) const override {
-    Def::print(level); level++;
+    MethodDef::print(level); level++;
     body_->print(level);
   }
 };
@@ -219,9 +211,7 @@ class ClassDef : public Def {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "ClassDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "ClassDef";
   }
 
   void print(size_t level) const override {

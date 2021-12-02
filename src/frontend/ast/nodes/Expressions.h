@@ -234,13 +234,12 @@ class FnCallExpr : public Expr {
   }
 
   std::string kind() const override {
-    return className_
-        ? fmt::format("FnCallExpr ({}::{})", className_->getValueStr(), token_->getValueStr())
-        : fmt::format("FnCallExpr ({})", token_->getValueStr());
+    return "FnCallExpr";
   }
 
   void print(size_t level) const override {
     Expr::print(level); level++;
+    var_->print(level);
     for (const auto &arg : args_)
       arg->print(level);
   }
@@ -253,12 +252,23 @@ class FnCallExpr : public Expr {
     args_ = std::move(args);
   }
 
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
+  }
+
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
+  }
+
   std::shared_ptr<Basic::Token> getClassName() const { return className_; }
   std::shared_ptr<Basic::Token> getFnName() const { return token_; }
 
  public:
   std::shared_ptr<Basic::Token> className_;
   std::vector<std::unique_ptr<Expr>> args_;
+  std::unique_ptr<Expr> var_;
 };
 
 // Function Expression node
@@ -271,13 +281,12 @@ class ClassInitExpr : public Expr {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "ClassInitExpr" << " (" << token_->getValueStr() << ")";
-    return ss.str();
+    return "ClassInitExpr";
   }
 
   void print(size_t level) const override {
     Expr::print(level); level++;
+    var_->print(level);
     for (const auto &arg : args_)
       arg->print(level);
   }
@@ -286,8 +295,19 @@ class ClassInitExpr : public Expr {
     args_ = std::move(args);
   }
 
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
+  }
+
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
+  }
+
  public:
   std::vector<std::unique_ptr<Expr>> args_;
+  std::unique_ptr<Expr> var_;
 };
 
 // An abstract definition for constant expression node
