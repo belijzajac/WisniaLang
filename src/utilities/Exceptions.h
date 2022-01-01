@@ -36,7 +36,7 @@ class ParserError : public WisniaError {
   virtual const char* what() const throw() { return msg_.c_str(); }
 };
 
-// Parser exception
+// Semantic exception
 class SemanticError : public WisniaError {
  public:
   explicit SemanticError(const std::string& msg) : WisniaError("Semantic Analysis Error: " + msg) {}
