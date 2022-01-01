@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <unordered_map>
 
+#include <fmt/format.h>
+#include "Exceptions.h"
+
 namespace Wisnia {
 namespace AST {
 class VarExpr;
@@ -14,20 +17,20 @@ class VarExpr;
 class SymbolTable {
   // internal struct
   struct ScopedSymbolTable {
-    std::unordered_map<std::string, AST::VarExpr *> info{};
+    std::unordered_map<std::string, const AST::VarExpr *> info{};
     std::unique_ptr<ScopedSymbolTable> parentScope{};
 
-    void addSymbol(const std::string &name, AST::VarExpr *var) {
+    void addSymbol(const std::string &name, const AST::VarExpr *var) {
       info[name] = var;
     }
 
-    AST::VarExpr &find(const std::string &name) const {
+    const AST::VarExpr *findSymbol(const std::string &name) const {
       if (auto search = info.find(name); search != info.end())
-        return *search->second;
+        return search->second;
       if (parentScope) {
-        return parentScope->find(name);
+        return parentScope->findSymbol(name);
       }
-      throw std::runtime_error("No variable named " + name);
+      throw Utils::SemanticError{"No variable named " + name};
     }
   };
 
@@ -37,8 +40,8 @@ class SymbolTable {
 
   void addSymbol(AST::VarExpr *var);
 
-  AST::VarExpr &find(const std::string &name) const {
-    return table->find(name);
+  const AST::VarExpr *findSymbol(const std::string &name) const {
+    return table->findSymbol(name);
   }
 
   void pushScope() {
