@@ -15,13 +15,17 @@ int main(int argc, char *argv[]) {
 
     auto lexer = std::make_unique<Lexer>(argv[1]);
     auto parser = std::make_unique<Parser>(*lexer);
-    const auto &root = parser->parse();
+    auto root = parser->parse();
     //...
+    fmt::print("<~~~ {} ~~~>\n", "token stream");
     lexer->prettyPrint();
+    fmt::print("<~~~ {} ~~~>\n", "ast tree");
     root->print();
     //...
     NameResolver resolver{};
     root->accept(&resolver);
+    fmt::print("<~~~ {} ~~~>\n", "updated ast tree");
+    root->print();
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;
