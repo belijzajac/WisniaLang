@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include <iostream>
 // Wisnia
 #include "NameResolver.h"
 #include "AST.h"
@@ -8,10 +9,12 @@ using namespace AST;
 
 void NameResolver::visit(AST::Root *node) {
   fmt::print("{}\n", node->kind());
-  for (const auto &fn : node->globalFnDefs_)
+  for (const auto &fn : node->globalFnDefs_) {
     fn->accept(this);
-  for (const auto &klass : node->globalClassDefs_)
+  }
+  for (const auto &klass : node->globalClassDefs_) {
     klass->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::PrimitiveType *node) {
@@ -19,7 +22,12 @@ void NameResolver::visit(AST::PrimitiveType *node) {
 }
 
 void NameResolver::visit(AST::VarExpr *node) {
-  fmt::print("{}\n", node->kind());
+  try {
+    auto foundVar = table.findSymbol(node->token_->getValue<std::string>()); // VarExpr
+    node->type_ = std::make_unique<PrimitiveType>(foundVar->type_->token_);
+  } catch (const Utils::SemanticError &ex) {
+    std::cerr << ex.what() << "\n";
+  }
 }
 
 void NameResolver::visit(AST::BinaryExpr *node) {
@@ -54,10 +62,18 @@ void NameResolver::visit(AST::UnaryExpr *node) {
 
 void NameResolver::visit(AST::FnCallExpr *node) {
   fmt::print("{}\n", node->kind());
+  node->var_->accept(this);
+  for (const auto &arg : node->args_) {
+    arg->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::ClassInitExpr *node) {
   fmt::print("{}\n", node->kind());
+  node->var_->accept(this);
+  for (const auto &arg : node->args_) {
+    arg->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::IntExpr *node) {
@@ -77,9 +93,12 @@ void NameResolver::visit(AST::StringExpr *node) {
 }
 
 void NameResolver::visit(AST::StmtBlock *node) {
+  table.pushScope();
   fmt::print("{}\n", node->kind());
-  for (const auto &stmt : node->stmts_)
+  for (const auto &stmt : node->stmts_) {
     stmt->accept(this);
+  }
+  table.popScope();
 }
 
 void NameResolver::visit(AST::ReturnStmt *node) {
@@ -96,10 +115,13 @@ void NameResolver::visit(AST::ContinueStmt *node) {
 
 void NameResolver::visit(AST::VarDeclStmt *node) {
   fmt::print("{}\n", node->kind());
+  node->var_->accept(this);
+  node->value_->accept(this);
 }
 
 void NameResolver::visit(AST::VarAssignStmt *node) {
   fmt::print("{}\n", node->kind());
+  node->var_->accept(this);
   node->value_->accept(this);
 }
 
@@ -110,10 +132,16 @@ void NameResolver::visit(AST::ExprStmt *node) {
 
 void NameResolver::visit(AST::ReadStmt *node) {
   fmt::print("{}\n", node->kind());
+  for (const auto &var : node->vars_) {
+    var->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::WriteStmt *node) {
   fmt::print("{}\n", node->kind());
+  for (const auto &expr : node->exprs_) {
+    expr->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::Param *node) {
@@ -123,8 +151,11 @@ void NameResolver::visit(AST::Param *node) {
 
 void NameResolver::visit(AST::FnDef *node) {
   fmt::print("{}\n", node->kind());
-  for (const auto &param : node->params_)
+  table.addSymbol(dynamic_cast<VarExpr *>(node->var_.get()));
+  node->var_->accept(this);
+  for (const auto &param : node->params_) {
     param->accept(this);
+  }
   node->body_->accept(this);
 }
 
@@ -142,6 +173,15 @@ void NameResolver::visit(AST::Field *node) {
 
 void NameResolver::visit(AST::ClassDef *node) {
   fmt::print("{}\n", node->kind());
+  node->var_->accept(this);
+  for (const auto &field : node->fields_) {
+    field->accept(this);
+  }
+  node->ctor_->accept(this);
+  node->dtor_->accept(this);
+  for (const auto &method : node->methods_) {
+    method->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::WhileLoop *node) {
@@ -169,8 +209,9 @@ void NameResolver::visit(AST::IfStmt *node) {
   fmt::print("{}\n", node->kind());
   node->cond_->accept(this);
   node->body_->accept(this);
-  for (const auto &elseBl : node->elseBlcks_)
+  for (const auto &elseBl : node->elseBlcks_) {
     elseBl->accept(this);
+  }
 }
 
 void NameResolver::visit(AST::ElseStmt *node) {

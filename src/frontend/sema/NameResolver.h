@@ -1,11 +1,15 @@
 #ifndef NAMERESOLVER_H
 #define NAMERESOLVER_H
 
+// Wisnia
 #include "Visitor.h"
+#include "SymbolTable.h"
 
 namespace Wisnia {
 
 class NameResolver : public Visitor {
+  SymbolTable table{};
+
  public:
   NameResolver() = default;
   ~NameResolver() = default;
