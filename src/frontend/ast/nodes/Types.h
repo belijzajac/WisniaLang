@@ -29,6 +29,8 @@ class Type : public Root {
     // Returns a string equivalent of an enum
     auto primTypeStr = [&]() -> std::string {
       switch (type_) {
+        case Basic::TType::KW_CLASS:
+          return "class";
         case Basic::TType::KW_VOID:
           return "void";
         case Basic::TType::KW_INT:

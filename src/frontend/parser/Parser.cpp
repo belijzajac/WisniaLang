@@ -747,7 +747,16 @@ std::unique_ptr<Def> Parser::parseClassDef() {
   // parse <IDENT>
   auto var = parseVar();
   auto classDef = std::make_unique<ClassDef>(var->token_);
+
+  // Creates a token in-place for use in `PrimitiveType`
+  auto classTypeTok = std::make_shared<Token>(
+      TType::KW_CLASS,
+      var->token_->getValueStr(),
+      var->token_->getFileInfo()
+  );
+
   classDef->addVar(std::move(var));
+  classDef->addType(std::make_unique<PrimitiveType>(classTypeTok));
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
@@ -806,9 +815,9 @@ std::unique_ptr<Def> Parser::parseClassDtorDef() {
 // Same as <VAR_DECL>
 std::unique_ptr<Field> Parser::parseClassField() {
   auto varDeclPtr = std::make_unique<Field>();
-
-  varDeclPtr->addType(parsePrimitiveType());
+  auto varType = parsePrimitiveType();
   varDeclPtr->addVar(parseVar());
+  varDeclPtr->addType(std::move(varType));
   std::unique_ptr<Expr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
