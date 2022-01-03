@@ -165,14 +165,6 @@ void NameResolver::visit(AST::DtorDef *node) {
 
 void NameResolver::visit(AST::Field *node) {
   table.addSymbol(dynamic_cast<VarExpr *>(node->var_.get()));
-
-  if (!node->var_) {
-    fmt::print(std::cerr, "node->var_ is NULL");
-  }
-  if (!node->value_) {
-    fmt::print(std::cerr, "node->value_ is NULL");
-  }
-
   node->var_->accept(this);
   node->value_->accept(this);
 }
