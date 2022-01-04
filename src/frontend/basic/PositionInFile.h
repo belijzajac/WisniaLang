@@ -7,8 +7,6 @@ class PositionInFile {
   PositionInFile(const std::string &file, int line)
       : fileName_{file}, lineNo_{line} {}
 
-  ~PositionInFile() = default;
-
   // Getters for file information
   std::string getFileName() const { return fileName_; }
 

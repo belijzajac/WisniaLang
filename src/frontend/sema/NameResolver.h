@@ -11,9 +11,6 @@ class NameResolver : public Visitor {
   SymbolTable table{};
 
  public:
-  NameResolver() = default;
-  ~NameResolver() = default;
-
   void visit(AST::Root *node) override;
   void visit(AST::PrimitiveType *node) override;
   void visit(AST::VarExpr *node) override;

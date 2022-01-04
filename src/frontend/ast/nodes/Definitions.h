@@ -14,7 +14,6 @@ namespace AST {
 class Param : public Root {
  public:
   explicit Param(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  Param() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);

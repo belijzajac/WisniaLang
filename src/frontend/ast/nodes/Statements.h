@@ -80,7 +80,6 @@ class ReturnStmt : public Stmt {
 class BreakStmt : public Stmt {
  public:
   explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  BreakStmt() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -95,7 +94,6 @@ class BreakStmt : public Stmt {
 class ContinueStmt : public Stmt {
  public:
   explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ContinueStmt() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);

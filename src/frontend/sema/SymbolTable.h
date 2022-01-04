@@ -36,7 +36,6 @@ class SymbolTable {
 
  public:
   SymbolTable() { table = std::make_unique<ScopedSymbolTable>(); };
-  ~SymbolTable() = default;
 
   void addSymbol(AST::VarExpr *var);
 

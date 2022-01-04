@@ -32,7 +32,6 @@ class Cond : public Stmt {
 class IfStmt : public Cond {
  public:
   explicit IfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  IfStmt() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -68,7 +67,6 @@ class IfStmt : public Cond {
 class ElseStmt : public Cond {
  public:
   explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ElseStmt() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -88,7 +86,6 @@ class ElseStmt : public Cond {
 class ElseIfStmt : public Cond {
  public:
   explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ElseIfStmt() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);

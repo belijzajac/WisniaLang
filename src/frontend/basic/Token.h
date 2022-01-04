@@ -26,8 +26,6 @@ class Token {
   Token(TType type, const TokenValue &value, const PositionInFile &pif)
       : type_{type}, value_{value}, pif_{std::make_unique<PositionInFile>(pif)} {}
 
-  ~Token() = default;
-
   template <typename T>
   T getValue() const {
     try {

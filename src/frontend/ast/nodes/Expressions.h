@@ -26,7 +26,6 @@ class Expr : public Root {
 class VarExpr : public Expr {
  public:
   explicit VarExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  VarExpr() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -328,7 +327,6 @@ class ConstExpr : public Expr {
 class IntExpr : public ConstExpr {
  public:
   explicit IntExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  IntExpr() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -339,7 +337,6 @@ class IntExpr : public ConstExpr {
 class FloatExpr : public ConstExpr {
  public:
   explicit FloatExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  FloatExpr() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -350,7 +347,6 @@ class FloatExpr : public ConstExpr {
 class BoolExpr : public ConstExpr {
  public:
   explicit BoolExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  BoolExpr() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -361,7 +357,6 @@ class BoolExpr : public ConstExpr {
 class StringExpr : public ConstExpr {
  public:
   explicit StringExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  StringExpr() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);

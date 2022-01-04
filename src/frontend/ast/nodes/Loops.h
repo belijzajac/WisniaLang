@@ -31,7 +31,6 @@ class Loop : public Stmt {
 class WhileLoop : public Loop {
  public:
   explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  WhileLoop() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -59,7 +58,6 @@ class WhileLoop : public Loop {
 class ForLoop : public Loop {
  public:
   explicit ForLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ForLoop() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -99,7 +97,6 @@ class ForLoop : public Loop {
 class ForEachLoop : public Loop {
  public:
   explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ForEachLoop() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);

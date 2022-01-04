@@ -22,7 +22,6 @@ class IVisitable {
 // Root node
 class Root : public IVisitable {
  public:
-  Root() = default;
   virtual ~Root() = default;
  public:
   void accept(Visitor *v) override {
