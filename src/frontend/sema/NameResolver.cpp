@@ -29,11 +29,6 @@ void NameResolver::visit(AST::VarExpr *node) {
   }
 }
 
-void NameResolver::visit(AST::BinaryExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-}
-
 void NameResolver::visit(AST::BooleanExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);

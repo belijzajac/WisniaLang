@@ -17,7 +17,6 @@ class NameResolver : public Visitor {
   void visit(AST::Root *node) override;
   void visit(AST::PrimitiveType *node) override;
   void visit(AST::VarExpr *node) override;
-  void visit(AST::BinaryExpr *node) override;
   void visit(AST::BooleanExpr *node) override;
   void visit(AST::EqExpr *node) override;
   void visit(AST::CompExpr *node) override;

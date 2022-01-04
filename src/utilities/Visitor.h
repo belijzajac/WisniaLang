@@ -7,7 +7,6 @@ namespace AST {
 class Root;
 class PrimitiveType;
 class VarExpr;
-class BinaryExpr;
 class BooleanExpr;
 class EqExpr;
 class CompExpr;
@@ -50,7 +49,6 @@ class Visitor {
   virtual void visit(AST::Root *node) = 0;
   virtual void visit(AST::PrimitiveType *node) = 0;
   virtual void visit(AST::VarExpr *node) = 0;
-  virtual void visit(AST::BinaryExpr *node) = 0;
   virtual void visit(AST::BooleanExpr *node) = 0;
   virtual void visit(AST::EqExpr *node) = 0;
   virtual void visit(AST::CompExpr *node) = 0;
