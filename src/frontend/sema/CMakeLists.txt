@@ -5,6 +5,5 @@ set(WISNIA_SOURCES
   frontend/sema/SymbolTable.h
   frontend/sema/SymbolTable.cpp
   frontend/sema/NodeCollector.h
-  frontend/sema/NodeCollector.cpp
   PARENT_SCOPE
 )
