@@ -14,7 +14,7 @@ class NodeCollector : public Visitor {
     static_assert(std::is_base_of<AST::Root, T>::value, "Type parameter of this class must derive from AST::Root");
   }
 
-  std::vector<const T *> &getNodes() const {
+  std::vector<const T *> getNodes() const {
     return nodes;
   }
 
@@ -59,6 +59,8 @@ class NodeCollector : public Visitor {
  private:
   std::vector<const T *> nodes{};
 };
+
+#include "NodeCollector.tpp"
 
 }  // namespace Wisnia
 
