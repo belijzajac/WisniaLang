@@ -13,6 +13,7 @@ if(UNIT_TESTS)
 
   add_subdirectory(lexical-analysis)
   add_subdirectory(syntax-analysis)
+  add_subdirectory(semantic-analysis)
 
   modify_sources(WISNIA_SOURCES)
   add_executable(wisnia-tests

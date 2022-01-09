@@ -14,7 +14,10 @@ namespace AST {
 class Param : public Root {
  public:
   explicit Param(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  Param() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "Param";
@@ -22,21 +25,21 @@ class Param : public Root {
 
   void print(size_t level) const override {
     Root::print(level); level++;
-    type_->print(level);
-    value_->print(level);
+    var_->print(level);
   }
 
-  void addType(std::unique_ptr<Type> type) {
-    type_ = std::move(type);
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
   }
 
-  void addValue(std::unique_ptr<Expr> value) {
-    value_ = std::move(value);
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
  public:
-  std::unique_ptr<Type> type_;
-  std::unique_ptr<Expr> value_;
+  std::unique_ptr<Expr> var_;
 };
 
 // An abstract definition for Def node
@@ -44,31 +47,45 @@ class Def : public Root {
  public:
   explicit Def(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
 
-  std::string getName() const {
-    return token_->getValueStr();
-  }
+  void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
-    Root::print(level);
+    Root::print(level); level++;
+    var_->print(level);
   }
+
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
+  }
+
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
+  }
+
+ public:
+  std::unique_ptr<Expr> var_;
 };
 
 // An abstract definition for Def node
 class MethodDef : public Def {
  public:
-  explicit MethodDef(const std::shared_ptr<Basic::Token> &tok) : Def(tok) { token_ = tok; }
+  explicit MethodDef(const std::shared_ptr<Basic::Token> &tok)
+      : Def(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
     Def::print(level); level++;
     for (const auto &param : params_)
       param->print(level);
-
-    if (retType_)
-      retType_->print(level);
   }
 
   void addRetType(std::unique_ptr<Type> type) {
-    retType_ = std::move(type);
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
   }
 
   void addParams(std::vector<std::unique_ptr<Param>> params) {
@@ -80,7 +97,6 @@ class MethodDef : public Def {
   }
 
  public:
-  std::unique_ptr<Type> retType_;               // return type
   std::vector<std::unique_ptr<Param>> params_;  // parameters
   std::unique_ptr<Stmt> body_;                  // body, surrounded by "{" and "}"
 };
@@ -88,12 +104,15 @@ class MethodDef : public Def {
 // Function Definition node
 class FnDef : public MethodDef {
  public:
-  explicit FnDef(const std::shared_ptr<Basic::Token> &tok) : MethodDef(tok) { token_ = tok; }
+  explicit FnDef(const std::shared_ptr<Basic::Token> &tok)
+      : MethodDef(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "FnDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "FnDef";
   }
 
   void print(size_t level) const override {
@@ -103,15 +122,17 @@ class FnDef : public MethodDef {
 };
 
 // Constructor Definition node
-class ConstructorDef : public MethodDef {
+class CtorDef : public MethodDef {
  public:
-  explicit ConstructorDef(const std::shared_ptr<Basic::Token> &tok)
+  explicit CtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) { token_ = tok; }
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "ConstructorDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "CtorDef";
   }
 
   void print(size_t level) const override {
@@ -121,19 +142,21 @@ class ConstructorDef : public MethodDef {
 };
 
 // Destructor Definition node
-class DestructorDef : public MethodDef {
+class DtorDef : public MethodDef {
  public:
-  explicit DestructorDef(const std::shared_ptr<Basic::Token> &tok)
+  explicit DtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) { token_ = tok; }
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "DestructorDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "DtorDef";
   }
 
   void print(size_t level) const override {
-    Def::print(level); level++;
+    MethodDef::print(level); level++;
     body_->print(level);
   }
 };
@@ -144,25 +167,27 @@ class Field : public Root {
   explicit Field(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   Field() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "Field" << " (" << name_->getValueStr() << ")";
-    return ss.str();
+    return "Field";
   }
 
   void print(size_t level) const override {
     Root::print(level); level++;
-
-    if (type_) type_->print(level);
-    if (value_) value_->print(level);
+    var_->print(level);
   }
 
-  void addType(std::unique_ptr<Type> varType) {
-    type_ = std::move(varType);
+  void addType(std::unique_ptr<Type> varType) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(varType));
+    }
   }
 
-  void addName(std::shared_ptr<Basic::Token> varName) {
-    name_ = varName;
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
   void addValue(std::unique_ptr<Expr> varValue) {
@@ -170,9 +195,8 @@ class Field : public Root {
   }
 
  public:
-  std::unique_ptr<Type> type_;          // variable type
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+  std::unique_ptr<Expr> var_;   // variable value
+  std::unique_ptr<Expr> value_; // variable value
 };
 
 // Class Definition node
@@ -181,10 +205,12 @@ class ClassDef : public Def {
   explicit ClassDef(const std::shared_ptr<Basic::Token> &tok)
       : Def(tok) { token_ = tok; }
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "ClassDef" << " (" << Def::getName() << ")";
-    return ss.str();
+    return "ClassDef";
   }
 
   void print(size_t level) const override {

@@ -27,6 +27,7 @@ include_directories(
   src/frontend/ast/
   src/frontend/lexer/
   src/frontend/parser/
+  src/frontend/sema/
 )
 
 add_subdirectory(src)

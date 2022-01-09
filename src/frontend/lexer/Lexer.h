@@ -11,7 +11,6 @@ class Token;
 enum class TType;
 }  // namespace Basic
 
-// TODO: hide the implementation of private parts with the PIMPL idiom
 class Lexer {
   enum class State {
     START,             // Start state
@@ -75,7 +74,6 @@ class Lexer {
  public:
   explicit Lexer(const std::string &filename);
   explicit Lexer(std::istringstream &sstream);
-  ~Lexer() = default;
 
   // Returns tokens
   std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return tokens_; }

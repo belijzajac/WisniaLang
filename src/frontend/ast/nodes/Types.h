@@ -18,6 +18,8 @@ class Type : public Root {
     convertTypeToStr();
   }
 
+  void accept(Visitor *v) override = 0;
+
   void print(size_t level) const override {
     Root::print(level);
   }
@@ -27,6 +29,8 @@ class Type : public Root {
     // Returns a string equivalent of an enum
     auto primTypeStr = [&]() -> std::string {
       switch (type_) {
+        case Basic::TType::KW_CLASS:
+          return "class";
         case Basic::TType::KW_VOID:
           return "void";
         case Basic::TType::KW_INT:
@@ -38,7 +42,7 @@ class Type : public Root {
         case Basic::TType::KW_STRING:
           return "string";
         default:
-          throw Utils::NotImplementedError{Basic::TokenType2Str[type_]};
+          return "null";
       }
     };
 
@@ -54,6 +58,10 @@ class Type : public Root {
 class PrimitiveType : public Type {
  public:
   explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok) : Type(tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     std::stringstream ss;

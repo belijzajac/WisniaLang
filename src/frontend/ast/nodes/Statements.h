@@ -14,6 +14,8 @@ namespace AST {
 // An abstract definition for Stmt (statement) node
 class Stmt : public Root {
  public:
+  void accept(Visitor *v) override = 0;
+
   void print(size_t level) const override {
     Root::print(level);
   }
@@ -24,6 +26,10 @@ class StmtBlock : public Stmt {
  public:
   explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   StmtBlock() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "StmtBlock";
@@ -49,6 +55,10 @@ class ReturnStmt : public Stmt {
   explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ReturnStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
     return "ReturnStmt";
   }
@@ -67,13 +77,30 @@ class ReturnStmt : public Stmt {
 };
 
 // Loop break statement node
-class LoopBrkStmt : public Stmt {
+class BreakStmt : public Stmt {
  public:
-  explicit LoopBrkStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  LoopBrkStmt() = default;
+  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
-    return "LoopBrkStmt";
+    return "BreakStmt";
+  }
+};
+
+// Loop continue statement node
+class ContinueStmt : public Stmt {
+ public:
+  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
+  std::string kind() const override {
+    return "ContinueStmt";
   }
 };
 
@@ -83,24 +110,28 @@ class VarDeclStmt : public Stmt {
   explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarDeclStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "VarDeclStmt" << " (" << name_->getValueStr() << ")";
-    return ss.str();
+    return "VarDeclStmt";
   }
 
   void print(size_t level) const override {
     Stmt::print(level); level++;
-    if (type_) type_->print(level);
+    var_->print(level);
     if (value_) value_->print(level);
   }
 
-  void addType(std::unique_ptr<Type> varType) {
-    type_ = std::move(varType);
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
   }
 
-  void addName(std::shared_ptr<Basic::Token> varName) {
-    name_ = varName;
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
   void addValue(std::unique_ptr<Expr> varValue) {
@@ -108,9 +139,8 @@ class VarDeclStmt : public Stmt {
   }
 
  public:
-  std::unique_ptr<Type> type_;          // variable type
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+  std::unique_ptr<Expr> var_;   // name + type
+  std::unique_ptr<Expr> value_; // variable's value
 };
 
 // Variable assignment statement node
@@ -119,19 +149,28 @@ class VarAssignStmt : public Stmt {
   explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   VarAssignStmt() = default;
 
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "VarAssignStmt" << " (" << name_->getValueStr() << ")";
-    return ss.str();
+    return "VarAssignStmt";
   }
 
   void print(size_t level) const override {
     Stmt::print(level); level++;
+    var_->print(level);
     value_->print(level);
   }
 
-  void addName(std::shared_ptr<Basic::Token> varName) {
-    name_ = varName;
+  void addType(std::unique_ptr<Type> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+      varPtr->addType(std::move(type));
+    }
+  }
+
+  void addVar(std::unique_ptr<Expr> var) {
+    var_ = std::move(var);
   }
 
   void addValue(std::unique_ptr<Expr> varValue) {
@@ -139,8 +178,8 @@ class VarAssignStmt : public Stmt {
   }
 
  public:
-  std::shared_ptr<Basic::Token> name_;  // variable name
-  std::unique_ptr<Expr> value_;         // variable value
+  std::unique_ptr<Expr> var_;   // name + type
+  std::unique_ptr<Expr> value_; // variable's value
 };
 
 // Expression statement node
@@ -148,6 +187,10 @@ class ExprStmt : public Stmt {
  public:
   explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
   ExprStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "ExprStmt";
@@ -167,13 +210,17 @@ class ExprStmt : public Stmt {
 };
 
 // Read IO statement node
-class readIOStmt : public Stmt {
+class ReadStmt : public Stmt {
  public:
-  explicit readIOStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  readIOStmt() = default;
+  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  ReadStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
-    return "readIOStmt";
+    return "ReadStmt";
   }
 
   void print(size_t level) const override {
@@ -191,13 +238,17 @@ class readIOStmt : public Stmt {
 };
 
 // Write IO statement node
-class writeIOStmt : public Stmt {
+class WriteStmt : public Stmt {
  public:
-  explicit writeIOStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  writeIOStmt() = default;
+  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  WriteStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
-    return "writeIOStmt";
+    return "WriteStmt";
   }
 
   void print(size_t level) const override {

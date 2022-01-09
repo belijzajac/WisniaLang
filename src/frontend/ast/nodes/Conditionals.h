@@ -14,9 +14,10 @@ namespace AST {
 // An abstract definition for if statement node
 class Cond : public Stmt {
  public:
+  void accept(Visitor *v) override = 0;
+
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    body_->print(level);
+    Stmt::print(level);
   }
 
   void addBody(std::unique_ptr<Stmt> body) {
@@ -31,7 +32,10 @@ class Cond : public Stmt {
 class IfStmt : public Cond {
  public:
   explicit IfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  IfStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "IfStmt";
@@ -63,14 +67,18 @@ class IfStmt : public Cond {
 class ElseStmt : public Cond {
  public:
   explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ElseStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "ElseStmt";
   }
 
   void print(size_t level) const override {
-    Cond::print(level);
+    Cond::print(level); level++;
+    body_->print(level);
   }
 };
 
@@ -78,7 +86,10 @@ class ElseStmt : public Cond {
 class ElseIfStmt : public Cond {
  public:
   explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ElseIfStmt() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "ElseIfStmt";

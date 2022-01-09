@@ -13,6 +13,8 @@ namespace AST {
 // An abstract definition for Loop node
 class Loop : public Stmt {
  public:
+  void accept(Visitor *v) override = 0;
+
   void print(size_t level) const override {
     Root::print(level);
   }
@@ -29,7 +31,10 @@ class Loop : public Stmt {
 class WhileLoop : public Loop {
  public:
   explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  WhileLoop() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "WhileLoop";
@@ -53,7 +58,10 @@ class WhileLoop : public Loop {
 class ForLoop : public Loop {
  public:
   explicit ForLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ForLoop() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "ForLoop";
@@ -89,7 +97,10 @@ class ForLoop : public Loop {
 class ForEachLoop : public Loop {
  public:
   explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
-  ForEachLoop() = default;
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
 
   std::string kind() const override {
     return "ForEachLoop";

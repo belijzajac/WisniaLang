@@ -11,13 +11,8 @@
 
 namespace Wisnia::Basic {
 
-// For language-specific keywords & operands
-struct reserved_t {
-  std::string value_;
-};
-
 // Variant that holds all the possible values for token
-using TokenValue = std::variant<int, float, bool, std::string, reserved_t, nullptr_t>;
+using TokenValue = std::variant<int, float, bool, std::string, nullptr_t>;
 
 // Helper type for the visitor
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -27,7 +22,9 @@ class Token {
  public:
   Token(TType type, const TokenValue &value, std::unique_ptr<PositionInFile> pif)
       : type_{type}, value_{value}, pif_{std::move(pif)} {}
-  ~Token() = default;
+
+  Token(TType type, const TokenValue &value, const PositionInFile &pif)
+      : type_{type}, value_{value}, pif_{std::make_unique<PositionInFile>(pif)} {}
 
   template <typename T>
   T getValue() const {
@@ -42,11 +39,10 @@ class Token {
   std::string getValueStr() const {
     std::string result{};
     std::visit(overloaded{
+                   [&](const std::string &arg) { result = (type_ == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
                    [&](int arg) { result = std::to_string(arg); },
                    [&](float arg) { result = std::to_string(arg); },
                    [&](bool arg) { result = arg ? "true" : "false"; },
-                   [&](const std::string &arg) { result = "\"" + arg + "\""; },
-                   [&](const reserved_t &arg) { result = arg.value_; },
                    [&](nullptr_t arg) { result = "null"; },
                },
                value_);
@@ -54,8 +50,8 @@ class Token {
   };
 
   TType getType() const { return type_; }
-  std::string getName() const { return TokenType2Str[type_]; }
-  const PositionInFile *getFileInfo() const { return pif_.get(); }
+  std::string &getName() const { return TokenType2Str[type_]; }
+  PositionInFile &getFileInfo() const { return *pif_; }
 
  private:
   TType type_;

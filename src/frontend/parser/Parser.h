@@ -27,7 +27,6 @@ class Field;
 class Parser {
  public:
   explicit Parser(const Lexer &lexer);
-  ~Parser() = default;
 
   // Starts parsing and returns the root node when done doing so
   std::unique_ptr<AST::Root> parse();

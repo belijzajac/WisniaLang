@@ -15,7 +15,7 @@ TEST(LexerTest, Operators) {
   std::istringstream iss{program};
 
   auto lexer = std::make_unique<Lexer>(iss);
-  const auto &tokens = lexer->getTokens();
+  auto tokens = lexer->getTokens();
 
   EXPECT_GT(tokens.size(), 0);
   EXPECT_EQ(tokens.size(), 36);

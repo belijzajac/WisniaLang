@@ -28,14 +28,15 @@ TEST(ParserTest, Conditionals) {
 
   auto lexer = std::make_unique<Lexer>(iss);
   auto parser = std::make_unique<Parser>(*lexer);
-  const auto &root = parser->parse();
+  auto root = parser->parse();
 
   EXPECT_EQ(root->globalFnDefs_.size(), 1);
   // fn empty () -> void {}
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->globalFnDefs_[0])) {
     EXPECT_STREQ(fn->token_->getValue<std::string>().c_str(), "conditionals");
     EXPECT_EQ(fn->params_.size(), 0);
-    EXPECT_EQ(fn->retType_->type_, TType::KW_VOID);
+    auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->var_);
+    EXPECT_EQ(fnVar->type_->type_, TType::KW_VOID);
     auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->body_);
     EXPECT_EQ(stmtBlock->stmts_.size(), 1);
     // if (true)
@@ -127,7 +128,7 @@ TEST(ParserTest, Conditionals) {
     auto elifSecondBody = dynamic_cast<AST::StmtBlock *>(&*elifSecondStmt->body_);
     EXPECT_NE(elifSecondBody, nullptr);
     EXPECT_EQ(elifSecondBody->stmts_.size(), 1);
-    auto continueExprStmt = dynamic_cast<AST::LoopBrkStmt *>(&*elifSecondBody->stmts_[0]);
+    auto continueExprStmt = dynamic_cast<AST::ContinueStmt *>(&*elifSecondBody->stmts_[0]);
     EXPECT_NE(continueExprStmt, nullptr);
     EXPECT_EQ(continueExprStmt->token_->getType(), TType::KW_CONTINUE);
     // else
@@ -138,7 +139,7 @@ TEST(ParserTest, Conditionals) {
     auto elseBody = dynamic_cast<AST::StmtBlock *>(&*elseStmt->body_);
     EXPECT_NE(elseBody, nullptr);
     EXPECT_EQ(elseBody->stmts_.size(), 1);
-    auto breakExprStmt = dynamic_cast<AST::LoopBrkStmt *>(&*elseBody->stmts_[0]);
+    auto breakExprStmt = dynamic_cast<AST::BreakStmt *>(&*elseBody->stmts_[0]);
     EXPECT_NE(breakExprStmt, nullptr);
     EXPECT_EQ(breakExprStmt->token_->getType(), TType::KW_BREAK);
   } else {
