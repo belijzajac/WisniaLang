@@ -13,47 +13,54 @@ class Token;
 
 namespace AST {
 
-// An abstract definition for Expr node
-class Expr : public Root {
+class BaseExpr : public Root {
  public:
   void print(size_t level) const override {
     Root::print(level);
   }
 
   void accept(Visitor *v) override = 0;
+
+  void addChild(std::unique_ptr<BaseExpr> child) {
+    m_children.push_back(std::move(child));
+  }
+
+  BaseExpr *lhs() const { return m_children[0].get(); }
+  BaseExpr *rhs() const { return m_children[1].get(); }
+
+ protected:
+  std::vector<std::unique_ptr<BaseExpr>> m_children; // lhs and rhs
 };
 
-class VarExpr : public Expr {
+class VarExpr : public BaseExpr {
  public:
-  explicit VarExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit VarExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
   }
 
   std::string kind() const override {
-    return fmt::format("Var (name={0}, type={1})",
-                       token_->getValueStr(),
-                       type_ ? type_->typeStr_ : "null");
+    return fmt::format("Var (name={0}, type={1})", m_token->getValueStr(),
+                       m_type ? m_type->m_strType : "null");
   }
 
   void print(size_t level) const override {
-    Root::print(level);
+    BaseExpr::print(level);
   }
 
-  void addType(std::unique_ptr<Type> type) {
-    type_ = std::move(type);
+  void addType(std::unique_ptr<BaseType> type) {
+    m_type = std::move(type);
   }
 
  public:
-  std::unique_ptr<Type> type_;  // int, bool, float, str, later fn ...
+  std::unique_ptr<BaseType> m_type;
 };
 
-// Binary Expression node
-class BinaryExpr : public Expr {
+class BinaryExpr : public BaseExpr {
  public:
   explicit BinaryExpr(Basic::TType opType) {
-    op_ = opType;
+    m_operand = opType;
     convertOpToStr();
   }
 
@@ -61,7 +68,7 @@ class BinaryExpr : public Expr {
   void convertOpToStr() {
     // Returns a string equivalent of an enum
     auto opTypeStr = [&]() -> std::string {
-      switch (op_) {
+      switch (m_operand) {
         // Arithmetic
         case Basic::TType::OP_ADD:
           return "+";
@@ -98,7 +105,7 @@ class BinaryExpr : public Expr {
       }
     };
 
-    opStr_ = opTypeStr();
+    m_strOperand = opTypeStr();
   }
 
  public:
@@ -107,20 +114,16 @@ class BinaryExpr : public Expr {
   }
 
   void print(size_t level) const override {
-    Root::print(level); level++;
+    BaseExpr::print(level++);
     lhs()->print(level);
     rhs()->print(level);
   }
 
-  Expr *lhs() const { return static_cast<Expr *>(first()); }
-  Expr *rhs() const { return static_cast<Expr *>(second()); }
-
  public:
-  Basic::TType op_;    // operand for expression (+, *, &&, ...)
-  std::string opStr_;  // a string representation of an operand
+  Basic::TType m_operand;   // operand for expression (+, *, &&, ...)
+  std::string m_strOperand; // a string representation of an operand
 };
 
-// Boolean Expression node
 class BooleanExpr : public BinaryExpr {
  public:
   explicit BooleanExpr(Basic::TType opType) : BinaryExpr(opType) {}
@@ -131,12 +134,11 @@ class BooleanExpr : public BinaryExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "BooleanExpr" << " (" << opStr_ << ")";
+    ss << "BooleanExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };
 
-// Equality Expression node
 class EqExpr : public BinaryExpr {
  public:
   explicit EqExpr(Basic::TType opType) : BinaryExpr(opType) {}
@@ -147,12 +149,11 @@ class EqExpr : public BinaryExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "EqExpr" << " (" << opStr_ << ")";
+    ss << "EqExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };
 
-// Comparison Expression node
 class CompExpr : public BinaryExpr {
  public:
   explicit CompExpr(Basic::TType opType) : BinaryExpr(opType) {}
@@ -163,12 +164,11 @@ class CompExpr : public BinaryExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "CompExpr" << " (" << opStr_ << ")";
+    ss << "CompExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };
 
-// Addition (and subtraction) Expression node
 class AddExpr : public BinaryExpr {
  public:
   explicit AddExpr(Basic::TType opType) : BinaryExpr(opType) {}
@@ -179,12 +179,11 @@ class AddExpr : public BinaryExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "AddExpr" << " (" << opStr_ << ")";
+    ss << "AddExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };
 
-// Multiplication (and division) Expression node
 class MultExpr : public BinaryExpr {
  public:
   explicit MultExpr(Basic::TType opType) : BinaryExpr(opType) {}
@@ -195,12 +194,11 @@ class MultExpr : public BinaryExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "MultExpr" << " (" << opStr_ << ")";
+    ss << "MultExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };
 
-// Unary Expression node
 class UnaryExpr : public BinaryExpr {
  public:
   explicit UnaryExpr(Basic::TType opType) : BinaryExpr(opType) {}
@@ -211,21 +209,19 @@ class UnaryExpr : public BinaryExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "UnaryExpr" << " (" << opStr_ << ")";
+    ss << "UnaryExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 
   void print(size_t level) const override {
-    Root::print(level); level++;
-    // UnaryExpr especially holds only the lhs value, e.g. children_[0]
-    lhs()->print(level);
+    Root::print(level++);
+    lhs()->print(level); // holds only the lhs value, that is m_children[0]
   }
 };
 
-// Function Call Expression node
-class FnCallExpr : public Expr {
+class FnCallExpr : public BaseExpr {
  public:
-  explicit FnCallExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit FnCallExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   FnCallExpr() = default;
 
   void accept(Visitor *v) override {
@@ -237,43 +233,42 @@ class FnCallExpr : public Expr {
   }
 
   void print(size_t level) const override {
-    Expr::print(level); level++;
-    var_->print(level);
-    for (const auto &arg : args_)
+    BaseExpr::print(level++);
+    m_var->print(level);
+    for (const auto &arg : m_args)
       arg->print(level);
   }
 
   void addClassName(std::shared_ptr<Basic::Token> className) {
-    className_ = className;
+    m_className = className;
   }
 
-  void addArgs(std::vector<std::unique_ptr<Expr>> args) {
-    args_ = std::move(args);
+  void addArgs(std::vector<std::unique_ptr<BaseExpr>> args) {
+    m_args = std::move(args);
   }
 
-  void addType(std::unique_ptr<Type> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+  void addType(std::unique_ptr<BaseType> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
       varPtr->addType(std::move(type));
     }
   }
 
-  void addVar(std::unique_ptr<Expr> var) {
-    var_ = std::move(var);
+  void addVar(std::unique_ptr<BaseExpr> var) {
+    m_var = std::move(var);
   }
 
-  std::shared_ptr<Basic::Token> getClassName() const { return className_; }
-  std::shared_ptr<Basic::Token> getFnName() const { return token_; }
+  std::shared_ptr<Basic::Token> getClassName() const { return m_className; }
+  std::shared_ptr<Basic::Token> getFnName() const { return m_token; }
 
  public:
-  std::shared_ptr<Basic::Token> className_;
-  std::vector<std::unique_ptr<Expr>> args_;
-  std::unique_ptr<Expr> var_;
+  std::shared_ptr<Basic::Token> m_className;
+  std::vector<std::unique_ptr<BaseExpr>> m_args;
+  std::unique_ptr<BaseExpr> m_var;
 };
 
-// Function Expression node
-class ClassInitExpr : public Expr {
+class ClassInitExpr : public BaseExpr {
  public:
-  explicit ClassInitExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ClassInitExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -284,33 +279,32 @@ class ClassInitExpr : public Expr {
   }
 
   void print(size_t level) const override {
-    Expr::print(level); level++;
-    var_->print(level);
-    for (const auto &arg : args_)
+    BaseExpr::print(level++);
+    m_var->print(level);
+    for (const auto &arg : m_args)
       arg->print(level);
   }
 
-  void addArgs(std::vector<std::unique_ptr<Expr>> args) {
-    args_ = std::move(args);
+  void addArgs(std::vector<std::unique_ptr<BaseExpr>> args) {
+    m_args = std::move(args);
   }
 
-  void addType(std::unique_ptr<Type> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+  void addType(std::unique_ptr<BaseType> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
       varPtr->addType(std::move(type));
     }
   }
 
-  void addVar(std::unique_ptr<Expr> var) {
-    var_ = std::move(var);
+  void addVar(std::unique_ptr<BaseExpr> var) {
+    m_var = std::move(var);
   }
 
  public:
-  std::vector<std::unique_ptr<Expr>> args_;
-  std::unique_ptr<Expr> var_;
+  std::vector<std::unique_ptr<BaseExpr>> m_args;
+  std::unique_ptr<BaseExpr> m_var;
 };
 
-// An abstract definition for constant expression node
-class ConstExpr : public Expr {
+class ConstExpr : public BaseExpr {
  public:
   void accept(Visitor *v) override {
     v->visit(this);
@@ -318,45 +312,41 @@ class ConstExpr : public Expr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "ConstExpr" << " (" << token_->getValueStr() << ")";
+    ss << "ConstExpr" << " (" << m_token->getValueStr() << ")";
     return ss.str();
   }
 };
 
-// A node for Integer expression
 class IntExpr : public ConstExpr {
  public:
-  explicit IntExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit IntExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
   }
 };
 
-// A node for Float expression
 class FloatExpr : public ConstExpr {
  public:
-  explicit FloatExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit FloatExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
   }
 };
 
-// A node for Bool expression
 class BoolExpr : public ConstExpr {
  public:
-  explicit BoolExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit BoolExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
   }
 };
 
-// A node for String expression
 class StringExpr : public ConstExpr {
  public:
-  explicit StringExpr(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit StringExpr(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);

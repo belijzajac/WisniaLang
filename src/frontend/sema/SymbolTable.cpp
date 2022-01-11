@@ -5,5 +5,5 @@ using namespace Wisnia;
 using namespace AST;
 
 void SymbolTable::addSymbol(AST::VarExpr *var) {
-  table->addSymbol(var->token_->getValue<std::string>(), var); // todo: refactor
+  m_table->addSymbol(var->m_token->getValue<std::string>(), var); // todo: refactor
 }

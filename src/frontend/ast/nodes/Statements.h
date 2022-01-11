@@ -4,6 +4,7 @@
 #include <string>
 // Wisnia
 #include "Root.h"
+#include "Types.h"
 
 namespace Wisnia {
 namespace Basic {
@@ -11,8 +12,8 @@ class Token;
 }
 
 namespace AST {
-// An abstract definition for Stmt (statement) node
-class Stmt : public Root {
+
+class BaseStmt : public Root {
  public:
   void accept(Visitor *v) override = 0;
 
@@ -21,10 +22,9 @@ class Stmt : public Root {
   }
 };
 
-// Statement block node
-class StmtBlock : public Stmt {
+class StmtBlock : public BaseStmt {
  public:
-  explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   StmtBlock() = default;
 
   void accept(Visitor *v) override {
@@ -36,23 +36,22 @@ class StmtBlock : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    for (const auto &stmt : stmts_)
+    BaseStmt::print(level++);
+    for (const auto &stmt : m_statements)
       stmt->print(level);
   }
 
-  void addStmt(std::unique_ptr<Stmt> stmt) {
-    stmts_.push_back(std::move(stmt));
+  void addStmt(std::unique_ptr<BaseStmt> stmt) {
+    m_statements.push_back(std::move(stmt));
   }
 
  public:
-  std::vector<std::unique_ptr<Stmt>> stmts_;
+  std::vector<std::unique_ptr<BaseStmt>> m_statements;
 };
 
-// Return statement node
-class ReturnStmt : public Stmt {
+class ReturnStmt : public BaseStmt {
  public:
-  explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   ReturnStmt() = default;
 
   void accept(Visitor *v) override {
@@ -64,22 +63,21 @@ class ReturnStmt : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    returnValue_->print(level);
+    BaseStmt::print(level++);
+    m_returnValue->print(level);
   }
 
-  void addReturnValue(std::unique_ptr<Expr> returnVal) {
-    returnValue_ = std::move(returnVal);
+  void addReturnValue(std::unique_ptr<BaseExpr> returnVal) {
+    m_returnValue = std::move(returnVal);
   }
 
  public:
-  std::unique_ptr<Expr> returnValue_;
+  std::unique_ptr<BaseExpr> m_returnValue;
 };
 
-// Loop break statement node
-class BreakStmt : public Stmt {
+class BreakStmt : public BaseStmt {
  public:
-  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -90,10 +88,9 @@ class BreakStmt : public Stmt {
   }
 };
 
-// Loop continue statement node
-class ContinueStmt : public Stmt {
+class ContinueStmt : public BaseStmt {
  public:
-  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -104,10 +101,9 @@ class ContinueStmt : public Stmt {
   }
 };
 
-// Variable declaration statement node
-class VarDeclStmt : public Stmt {
+class VarDeclStmt : public BaseStmt {
  public:
-  explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   VarDeclStmt() = default;
 
   void accept(Visitor *v) override {
@@ -119,34 +115,33 @@ class VarDeclStmt : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    var_->print(level);
-    if (value_) value_->print(level);
+    BaseStmt::print(level++);
+    m_var->print(level);
+    if (m_value) m_value->print(level);
   }
 
-  void addType(std::unique_ptr<Type> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+  void addType(std::unique_ptr<BaseType> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
       varPtr->addType(std::move(type));
     }
   }
 
-  void addVar(std::unique_ptr<Expr> var) {
-    var_ = std::move(var);
+  void addVar(std::unique_ptr<BaseExpr> var) {
+    m_var = std::move(var);
   }
 
-  void addValue(std::unique_ptr<Expr> varValue) {
-    value_ = std::move(varValue);
+  void addValue(std::unique_ptr<BaseExpr> varValue) {
+    m_value = std::move(varValue);
   }
 
  public:
-  std::unique_ptr<Expr> var_;   // name + type
-  std::unique_ptr<Expr> value_; // variable's value
+  std::unique_ptr<BaseExpr> m_var;   // name + type
+  std::unique_ptr<BaseExpr> m_value; // variable's value
 };
 
-// Variable assignment statement node
-class VarAssignStmt : public Stmt {
+class VarAssignStmt : public BaseStmt {
  public:
-  explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   VarAssignStmt() = default;
 
   void accept(Visitor *v) override {
@@ -158,34 +153,33 @@ class VarAssignStmt : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    var_->print(level);
-    value_->print(level);
+    BaseStmt::print(level++);
+    m_var->print(level);
+    m_val->print(level);
   }
 
-  void addType(std::unique_ptr<Type> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(var_.get())) {
+  void addType(std::unique_ptr<BaseType> type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
       varPtr->addType(std::move(type));
     }
   }
 
-  void addVar(std::unique_ptr<Expr> var) {
-    var_ = std::move(var);
+  void addVar(std::unique_ptr<BaseExpr> var) {
+    m_var = std::move(var);
   }
 
-  void addValue(std::unique_ptr<Expr> varValue) {
-    value_ = std::move(varValue);
+  void addValue(std::unique_ptr<BaseExpr> varValue) {
+    m_val = std::move(varValue);
   }
 
  public:
-  std::unique_ptr<Expr> var_;   // name + type
-  std::unique_ptr<Expr> value_; // variable's value
+  std::unique_ptr<BaseExpr> m_var; // name + type
+  std::unique_ptr<BaseExpr> m_val; // variable's value
 };
 
-// Expression statement node
-class ExprStmt : public Stmt {
+class ExprStmt : public BaseStmt {
  public:
-  explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   ExprStmt() = default;
 
   void accept(Visitor *v) override {
@@ -197,22 +191,21 @@ class ExprStmt : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    expr_->print(level);
+    BaseStmt::print(level++);
+    m_expr->print(level);
   }
 
-  void addExpr(std::unique_ptr<Expr> expr) {
-    expr_ = std::move(expr);
+  void addExpr(std::unique_ptr<BaseExpr> expr) {
+    m_expr = std::move(expr);
   }
 
  public:
-  std::unique_ptr<Expr> expr_;
+  std::unique_ptr<BaseExpr> m_expr;
 };
 
-// Read IO statement node
-class ReadStmt : public Stmt {
+class ReadStmt : public BaseStmt {
  public:
-  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   ReadStmt() = default;
 
   void accept(Visitor *v) override {
@@ -224,23 +217,22 @@ class ReadStmt : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    for (const auto &var : vars_)
+    BaseStmt::print(level++);
+    for (const auto &var : m_vars)
       var->print(level);
   }
 
-  void addVar(std::unique_ptr<Expr> var) {
-    vars_.push_back(std::move(var));
+  void addVar(std::unique_ptr<BaseExpr> var) {
+    m_vars.push_back(std::move(var));
   }
 
  public:
-  std::vector<std::unique_ptr<Expr>> vars_;
+  std::vector<std::unique_ptr<BaseExpr>> m_vars;
 };
 
-// Write IO statement node
-class WriteStmt : public Stmt {
+class WriteStmt : public BaseStmt {
  public:
-  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
   WriteStmt() = default;
 
   void accept(Visitor *v) override {
@@ -252,17 +244,17 @@ class WriteStmt : public Stmt {
   }
 
   void print(size_t level) const override {
-    Stmt::print(level); level++;
-    for (const auto &expr : exprs_)
+    BaseStmt::print(level++);
+    for (const auto &expr : m_exprs)
       expr->print(level);
   }
 
-  void addExpr(std::unique_ptr<Expr> expr) {
-    exprs_.push_back(std::move(expr));
+  void addExpr(std::unique_ptr<BaseExpr> expr) {
+    m_exprs.push_back(std::move(expr));
   }
 
  public:
-  std::vector<std::unique_ptr<Expr>> exprs_;
+  std::vector<std::unique_ptr<BaseExpr>> m_exprs;
 };
 
 }  // namespace AST

@@ -2,6 +2,7 @@
 #define AST_LOOPS_H
 
 // Wisnia
+#include "Root.h"
 #include "Statements.h"
 
 namespace Wisnia {
@@ -10,27 +11,26 @@ class Token;
 }
 
 namespace AST {
-// An abstract definition for Loop node
-class Loop : public Stmt {
+
+class BaseLoop : public BaseStmt {
  public:
   void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
-    Root::print(level);
+    BaseStmt::print(level);
   }
 
-  void addBody(std::unique_ptr<Stmt> body) {
-    body_ = std::move(body);
+  void addBody(std::unique_ptr<BaseStmt> body) {
+    m_body = std::move(body);
   }
 
  public:
-  std::unique_ptr<Stmt> body_;  // surrounded by "{" and "}"
+  std::unique_ptr<BaseStmt> m_body; // surrounded by "{" and "}"
 };
 
-// While loop statement node
-class WhileLoop : public Loop {
+class WhileLoop : public BaseLoop {
  public:
-  explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -41,23 +41,22 @@ class WhileLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    Loop::print(level); level++;
-    cond_->print(level);
-    body_->print(level);
+    BaseLoop::print(level++);
+    m_cond->print(level);
+    m_body->print(level);
   }
 
-  void addCond(std::unique_ptr<Expr> expr) {
-    cond_ = std::move(expr);
+  void addCond(std::unique_ptr<BaseExpr> expr) {
+    m_cond = std::move(expr);
   }
 
  public:
-  std::unique_ptr<Expr> cond_;
+  std::unique_ptr<BaseExpr> m_cond;
 };
 
-// For loop statement node
-class ForLoop : public Loop {
+class ForLoop : public BaseLoop {
  public:
-  explicit ForLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ForLoop(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -68,35 +67,34 @@ class ForLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    Loop::print(level); level++;
-    init_->print(level);
-    cond_->print(level);
-    incdec_->print(level);
-    body_->print(level);
+    BaseLoop::print(level++);
+    m_initialization->print(level);
+    m_condition->print(level);
+    m_increment->print(level);
+    m_body->print(level);
   }
 
-  void addInit(std::unique_ptr<Stmt> expr) {
-    init_ = std::move(expr);
+  void addInit(std::unique_ptr<BaseStmt> expr) {
+    m_initialization = std::move(expr);
   }
 
-  void addCond(std::unique_ptr<Expr> expr) {
-    cond_ = std::move(expr);
+  void addCond(std::unique_ptr<BaseExpr> expr) {
+    m_condition = std::move(expr);
   }
 
-  void addIncDec(std::unique_ptr<Stmt> stmt) {
-    incdec_ = std::move(stmt);
+  void addInc(std::unique_ptr<BaseStmt> stmt) {
+    m_increment = std::move(stmt);
   }
 
  public:
-  std::unique_ptr<Stmt> init_;
-  std::unique_ptr<Expr> cond_;
-  std::unique_ptr<Stmt> incdec_;
+  std::unique_ptr<BaseStmt> m_initialization;
+  std::unique_ptr<BaseExpr> m_condition;
+  std::unique_ptr<BaseStmt> m_increment;
 };
 
-// ForEach loop statement node
-class ForEachLoop : public Loop {
+class ForEachLoop : public BaseLoop {
  public:
-  explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -107,23 +105,23 @@ class ForEachLoop : public Loop {
   }
 
   void print(size_t level) const override {
-    Loop::print(level); level++;
-    elem_->print(level);
-    iterElem_->print(level);
-    body_->print(level);
+    BaseLoop::print(level++);
+    m_element->print(level);
+    m_collection->print(level);
+    m_body->print(level);
   }
 
-  void addElem(std::unique_ptr<Expr> expr) {
-    elem_ = std::move(expr);
+  void addElement(std::unique_ptr<BaseExpr> expr) {
+    m_element = std::move(expr);
   }
 
-  void addIterElem(std::unique_ptr<Expr> expr) {
-    iterElem_ = std::move(expr);
+  void addCollection(std::unique_ptr<BaseExpr> expr) {
+    m_collection = std::move(expr);
   }
 
  public:
-  std::unique_ptr<Expr> elem_;      // element
-  std::unique_ptr<Expr> iterElem_;  // iterable element
+  std::unique_ptr<BaseExpr> m_element;
+  std::unique_ptr<BaseExpr> m_collection;
 };
 
 }  // namespace AST

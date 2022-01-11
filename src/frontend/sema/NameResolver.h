@@ -8,7 +8,7 @@
 namespace Wisnia {
 
 class NameResolver : public Visitor {
-  SymbolTable table{};
+  SymbolTable m_table;
 
  public:
   void visit(AST::Root *node) override;

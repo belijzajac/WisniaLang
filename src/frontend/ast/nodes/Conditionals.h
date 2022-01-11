@@ -2,6 +2,7 @@
 #define AST_CONDITIONALS_H
 
 // Wisnia
+#include "Root.h"
 #include "Statements.h"
 
 namespace Wisnia {
@@ -11,27 +12,25 @@ class Token;
 
 namespace AST {
 
-// An abstract definition for if statement node
-class Cond : public Stmt {
+class BaseIf : public BaseStmt {
  public:
   void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
-    Stmt::print(level);
+    BaseStmt::print(level);
   }
 
-  void addBody(std::unique_ptr<Stmt> body) {
-    body_ = std::move(body);
+  void addBody(std::unique_ptr<BaseStmt> body) {
+    m_body = std::move(body);
   }
 
  public:
-  std::unique_ptr<Stmt> body_;  // surrounded by "{" and "}"
+  std::unique_ptr<BaseStmt> m_body; // surrounded by "{" and "}"
 };
 
-// If statement node
-class IfStmt : public Cond {
+class IfStmt : public BaseIf {
  public:
-  explicit IfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit IfStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -42,31 +41,30 @@ class IfStmt : public Cond {
   }
 
   void print(size_t level) const override {
-    Cond::print(level); level++;
-    cond_->print(level);
-    body_->print(level);
+    BaseIf::print(level++);
+    m_condition->print(level);
+    m_body->print(level);
     level--; // reset for else statements
-    for (const auto &elseBl : elseBlcks_)
-      elseBl->print(level);
+    for (const auto &stmt : m_elseStmts)
+      stmt->print(level);
   }
 
-  void addCond(std::unique_ptr<Expr> expr) {
-    cond_ = std::move(expr);
+  void addCondition(std::unique_ptr<BaseExpr> expr) {
+    m_condition = std::move(expr);
   }
 
-  void addElseBlocks(std::vector<std::unique_ptr<Cond>> expr) {
-    elseBlcks_ = std::move(expr);
+  void addElseBlocks(std::vector<std::unique_ptr<BaseIf>> expr) {
+    m_elseStmts = std::move(expr);
   }
 
  public:
-  std::unique_ptr<Expr> cond_;                    // if condition
-  std::vector<std::unique_ptr<Cond>> elseBlcks_;  // else blocks
+  std::unique_ptr<BaseExpr> m_condition;            // if condition
+  std::vector<std::unique_ptr<BaseIf>> m_elseStmts; // else statements
 };
 
-// Else statement node
-class ElseStmt : public Cond {
+class ElseStmt : public BaseIf {
  public:
-  explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -77,15 +75,14 @@ class ElseStmt : public Cond {
   }
 
   void print(size_t level) const override {
-    Cond::print(level); level++;
-    body_->print(level);
+    BaseIf::print(level++);
+    m_body->print(level);
   }
 };
 
-// Else If statement node
-class ElseIfStmt : public Cond {
+class ElseIfStmt : public BaseIf {
  public:
-  explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok) { token_ = tok; }
+  explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -96,17 +93,17 @@ class ElseIfStmt : public Cond {
   }
 
   void print(size_t level) const override {
-    Cond::print(level); level++;
-    cond_->print(level);
-    body_->print(level);
+    BaseIf::print(level++);
+    m_condition->print(level);
+    m_body->print(level);
   }
 
-  void addCond(std::unique_ptr<Expr> expr) {
-    cond_ = std::move(expr);
+  void addCondition(std::unique_ptr<BaseExpr> expr) {
+    m_condition = std::move(expr);
   }
 
  public:
-  std::unique_ptr<Expr> cond_;  // else if condition
+  std::unique_ptr<BaseExpr> m_condition; // else if condition
 };
 
 }  // namespace AST

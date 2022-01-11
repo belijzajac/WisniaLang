@@ -6,7 +6,7 @@
 #include <variant>
 // Wisnia
 #include "Exceptions.h"
-#include "PositionInFile.h"
+#include "Position.h"
 #include "TType.h"
 
 namespace Wisnia::Basic {
@@ -20,16 +20,16 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 class Token {
  public:
-  Token(TType type, const TokenValue &value, std::unique_ptr<PositionInFile> pif)
-      : type_{type}, value_{value}, pif_{std::move(pif)} {}
+  Token(TType type, const TokenValue &value, std::unique_ptr<Position> pif)
+      : m_type{type}, m_value{value}, m_position{std::move(pif)} {}
 
-  Token(TType type, const TokenValue &value, const PositionInFile &pif)
-      : type_{type}, value_{value}, pif_{std::make_unique<PositionInFile>(pif)} {}
+  Token(TType type, const TokenValue &value, const Position &pif)
+      : m_type{type}, m_value{value}, m_position{std::make_unique<Position>(pif)} {}
 
   template <typename T>
   T getValue() const {
     try {
-      return std::get<T>(value_);
+      return std::get<T>(m_value);
     } catch (const std::bad_variant_access &ex) {
       throw Wisnia::Utils::TokenError{ex.what()};
     }
@@ -37,26 +37,26 @@ class Token {
 
   // Primarily used in AST output for pretty token's value printing
   std::string getValueStr() const {
-    std::string result{};
+    std::string strResult{};
     std::visit(overloaded{
-                   [&](const std::string &arg) { result = (type_ == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
-                   [&](int arg) { result = std::to_string(arg); },
-                   [&](float arg) { result = std::to_string(arg); },
-                   [&](bool arg) { result = arg ? "true" : "false"; },
-                   [&](nullptr_t arg) { result = "null"; },
+                   [&](const std::string &arg) { strResult = (m_type == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
+                   [&](int arg) { strResult = std::to_string(arg); },
+                   [&](float arg) { strResult = std::to_string(arg); },
+                   [&](bool arg) { strResult = arg ? "true" : "false"; },
+                   [&](nullptr_t arg) { strResult = "null"; },
                },
-               value_);
-    return result;
+               m_value);
+    return strResult;
   };
 
-  TType getType() const { return type_; }
-  std::string &getName() const { return TokenType2Str[type_]; }
-  PositionInFile &getFileInfo() const { return *pif_; }
+  TType getType() const { return m_type; }
+  std::string &getName() const { return TokenType2Str[m_type]; }
+  Position &getPosition() const { return *m_position; }
 
  private:
-  TType type_;
-  TokenValue value_;
-  std::unique_ptr<PositionInFile> pif_;
+  TType m_type;
+  TokenValue m_value;
+  std::unique_ptr<Position> m_position;
 };
 
 }  // namespace Wisnia::Basic

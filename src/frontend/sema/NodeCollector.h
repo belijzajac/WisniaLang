@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <type_traits>
+// Wisnia
 #include "Visitor.h"
 
 namespace Wisnia {
@@ -15,7 +16,7 @@ class NodeCollector : public Visitor {
   }
 
   std::vector<const T *> getNodes() const {
-    return nodes;
+    return m_nodes;
   }
 
  public:
@@ -57,7 +58,7 @@ class NodeCollector : public Visitor {
   void visit(AST::ElseIfStmt *node) override;
 
  private:
-  std::vector<const T *> nodes{};
+  std::vector<const T *> m_nodes;
 };
 
 #include "NodeCollector.tpp"

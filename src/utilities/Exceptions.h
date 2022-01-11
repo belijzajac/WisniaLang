@@ -1,54 +1,53 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
-#include <bits/exception.h>
+#include <exception>
 #include <string>
 
 namespace Wisnia::Utils {
 
-// Base exception
 class WisniaError : public std::exception {
  public:
-  explicit WisniaError(const std::string& msg) : msg_{msg} {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
- protected:
-  std::string msg_;
+  explicit WisniaError(const std::string& msg) : m_msg{msg} {}
+  const char* what() const noexcept override { return m_msg.c_str(); }
+
+ private:
+  std::string m_msg;
 };
 
-// Token exception
 class TokenError : public WisniaError {
  public:
-  explicit TokenError(const std::string& msg) : WisniaError("Token Error: " + msg) {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
+  explicit TokenError(const std::string& msg)
+      : WisniaError("Token Error: " + msg)
+  {}
 };
 
-// Lexer exception
 class LexerError : public WisniaError {
  public:
-  explicit LexerError(const std::string& msg) : WisniaError("Lexical Analysis Error: " + msg) {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
+  explicit LexerError(const std::string& msg)
+      : WisniaError("Lexical Analysis Error: " + msg)
+  {}
 };
 
-// Parser exception
 class ParserError : public WisniaError {
  public:
-  explicit ParserError(const std::string& msg) : WisniaError("Syntax Analysis Error: " + msg) {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
+  explicit ParserError(const std::string& msg)
+      : WisniaError("Syntax Analysis Error: " + msg)
+  {}
 };
 
-// Semantic exception
 class SemanticError : public WisniaError {
  public:
-  explicit SemanticError(const std::string& msg) : WisniaError("Semantic Analysis Error: " + msg) {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
+  explicit SemanticError(const std::string& msg)
+      : WisniaError("Semantic Analysis Error: " + msg)
+  {}
 };
 
-// Not-Implemented exception
 class NotImplementedError : public WisniaError {
  public:
   explicit NotImplementedError(const std::string& msg)
-      : WisniaError("Not Implemented Error: " + msg) {}
-  virtual const char* what() const throw() { return msg_.c_str(); }
+      : WisniaError("Not Implemented Error: " + msg)
+  {}
 };
 
 }  // namespace Wisnia::Utils

@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     fmt::print("<~~~ {} ~~~>\n", "ast tree");
     root->print();
     //...
-    NameResolver resolver{};
+    NameResolver resolver;
     root->accept(&resolver);
     fmt::print("<~~~ {} ~~~>\n", "updated ast tree");
     root->print();

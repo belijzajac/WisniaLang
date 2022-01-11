@@ -24,38 +24,35 @@ class Lexer {
     LOGIC_OR,          // Logical OR: ||
     OP_PP,             // Unary prefix: ++
     OP_MM,             // Unary prefix: --
-
     ESCAPE_SEQ,        // Escapes \t, \n, etc.
     CMT_SINGLE,        // Single line comment: #
-
-    // Escape multi-line comments
-    CMT_I,
-    CMT_II,
-    CMT_III,
+    CMT_I,             // Escape multi-line comment (1)
+    CMT_II,            // Escape multi-line comment (2)
+    CMT_III,           // Escape multi-line comment (3)
   };
 
   struct TokenState {
     // Info needed to construct a token and to tokenize a letter
-    State state_{State::START};
-    std::string buff_;
+    State m_state{State::START};
+    std::string m_buff{};
 
     // Accessors to the actual data of the source file
-    std::string data_;
-    std::string::iterator it_;
+    std::string m_data{};
+    std::string::iterator m_iterator;
 
     // Vague info about the source file
-    std::string fileName_;
-    int lineNo{1};
+    std::string m_fileName{};
+    size_t m_lineNo{1};
 
     // String info
-    size_t stringStart{0};
+    size_t m_strStart{0};
 
     // Temp info
-    std::string erroneousType_;
+    std::string m_errType{};
   };
 
   // Having provided the TType, it constructs and returns a token
-  std::shared_ptr<Basic::Token> finishTok(const Basic::TType &type_, bool backtrack = false);
+  std::shared_ptr<Basic::Token> finishTok(const Basic::TType &type, bool backtrack = false);
 
   // From an existing token buffer constructs and returns a token of identifier
   // (or keyword) type
@@ -76,14 +73,14 @@ class Lexer {
   explicit Lexer(std::istringstream &sstream);
 
   // Returns tokens
-  std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return tokens_; }
+  std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return m_tokens; }
 
   // Prints out tokens in a pretty table
   void prettyPrint();
 
  private:
-  std::vector<std::shared_ptr<Basic::Token>> tokens_;
-  TokenState tokenState_;
+  std::vector<std::shared_ptr<Basic::Token>> m_tokens;
+  TokenState m_tokenState;
 };
 
 }  // namespace Wisnia
