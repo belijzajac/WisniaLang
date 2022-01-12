@@ -1,5 +1,5 @@
-#ifndef AST_STATEMENTS_H
-#define AST_STATEMENTS_H
+#ifndef WISNIALANG_AST_STATEMENTS_HPP
+#define WISNIALANG_AST_STATEMENTS_HPP
 
 #include <string>
 // Wisnia
@@ -260,4 +260,4 @@ class WriteStmt : public BaseStmt {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_STATEMENTS_H
+#endif  // WISNIALANG_AST_STATEMENTS_HPP

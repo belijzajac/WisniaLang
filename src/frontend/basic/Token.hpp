@@ -1,5 +1,5 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef WISNIALANG_TOKEN_HPP
+#define WISNIALANG_TOKEN_HPP
 
 #include <memory>
 #include <string>
@@ -61,4 +61,4 @@ class Token {
 
 }  // namespace Wisnia::Basic
 
-#endif  // TOKEN_H
+#endif  // WISNIALANG_TOKEN_HPP

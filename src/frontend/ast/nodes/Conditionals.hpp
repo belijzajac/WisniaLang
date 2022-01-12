@@ -1,5 +1,5 @@
-#ifndef AST_CONDITIONALS_H
-#define AST_CONDITIONALS_H
+#ifndef WISNIALANG_AST_CONDITIONALS_HPP
+#define WISNIALANG_AST_CONDITIONALS_HPP
 
 // Wisnia
 #include "Root.hpp"
@@ -109,4 +109,4 @@ class ElseIfStmt : public BaseIf {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_CONDITIONALS_H
+#endif  // WISNIALANG_AST_CONDITIONALS_HPP

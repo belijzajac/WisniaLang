@@ -1,5 +1,5 @@
-#ifndef AST_ROOT_H
-#define AST_ROOT_H
+#ifndef WISNIALANG_AST_ROOT_HPP
+#define WISNIALANG_AST_ROOT_HPP
 
 #include <memory>
 #include <vector>
@@ -54,4 +54,4 @@ class Root : public IVisitable {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_ROOT_H
+#endif  // WISNIALANG_AST_ROOT_HPP

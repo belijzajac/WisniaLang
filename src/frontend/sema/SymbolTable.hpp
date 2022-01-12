@@ -1,5 +1,5 @@
-#ifndef SYMBOLTABLE_H
-#define SYMBOLTABLE_H
+#ifndef WISNIALANG_SYMBOLTABLE_HPP
+#define WISNIALANG_SYMBOLTABLE_HPP
 
 #include <string>
 #include <memory>
@@ -58,4 +58,4 @@ class SymbolTable {
 
 }  // namespace Wisnia
 
-#endif  // SYMBOLTABLE_H
+#endif  // WISNIALANG_SYMBOLTABLE_HPP

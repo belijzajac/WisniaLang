@@ -1,5 +1,5 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef WISNIALANG_LEXER_HPP
+#define WISNIALANG_LEXER_HPP
 
 #include <memory>
 #include <string>
@@ -85,4 +85,4 @@ class Lexer {
 
 }  // namespace Wisnia
 
-#endif  // LEXER_H
+#endif  // WISNIALANG_LEXER_HPP

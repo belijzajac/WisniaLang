@@ -1,5 +1,5 @@
-#ifndef POSITION_H
-#define POSITION_H
+#ifndef WISNIALANG_POSITION_HPP
+#define WISNIALANG_POSITION_HPP
 
 namespace Wisnia::Basic {
 class Position {
@@ -18,4 +18,4 @@ class Position {
 
 }  // namespace Wisnia::Basic
 
-#endif  // POSITION_H
+#endif  // WISNIALANG_POSITION_HPP

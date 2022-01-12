@@ -1,5 +1,5 @@
-#ifndef VISITOR_H
-#define VISITOR_H
+#ifndef WISNIALANG_VISITOR_HPP
+#define WISNIALANG_VISITOR_HPP
 
 namespace Wisnia {
 
@@ -84,4 +84,4 @@ class Visitor {
 
 }  // namespace Wisnia
 
-#endif  // VISITOR_H
+#endif  // WISNIALANG_VISITOR_HPP

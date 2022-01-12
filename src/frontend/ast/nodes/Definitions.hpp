@@ -1,5 +1,5 @@
-#ifndef AST_DEFINITIONS_H
-#define AST_DEFINITIONS_H
+#ifndef WISNIALANG_AST_DEFINITIONS_HPP
+#define WISNIALANG_AST_DEFINITIONS_HPP
 
 // Wisnia
 #include "Root.hpp"
@@ -242,4 +242,4 @@ class ClassDef : public BaseDef {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_DEFINITIONS_H
+#endif  // WISNIALANG_AST_DEFINITIONS_HPP

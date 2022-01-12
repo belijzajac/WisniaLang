@@ -1,5 +1,5 @@
-#ifndef SEMANTICTESTFIXTURE_H
-#define SEMANTICTESTFIXTURE_H
+#ifndef WISNIALANG_SEMANTICTESTFIXTURE_HPP
+#define WISNIALANG_SEMANTICTESTFIXTURE_HPP
 
 #include <gtest/gtest.h>
 
@@ -75,4 +75,4 @@ class SemanticTestFixture : public testing::Test {
 
 }  // namespace Wisnia
 
-#endif  // SEMANTICTESTFIXTURE_H
+#endif  // WISNIALANG_SEMANTICTESTFIXTURE_HPP

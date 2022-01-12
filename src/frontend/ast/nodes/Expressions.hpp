@@ -1,5 +1,5 @@
-#ifndef AST_EXPRESSIONS_H
-#define AST_EXPRESSIONS_H
+#ifndef WISNIALANG_AST_EXPRESSIONS_HPP
+#define WISNIALANG_AST_EXPRESSIONS_HPP
 
 // Wisnia
 #include "Root.hpp"
@@ -356,4 +356,4 @@ class StringExpr : public ConstExpr {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_EXPRESSIONS_H
+#endif  // WISNIALANG_AST_EXPRESSIONS_HPP

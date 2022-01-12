@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef WISNIALANG_PARSER_HPP
+#define WISNIALANG_PARSER_HPP
 
 #include <memory>
 #include <vector>
@@ -192,4 +192,4 @@ class Parser {
 
 }  // namespace Wisnia
 
-#endif  // PARSER_H
+#endif  // WISNIALANG_PARSER_HPP

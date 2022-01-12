@@ -1,5 +1,5 @@
-#ifndef AST_LOOPS_H
-#define AST_LOOPS_H
+#ifndef WISNIALANG_AST_LOOPS_HPP
+#define WISNIALANG_AST_LOOPS_HPP
 
 // Wisnia
 #include "Root.hpp"
@@ -127,4 +127,4 @@ class ForEachLoop : public BaseLoop {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_LOOPS_H
+#endif  // WISNIALANG_AST_LOOPS_HPP

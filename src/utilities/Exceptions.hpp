@@ -1,5 +1,5 @@
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef WISNIALANG_EXCEPTION_HPP
+#define WISNIALANG_EXCEPTION_HPP
 
 #include <exception>
 #include <string>
@@ -52,4 +52,4 @@ class NotImplementedError : public WisniaError {
 
 }  // namespace Wisnia::Utils
 
-#endif  // EXCEPTION_H
+#endif  // WISNIALANG_EXCEPTION_HPP

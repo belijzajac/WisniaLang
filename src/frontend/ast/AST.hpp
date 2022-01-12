@@ -1,5 +1,5 @@
-#ifndef AST_H
-#define AST_H
+#ifndef WISNIALANG_AST_HPP
+#define WISNIALANG_AST_HPP
 
 // Wisnia
 #include "nodes/Types.hpp"
@@ -9,4 +9,4 @@
 #include "nodes/Loops.hpp"
 #include "nodes/Conditionals.hpp"
 
-#endif  // AST_H
+#endif  // WISNIALANG_AST_HPP

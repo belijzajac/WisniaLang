@@ -1,5 +1,5 @@
-#ifndef AST_TYPES_H
-#define AST_TYPES_H
+#ifndef WISNIALANG_AST_TYPES_HPP
+#define WISNIALANG_AST_TYPES_HPP
 
 #include <sstream>
 // Wisnia
@@ -76,4 +76,4 @@ class PrimitiveType : public BaseType {
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_TYPES_H
+#endif  // WISNIALANG_AST_TYPES_HPP

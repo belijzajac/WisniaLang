@@ -1,5 +1,5 @@
-#ifndef NAMERESOLVER_H
-#define NAMERESOLVER_H
+#ifndef WISNIALANG_NAMERESOLVER_HPP
+#define WISNIALANG_NAMERESOLVER_HPP
 
 // Wisnia
 #include "Visitor.hpp"
@@ -51,4 +51,4 @@ class NameResolver : public Visitor {
 
 }  // namespace Wisnia
 
-#endif  // NAMERESOLVER_H
+#endif  // WISNIALANG_NAMERESOLVER_HPP
