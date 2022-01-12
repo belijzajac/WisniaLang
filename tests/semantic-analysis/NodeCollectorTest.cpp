@@ -1,9 +1,9 @@
 // Wisnia
-#include "Lexer.h"
-#include "Parser.h"
-#include "AST.h"
-#include "NodeCollector.h"
-#include "SemanticTestFixture.h"
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "AST.hpp"
+#include "NodeCollector.hpp"
+#include "SemanticTestFixture.hpp"
 
 using namespace Wisnia;
 using NodeCollectorTest = SemanticTestFixture;

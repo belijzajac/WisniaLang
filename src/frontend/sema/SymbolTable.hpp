@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <fmt/format.h>
 // Wisnia
-#include "Exceptions.h"
+#include "Exceptions.hpp"
 
 namespace Wisnia {
 namespace AST {

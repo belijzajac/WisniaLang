@@ -3,10 +3,10 @@
 
 #include <sstream>
 // Wisnia
-#include "Root.h"
-#include "TType.h"
-#include "Token.h"
-#include "Exceptions.h"
+#include "Root.hpp"
+#include "TType.hpp"
+#include "Token.hpp"
+#include "Exceptions.hpp"
 
 namespace Wisnia {
 namespace AST {

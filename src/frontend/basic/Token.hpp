@@ -5,9 +5,9 @@
 #include <string>
 #include <variant>
 // Wisnia
-#include "Exceptions.h"
-#include "Position.h"
-#include "TType.h"
+#include "Exceptions.hpp"
+#include "Position.hpp"
+#include "TType.hpp"
 
 namespace Wisnia::Basic {
 

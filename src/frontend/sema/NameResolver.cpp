@@ -1,8 +1,8 @@
 #include <fmt/ostream.h>
 #include <iostream>
 // Wisnia
-#include "NameResolver.h"
-#include "AST.h"
+#include "NameResolver.hpp"
+#include "AST.hpp"
 
 using namespace Wisnia;
 using namespace Utils;

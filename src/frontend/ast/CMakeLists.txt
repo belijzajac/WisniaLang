@@ -1,5 +1,5 @@
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  frontend/ast/AST.h
+  frontend/ast/AST.hpp
   PARENT_SCOPE
 )

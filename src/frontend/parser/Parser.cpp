@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <unordered_map>
 // Wisnia
-#include "Parser.h"
-#include "AST.h"
-#include "Lexer.h"
+#include "Parser.hpp"
+#include "AST.hpp"
+#include "Lexer.hpp"
 
 using namespace Wisnia;
 using namespace AST;

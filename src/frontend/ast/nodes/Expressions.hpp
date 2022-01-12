@@ -2,9 +2,9 @@
 #define AST_EXPRESSIONS_H
 
 // Wisnia
-#include "Root.h"
-#include "Types.h"
-#include "TType.h"
+#include "Root.hpp"
+#include "Types.hpp"
+#include "TType.hpp"
 
 namespace Wisnia {
 namespace Basic {

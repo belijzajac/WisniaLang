@@ -7,9 +7,9 @@
 #include <vector>
 #include <fmt/format.h>
 // Wisnia
-#include "Lexer.h"
-#include "Exceptions.h"
-#include "Token.h"
+#include "Lexer.hpp"
+#include "Exceptions.hpp"
+#include "Token.hpp"
 
 using namespace Wisnia;
 using namespace Basic;

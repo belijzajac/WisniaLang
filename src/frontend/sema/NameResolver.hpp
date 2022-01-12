@@ -2,8 +2,8 @@
 #define NAMERESOLVER_H
 
 // Wisnia
-#include "Visitor.h"
-#include "SymbolTable.h"
+#include "Visitor.hpp"
+#include "SymbolTable.hpp"
 
 namespace Wisnia {
 

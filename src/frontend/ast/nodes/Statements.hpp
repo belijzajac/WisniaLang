@@ -3,8 +3,8 @@
 
 #include <string>
 // Wisnia
-#include "Root.h"
-#include "Types.h"
+#include "Root.hpp"
+#include "Types.hpp"
 
 namespace Wisnia {
 namespace Basic {

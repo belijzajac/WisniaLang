@@ -1,10 +1,10 @@
 // Wisnia
-#include "Lexer.h"
-#include "Parser.h"
-#include "AST.h"
-#include "NodeCollector.h"
-#include "NameResolver.h"
-#include "SemanticTestFixture.h"
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "AST.hpp"
+#include "NodeCollector.hpp"
+#include "NameResolver.hpp"
+#include "SemanticTestFixture.hpp"
 
 using namespace Wisnia;
 using NameResolverTest = SemanticTestFixture;

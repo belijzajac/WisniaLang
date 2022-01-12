@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 // Wisnia
-#include "Lexer.h"
-#include "Token.h"
+#include "Lexer.hpp"
+#include "Token.hpp"
 
 using namespace Wisnia;
 using namespace Basic;

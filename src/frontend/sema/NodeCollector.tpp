@@ -1,5 +1,5 @@
-#include "NodeCollector.h"
-#include "AST.h"
+#include "NodeCollector.hpp"
+#include "AST.hpp"
 
 template <typename T>
 void NodeCollector<T>::visit(AST::Root *node) {

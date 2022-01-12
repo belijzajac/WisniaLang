@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 // Wisnia
-#include "Lexer.h"
-#include "Parser.h"
-#include "AST.h"
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "AST.hpp"
 
 using namespace Wisnia;
 using namespace Basic;

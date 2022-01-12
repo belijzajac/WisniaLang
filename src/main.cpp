@@ -1,10 +1,10 @@
 #include <iostream>
 // Wisnia
-#include "AST.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "NameResolver.h"
-#include "Exceptions.h"
+#include "AST.hpp"
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "NameResolver.hpp"
+#include "Exceptions.hpp"
 
 using namespace Wisnia;
 using namespace Utils;

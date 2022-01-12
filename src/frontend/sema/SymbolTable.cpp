@@ -1,5 +1,5 @@
-#include "SymbolTable.h"
-#include "AST.h"
+#include "SymbolTable.hpp"
+#include "AST.hpp"
 
 using namespace Wisnia;
 using namespace AST;

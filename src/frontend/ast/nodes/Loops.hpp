@@ -2,8 +2,8 @@
 #define AST_LOOPS_H
 
 // Wisnia
-#include "Root.h"
-#include "Statements.h"
+#include "Root.hpp"
+#include "Statements.hpp"
 
 namespace Wisnia {
 namespace Basic {

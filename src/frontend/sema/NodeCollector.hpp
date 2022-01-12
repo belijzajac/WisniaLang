@@ -4,7 +4,7 @@
 #include <vector>
 #include <type_traits>
 // Wisnia
-#include "Visitor.h"
+#include "Visitor.hpp"
 
 namespace Wisnia {
 

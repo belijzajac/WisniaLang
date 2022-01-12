@@ -2,7 +2,7 @@
 #define AST_DEFINITIONS_H
 
 // Wisnia
-#include "Root.h"
+#include "Root.hpp"
 
 namespace Wisnia {
 namespace Basic {

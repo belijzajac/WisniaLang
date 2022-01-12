@@ -5,7 +5,7 @@
 #include <vector>
 #include <fmt/format.h>
 // Wisnia
-#include "Visitor.h"
+#include "Visitor.hpp"
 
 namespace Wisnia {
 namespace Basic {
