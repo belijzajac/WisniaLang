@@ -38,7 +38,11 @@ class Param : public Root {
     m_var = std::move(var);
   }
 
- public:
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+ private:
   std::unique_ptr<BaseExpr> m_var;
 };
 
@@ -63,7 +67,11 @@ class BaseDef : public Root {
     m_var = std::move(var);
   }
 
- public:
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+ protected:
   std::unique_ptr<BaseExpr> m_var;
 };
 
@@ -94,9 +102,19 @@ class MethodDef : public BaseDef {
     m_body = std::move(body);
   }
 
- public:
-  std::vector<std::unique_ptr<Param>> m_params;  // parameters
-  std::unique_ptr<BaseStmt> m_body;              // body, surrounded by "{" and "}"
+  const std::vector<std::unique_ptr<Param>> &getParams() const {
+    return m_params;
+  }
+
+  const std::unique_ptr<BaseStmt> &getBody() const {
+    return m_body;
+  }
+
+ protected:
+  std::unique_ptr<BaseStmt> m_body;
+
+ private:
+  std::vector<std::unique_ptr<Param>> m_params;
 };
 
 class FnDef : public MethodDef {
@@ -188,9 +206,17 @@ class Field : public Root {
     m_value = std::move(varValue);
   }
 
- public:
-  std::unique_ptr<BaseExpr> m_var;   // variable name
-  std::unique_ptr<BaseExpr> m_value; // variable value
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+  const std::unique_ptr<BaseExpr> &getValue() const {
+    return m_value;
+  }
+
+ private:
+  std::unique_ptr<BaseExpr> m_var;
+  std::unique_ptr<BaseExpr> m_value;
 };
 
 class ClassDef : public BaseDef {
@@ -232,11 +258,27 @@ class ClassDef : public BaseDef {
     m_fields.push_back(std::move(field));
   }
 
- public:
-  std::unique_ptr<BaseDef> m_ctor;                 // constructor
-  std::unique_ptr<BaseDef> m_dtor;                 // destructor
-  std::vector<std::unique_ptr<BaseDef>> m_methods; // methods
-  std::vector<std::unique_ptr<Field>> m_fields;    // fields
+  const std::unique_ptr<BaseDef> &getCtor() const {
+    return m_ctor;
+  }
+
+  const std::unique_ptr<BaseDef> &getDtor() const {
+    return m_dtor;
+  }
+
+  const std::vector<std::unique_ptr<BaseDef>> &getMethods() const {
+    return m_methods;
+  }
+
+  const std::vector<std::unique_ptr<Field>> &getFields() const {
+    return m_fields;
+  }
+
+ private:
+  std::unique_ptr<BaseDef> m_ctor;
+  std::unique_ptr<BaseDef> m_dtor;
+  std::vector<std::unique_ptr<BaseDef>> m_methods;
+  std::vector<std::unique_ptr<Field>> m_fields;
 };
 
 }  // namespace AST

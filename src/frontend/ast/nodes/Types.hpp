@@ -15,7 +15,7 @@ class BaseType : public Root {
  public:
   explicit BaseType(const std::shared_ptr<Basic::Token> &tok) {
     m_type = tok->getType();
-    convertTypeToStr();
+    m_strType = typeToStr(m_type);
   }
 
   void accept(Visitor *v) override = 0;
@@ -24,11 +24,18 @@ class BaseType : public Root {
     Root::print(level);
   }
 
+  const Basic::TType &getType() const {
+    return m_type;
+  }
+
+  const std::string &getStrType() const {
+    return m_strType;
+  }
+
  private:
-  void convertTypeToStr() {
-    // Returns a string representation of the enum
-    auto primTypeStr = [&]() -> std::string {
-      switch (m_type) {
+  // Returns a string representation of the enum
+  std::string typeToStr(Basic::TType type) {
+      switch (type) {
         case Basic::TType::KW_CLASS:
           return "class";
         case Basic::TType::KW_VOID:
@@ -44,14 +51,11 @@ class BaseType : public Root {
         default:
           return "null";
       }
-    };
-
-    m_strType = primTypeStr();
   }
 
- public:
-  Basic::TType m_type;   // enum representing type
-  std::string m_strType; // string representation of Type (for printing)
+ private:
+  Basic::TType m_type;
+  std::string m_strType;
 };
 
 class PrimitiveType : public BaseType {
@@ -64,7 +68,7 @@ class PrimitiveType : public BaseType {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "PrimitiveType" << " (" << m_strType << ")";
+    ss << "PrimitiveType" << " (" << getStrType() << ")";
     return ss.str();
   }
 

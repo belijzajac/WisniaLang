@@ -36,7 +36,7 @@ class Token {
   }
 
   // Primarily used in AST output for pretty token's value printing
-  std::string getValueStr() const {
+  std::string getASTValueStr() const {
     std::string strResult{};
     std::visit(overloaded{
                    [&](const std::string &arg) { strResult = (m_type == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },

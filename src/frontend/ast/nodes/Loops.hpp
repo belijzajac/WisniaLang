@@ -24,8 +24,12 @@ class BaseLoop : public BaseStmt {
     m_body = std::move(body);
   }
 
- public:
-  std::unique_ptr<BaseStmt> m_body; // surrounded by "{" and "}"
+  const std::unique_ptr<BaseStmt> &getBody() const {
+    return m_body;
+  }
+
+ protected:
+  std::unique_ptr<BaseStmt> m_body;
 };
 
 class WhileLoop : public BaseLoop {
@@ -50,7 +54,11 @@ class WhileLoop : public BaseLoop {
     m_cond = std::move(expr);
   }
 
- public:
+  const std::unique_ptr<BaseExpr> &getCondition() const {
+    return m_cond;
+  }
+
+ private:
   std::unique_ptr<BaseExpr> m_cond;
 };
 
@@ -68,26 +76,38 @@ class ForLoop : public BaseLoop {
 
   void print(size_t level) const override {
     BaseLoop::print(level++);
-    m_initialization->print(level);
+    m_initial->print(level);
     m_condition->print(level);
     m_increment->print(level);
     m_body->print(level);
   }
 
-  void addInit(std::unique_ptr<BaseStmt> expr) {
-    m_initialization = std::move(expr);
+  void addInitial(std::unique_ptr<BaseStmt> expr) {
+    m_initial = std::move(expr);
   }
 
-  void addCond(std::unique_ptr<BaseExpr> expr) {
+  void addCondition(std::unique_ptr<BaseExpr> expr) {
     m_condition = std::move(expr);
   }
 
-  void addInc(std::unique_ptr<BaseStmt> stmt) {
+  void addIncrement(std::unique_ptr<BaseStmt> stmt) {
     m_increment = std::move(stmt);
   }
 
- public:
-  std::unique_ptr<BaseStmt> m_initialization;
+  const std::unique_ptr<BaseStmt> &getInitial() const {
+    return m_initial;
+  }
+
+  const std::unique_ptr<BaseExpr> &getCondition() const {
+    return m_condition;
+  }
+
+  const std::unique_ptr<BaseStmt> &getIncrement() const {
+    return m_increment;
+  }
+
+ private:
+  std::unique_ptr<BaseStmt> m_initial;
   std::unique_ptr<BaseExpr> m_condition;
   std::unique_ptr<BaseStmt> m_increment;
 };
@@ -119,7 +139,15 @@ class ForEachLoop : public BaseLoop {
     m_collection = std::move(expr);
   }
 
- public:
+  const std::unique_ptr<BaseExpr> &getElement() const {
+    return m_element;
+  }
+
+  const std::unique_ptr<BaseExpr> &getCollection() const {
+    return m_collection;
+  }
+
+ private:
   std::unique_ptr<BaseExpr> m_element;
   std::unique_ptr<BaseExpr> m_collection;
 };

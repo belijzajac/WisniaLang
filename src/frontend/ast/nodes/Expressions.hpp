@@ -41,8 +41,8 @@ class VarExpr : public BaseExpr {
   }
 
   std::string kind() const override {
-    return fmt::format("Var (name={0}, type={1})", m_token->getValueStr(),
-                       m_type ? m_type->m_strType : "null");
+    return fmt::format("Var (name={}, type={})", m_token->getASTValueStr(),
+                       m_type ? m_type->getStrType() : "null");
   }
 
   void print(size_t level) const override {
@@ -53,7 +53,11 @@ class VarExpr : public BaseExpr {
     m_type = std::move(type);
   }
 
- public:
+  const std::unique_ptr<BaseType> &getType() const {
+    return m_type;
+  }
+
+ private:
   std::unique_ptr<BaseType> m_type;
 };
 
@@ -119,9 +123,17 @@ class BinaryExpr : public BaseExpr {
     rhs()->print(level);
   }
 
- public:
-  Basic::TType m_operand;   // operand for expression (+, *, &&, ...)
-  std::string m_strOperand; // a string representation of an operand
+  const Basic::TType &getOperand() const {
+    return m_operand;
+  }
+
+  const std::string &getStrOperand() const {
+    return m_strOperand;
+  }
+
+ protected:
+  Basic::TType m_operand;
+  std::string m_strOperand;
 };
 
 class BooleanExpr : public BinaryExpr {
@@ -257,10 +269,23 @@ class FnCallExpr : public BaseExpr {
     m_var = std::move(var);
   }
 
-  std::shared_ptr<Basic::Token> getClassName() const { return m_className; }
-  std::shared_ptr<Basic::Token> getFnName() const { return m_token; }
+  std::shared_ptr<Basic::Token> getFnName() const {
+    return m_token;
+  }
 
- public:
+  std::shared_ptr<Basic::Token> getClassName() const {
+    return m_className;
+  }
+
+  const std::vector<std::unique_ptr<BaseExpr>> &getArgs() const {
+    return m_args;
+  }
+
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+ private:
   std::shared_ptr<Basic::Token> m_className;
   std::vector<std::unique_ptr<BaseExpr>> m_args;
   std::unique_ptr<BaseExpr> m_var;
@@ -299,7 +324,15 @@ class ClassInitExpr : public BaseExpr {
     m_var = std::move(var);
   }
 
- public:
+  const std::vector<std::unique_ptr<BaseExpr>> &getArgs() const {
+    return m_args;
+  }
+
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+ private:
   std::vector<std::unique_ptr<BaseExpr>> m_args;
   std::unique_ptr<BaseExpr> m_var;
 };
@@ -312,7 +345,7 @@ class ConstExpr : public BaseExpr {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "ConstExpr" << " (" << m_token->getValueStr() << ")";
+    ss << "ConstExpr" << " (" << m_token->getASTValueStr() << ")";
     return ss.str();
   }
 };

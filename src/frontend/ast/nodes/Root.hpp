@@ -45,10 +45,24 @@ class Root : public IVisitable {
     m_globalFunctions.push_back(std::move(fnDef));
   }
 
- public:
-  std::shared_ptr<Basic::Token> m_token;                // token (for holding names, etc.)
-  std::vector<std::unique_ptr<Root>> m_globalClasses;   // global class definitions
-  std::vector<std::unique_ptr<Root>> m_globalFunctions; // global function definitions
+  const std::shared_ptr<Basic::Token> &getToken() const {
+    return m_token;
+  }
+
+  const std::vector<std::unique_ptr<Root>> &getGlobalClasses() const {
+    return m_globalClasses;
+  }
+
+  const std::vector<std::unique_ptr<Root>> &getGlobalFunctions() const {
+    return m_globalFunctions;
+  }
+
+ protected:
+  std::shared_ptr<Basic::Token> m_token;
+
+ private:
+  std::vector<std::unique_ptr<Root>> m_globalClasses;
+  std::vector<std::unique_ptr<Root>> m_globalFunctions;
 };
 
 }  // namespace AST

@@ -24,8 +24,12 @@ class BaseIf : public BaseStmt {
     m_body = std::move(body);
   }
 
- public:
-  std::unique_ptr<BaseStmt> m_body; // surrounded by "{" and "}"
+  const std::unique_ptr<BaseStmt> &getBody() const {
+    return m_body;
+  }
+
+ protected:
+  std::unique_ptr<BaseStmt> m_body;
 };
 
 class IfStmt : public BaseIf {
@@ -57,9 +61,17 @@ class IfStmt : public BaseIf {
     m_elseStmts = std::move(expr);
   }
 
- public:
-  std::unique_ptr<BaseExpr> m_condition;            // if condition
-  std::vector<std::unique_ptr<BaseIf>> m_elseStmts; // else statements
+  const std::unique_ptr<BaseExpr> &getCondition() const {
+    return m_condition;
+  }
+
+  const std::vector<std::unique_ptr<BaseIf>> &getElseStatements() const {
+    return m_elseStmts;
+  }
+
+ private:
+  std::unique_ptr<BaseExpr> m_condition;
+  std::vector<std::unique_ptr<BaseIf>> m_elseStmts;
 };
 
 class ElseStmt : public BaseIf {
@@ -102,8 +114,12 @@ class ElseIfStmt : public BaseIf {
     m_condition = std::move(expr);
   }
 
- public:
-  std::unique_ptr<BaseExpr> m_condition; // else if condition
+  const std::unique_ptr<BaseExpr> &getCondition() const {
+    return m_condition;
+  }
+
+ private:
+  std::unique_ptr<BaseExpr> m_condition;
 };
 
 }  // namespace AST

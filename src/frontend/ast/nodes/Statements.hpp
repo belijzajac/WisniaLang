@@ -45,7 +45,11 @@ class StmtBlock : public BaseStmt {
     m_statements.push_back(std::move(stmt));
   }
 
- public:
+  const std::vector<std::unique_ptr<BaseStmt>> &getStatements() const {
+    return m_statements;
+  }
+
+ private:
   std::vector<std::unique_ptr<BaseStmt>> m_statements;
 };
 
@@ -71,7 +75,11 @@ class ReturnStmt : public BaseStmt {
     m_returnValue = std::move(returnVal);
   }
 
- public:
+  const std::unique_ptr<BaseExpr> &getReturnValue() const {
+    return m_returnValue;
+  }
+
+ private:
   std::unique_ptr<BaseExpr> m_returnValue;
 };
 
@@ -134,9 +142,17 @@ class VarDeclStmt : public BaseStmt {
     m_value = std::move(varValue);
   }
 
- public:
-  std::unique_ptr<BaseExpr> m_var;   // name + type
-  std::unique_ptr<BaseExpr> m_value; // variable's value
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+  const std::unique_ptr<BaseExpr> &getValue() const {
+    return m_value;
+  }
+
+ private:
+  std::unique_ptr<BaseExpr> m_var;
+  std::unique_ptr<BaseExpr> m_value;
 };
 
 class VarAssignStmt : public BaseStmt {
@@ -172,9 +188,17 @@ class VarAssignStmt : public BaseStmt {
     m_val = std::move(varValue);
   }
 
- public:
-  std::unique_ptr<BaseExpr> m_var; // name + type
-  std::unique_ptr<BaseExpr> m_val; // variable's value
+  const std::unique_ptr<BaseExpr> &getVar() const {
+    return m_var;
+  }
+
+  const std::unique_ptr<BaseExpr> &getValue() const {
+    return m_val;
+  }
+
+ private:
+  std::unique_ptr<BaseExpr> m_var;
+  std::unique_ptr<BaseExpr> m_val;
 };
 
 class ExprStmt : public BaseStmt {
@@ -199,7 +223,11 @@ class ExprStmt : public BaseStmt {
     m_expr = std::move(expr);
   }
 
- public:
+  const std::unique_ptr<BaseExpr> &getExpr() const {
+    return m_expr;
+  }
+
+ private:
   std::unique_ptr<BaseExpr> m_expr;
 };
 
@@ -226,7 +254,11 @@ class ReadStmt : public BaseStmt {
     m_vars.push_back(std::move(var));
   }
 
- public:
+  const std::vector<std::unique_ptr<BaseExpr>> &getVars() const {
+    return m_vars;
+  }
+
+ private:
   std::vector<std::unique_ptr<BaseExpr>> m_vars;
 };
 
@@ -253,7 +285,11 @@ class WriteStmt : public BaseStmt {
     m_exprs.push_back(std::move(expr));
   }
 
- public:
+  const std::vector<std::unique_ptr<BaseExpr>> &getExprs() const {
+    return m_exprs;
+  }
+
+ private:
   std::vector<std::unique_ptr<BaseExpr>> m_exprs;
 };
 

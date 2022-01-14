@@ -9,10 +9,10 @@ using namespace Utils;
 using namespace AST;
 
 void NameResolver::visit(AST::Root *node) {
-  for (const auto &klass : node->m_globalClasses) {
+  for (const auto &klass : node->getGlobalClasses()) {
     klass->accept(this);
   }
-  for (const auto &function : node->m_globalFunctions) {
+  for (const auto &function : node->getGlobalFunctions()) {
     function->accept(this);
   }
 }
@@ -23,8 +23,8 @@ void NameResolver::visit(AST::PrimitiveType *node) {
 
 void NameResolver::visit(AST::VarExpr *node) {
   try {
-    auto foundVar = m_table.findSymbol(node->m_token->getValue<std::string>()); // VarExpr
-    node->m_type = std::make_unique<PrimitiveType>(foundVar->m_type->m_token);
+    auto foundVar = m_table.findSymbol(node->getToken()->getValue<std::string>()); // VarExpr
+    node->addType(std::make_unique<PrimitiveType>(foundVar->getType()->getToken()));
   } catch (const SemanticError &ex) {
     fmt::print(std::cerr, "{}\n", ex.what());
   }
@@ -61,15 +61,15 @@ void NameResolver::visit(AST::UnaryExpr *node) {
 }
 
 void NameResolver::visit(AST::FnCallExpr *node) {
-  node->m_var->accept(this);
-  for (const auto &arg : node->m_args) {
+  node->getVar()->accept(this);
+  for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
 }
 
 void NameResolver::visit(AST::ClassInitExpr *node) {
-  node->m_var->accept(this);
-  for (const auto &arg : node->m_args) {
+  node->getVar()->accept(this);
+  for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
 }
@@ -92,14 +92,14 @@ void NameResolver::visit(AST::StringExpr *node) {
 
 void NameResolver::visit(AST::StmtBlock *node) {
   m_table.pushScope();
-  for (const auto &stmt : node->m_statements) {
+  for (const auto &stmt : node->getStatements()) {
     stmt->accept(this);
   }
   m_table.popScope();
 }
 
 void NameResolver::visit(AST::ReturnStmt *node) {
-  node->m_returnValue->accept(this);
+  node->getReturnValue()->accept(this);
 }
 
 void NameResolver::visit(AST::BreakStmt *node) {
@@ -111,44 +111,44 @@ void NameResolver::visit(AST::ContinueStmt *node) {
 }
 
 void NameResolver::visit(AST::VarDeclStmt *node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node->m_var.get()));
-  node->m_var->accept(this);
-  node->m_value->accept(this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node->getVar().get()));
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
 }
 
 void NameResolver::visit(AST::VarAssignStmt *node) {
-  node->m_var->accept(this);
-  node->m_val->accept(this);
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
 }
 
 void NameResolver::visit(AST::ExprStmt *node) {
-  node->m_expr->accept(this);
+  node->getExpr()->accept(this);
 }
 
 void NameResolver::visit(AST::ReadStmt *node) {
-  for (const auto &var : node->m_vars) {
+  for (const auto &var : node->getVars()) {
     var->accept(this);
   }
 }
 
 void NameResolver::visit(AST::WriteStmt *node) {
-  for (const auto &expr : node->m_exprs) {
+  for (const auto &expr : node->getExprs()) {
     expr->accept(this);
   }
 }
 
 void NameResolver::visit(AST::Param *node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node->m_var.get()));
-  node->m_var->accept(this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node->getVar().get()));
+  node->getVar()->accept(this);
 }
 
 void NameResolver::visit(AST::FnDef *node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node->m_var.get()));
-  node->m_var->accept(this);
-  for (const auto &param : node->m_params) {
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node->getVar().get()));
+  node->getVar()->accept(this);
+  for (const auto &param : node->getParams()) {
     param->accept(this);
   }
-  node->m_body->accept(this);
+  node->getBody()->accept(this);
 }
 
 void NameResolver::visit(AST::CtorDef *node) {
@@ -160,55 +160,55 @@ void NameResolver::visit(AST::DtorDef *node) {
 }
 
 void NameResolver::visit(AST::Field *node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node->m_var.get()));
-  node->m_var->accept(this);
-  node->m_value->accept(this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node->getVar().get()));
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
 }
 
 void NameResolver::visit(AST::ClassDef *node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node->m_var.get()));
-  node->m_var->accept(this);
-  for (const auto &field : node->m_fields) {
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node->getVar().get()));
+  node->getVar()->accept(this);
+  for (const auto &field : node->getFields()) {
     field->accept(this);
   }
-  if (node->m_ctor) node->m_ctor->accept(this);
-  if (node->m_dtor) node->m_dtor->accept(this);
-  for (const auto &method : node->m_methods) {
+  if (node->getCtor()) node->getCtor()->accept(this);
+  if (node->getDtor()) node->getDtor()->accept(this);
+  for (const auto &method : node->getMethods()) {
     method->accept(this);
   }
 }
 
 void NameResolver::visit(AST::WhileLoop *node) {
-  node->m_cond->accept(this);
-  node->m_body->accept(this);
+  node->getCondition()->accept(this);
+  node->getBody()->accept(this);
 }
 
 void NameResolver::visit(AST::ForLoop *node) {
-  node->m_initialization->accept(this);
-  node->m_condition->accept(this);
-  node->m_increment->accept(this);
-  node->m_body->accept(this);
+  node->getInitial()->accept(this);
+  node->getCondition()->accept(this);
+  node->getIncrement()->accept(this);
+  node->getBody()->accept(this);
 }
 
 void NameResolver::visit(AST::ForEachLoop *node) {
-  node->m_element->accept(this);
-  node->m_collection->accept(this);
-  node->m_body->accept(this);
+  node->getElement()->accept(this);
+  node->getCollection()->accept(this);
+  node->getBody()->accept(this);
 }
 
 void NameResolver::visit(AST::IfStmt *node) {
-  node->m_condition->accept(this);
-  node->m_body->accept(this);
-  for (const auto &elseBl : node->m_elseStmts) {
+  node->getCondition()->accept(this);
+  node->getBody()->accept(this);
+  for (const auto &elseBl : node->getElseStatements()) {
     elseBl->accept(this);
   }
 }
 
 void NameResolver::visit(AST::ElseStmt *node) {
-  node->m_body->accept(this);
+  node->getBody()->accept(this);
 }
 
 void NameResolver::visit(AST::ElseIfStmt *node) {
-  node->m_condition->accept(this);
-  node->m_body->accept(this);
+  node->getCondition()->accept(this);
+  node->getBody()->accept(this);
 }

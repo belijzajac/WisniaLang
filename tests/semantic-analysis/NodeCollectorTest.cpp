@@ -38,7 +38,7 @@ TEST_F(NodeCollectorTest, VarExpr) {
       "output_hello", "correct", "fooPtr", "Foo", "correct", "yes", "answer", "output_hello", "yes",
       "argc", "answer", "output_hello", "argc"};
   for (size_t i = 0; i < 44; i++) {
-    EXPECT_TRUE(collectedNodes[i]->m_token->getValue<std::string>() == kExpectedValues[i]);
+    EXPECT_TRUE(collectedNodes[i]->getToken()->getValue<std::string>() == kExpectedValues[i]);
   }
 }
 
@@ -55,7 +55,7 @@ TEST_F(NodeCollectorTest, CompExpr) {
   EXPECT_EQ(collector.getNodes().size(), 4);
   constexpr std::array<char, 4> kExpectedValues{'<', '<', '<', '>'};
   for (size_t i = 0; i < 4; i++) {
-    EXPECT_TRUE(collectedNodes[i]->m_strOperand == std::string{kExpectedValues[i]});
+    EXPECT_TRUE(collectedNodes[i]->getStrOperand() == std::string{kExpectedValues[i]});
   }
 }
 
@@ -66,7 +66,7 @@ TEST_F(NodeCollectorTest, AddExpr) {
   EXPECT_EQ(collector.getNodes().size(), 4);
   constexpr std::array<char, 4> kExpectedValues{'+', '+', '+', '-'};
   for (size_t i = 0; i < 4; i++) {
-    EXPECT_TRUE(collectedNodes[i]->m_strOperand == std::string{kExpectedValues[i]});
+    EXPECT_TRUE(collectedNodes[i]->getStrOperand() == std::string{kExpectedValues[i]});
   }
 }
 
@@ -89,7 +89,7 @@ TEST_F(NodeCollectorTest, BoolExpr) {
   EXPECT_EQ(collector.getNodes().size(), 5);
   constexpr std::array<bool, 5> kExpectedValues{false, true, true, false, false};
   for (size_t i = 0; i < 5; i++) {
-    EXPECT_EQ(collectedNodes[i]->m_token->getValue<bool>(), kExpectedValues[i]);
+    EXPECT_EQ(collectedNodes[i]->getToken()->getValue<bool>(), kExpectedValues[i]);
   }
 }
 
@@ -97,8 +97,8 @@ TEST_F(NodeCollectorTest, StringExpr) {
   NodeCollector<AST::StringExpr> collector;
   m_root->accept(&collector);
   EXPECT_EQ(collector.getNodes().size(), 2);
-  EXPECT_TRUE(collector.getNodes()[0]->m_token->getValue<std::string>() == "hello");
-  EXPECT_TRUE(collector.getNodes()[1]->m_token->getValue<std::string>() == "bye");
+  EXPECT_TRUE(collector.getNodes()[0]->getToken()->getValue<std::string>() == "hello");
+  EXPECT_TRUE(collector.getNodes()[1]->getToken()->getValue<std::string>() == "bye");
 }
 
 TEST_F(NodeCollectorTest, IntExpr) {
@@ -108,7 +108,7 @@ TEST_F(NodeCollectorTest, IntExpr) {
   EXPECT_EQ(collector.getNodes().size(), 10);
   constexpr std::array<int, 10> kExpectedValues{123456, 0, 5, 1, 150000, 2, 5, 5, 7, 5};
   for (size_t i = 0; i < 10; i++) {
-    EXPECT_EQ(collectedNodes[i]->m_token->getValue<int>(), kExpectedValues[i]);
+    EXPECT_EQ(collectedNodes[i]->getToken()->getValue<int>(), kExpectedValues[i]);
   }
 }
 
@@ -119,7 +119,7 @@ TEST_F(NodeCollectorTest, FloatExpr) {
   EXPECT_EQ(collector.getNodes().size(), 5);
   constexpr std::array<float, 5> kExpectedValues{5.0, 7.75, 1.45, 15.0, 1.33};
   for (size_t i = 0; i < 5; i++) {
-    EXPECT_EQ(collectedNodes[i]->m_token->getValue<float>(), kExpectedValues[i]);
+    EXPECT_EQ(collectedNodes[i]->getToken()->getValue<float>(), kExpectedValues[i]);
   }
 }
 

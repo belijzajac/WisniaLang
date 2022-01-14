@@ -6,10 +6,10 @@ void NodeCollector<T>::visit(AST::Root *node) {
   if constexpr (std::is_same_v<T, AST::Root>) {
     m_nodes.push_back(node);
   }
-  for (const auto &klass : node->m_globalClasses) {
+  for (const auto &klass : node->getGlobalClasses()) {
     klass->accept(this);
   }
-  for (const auto &function : node->m_globalFunctions) {
+  for (const auto &function : node->getGlobalFunctions()) {
     function->accept(this);
   }
 }
@@ -87,8 +87,8 @@ void NodeCollector<T>::visit(AST::FnCallExpr *node) {
   if constexpr (std::is_same_v<T, AST::FnCallExpr>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  for (const auto &arg : node->m_args) {
+  node->getVar()->accept(this);
+  for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
 }
@@ -98,8 +98,8 @@ void NodeCollector<T>::visit(AST::ClassInitExpr *node) {
   if constexpr (std::is_same_v<T, AST::ClassInitExpr>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  for (const auto &arg : node->m_args) {
+  node->getVar()->accept(this);
+  for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
 }
@@ -137,7 +137,7 @@ void NodeCollector<T>::visit(AST::StmtBlock *node) {
   if constexpr (std::is_same_v<T, AST::StmtBlock>) {
     m_nodes.push_back(node);
   }
-  for (const auto &stmt : node->m_statements) {
+  for (const auto &stmt : node->getStatements()) {
     stmt->accept(this);
   }
 }
@@ -147,7 +147,7 @@ void NodeCollector<T>::visit(AST::ReturnStmt *node) {
   if constexpr (std::is_same_v<T, AST::ReturnStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_returnValue->accept(this);
+  node->getReturnValue()->accept(this);
 }
 
 template <typename T>
@@ -169,8 +169,8 @@ void NodeCollector<T>::visit(AST::VarDeclStmt *node) {
   if constexpr (std::is_same_v<T, AST::VarDeclStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  node->m_value->accept(this);
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
 }
 
 template <typename T>
@@ -178,8 +178,8 @@ void NodeCollector<T>::visit(AST::VarAssignStmt *node) {
   if constexpr (std::is_same_v<T, AST::VarAssignStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  node->m_val->accept(this);
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
 }
 
 template <typename T>
@@ -187,7 +187,7 @@ void NodeCollector<T>::visit(AST::ExprStmt *node) {
   if constexpr (std::is_same_v<T, AST::ExprStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_expr->accept(this);
+  node->getExpr()->accept(this);
 }
 
 template <typename T>
@@ -195,7 +195,7 @@ void NodeCollector<T>::visit(AST::ReadStmt *node) {
   if constexpr (std::is_same_v<T, AST::ReadStmt>) {
     m_nodes.push_back(node);
   }
-  for (const auto &var : node->m_vars) {
+  for (const auto &var : node->getVars()) {
     var->accept(this);
   }
 }
@@ -205,7 +205,7 @@ void NodeCollector<T>::visit(AST::WriteStmt *node) {
   if constexpr (std::is_same_v<T, AST::WriteStmt>) {
     m_nodes.push_back(node);
   }
-  for (const auto &expr : node->m_exprs) {
+  for (const auto &expr : node->getExprs()) {
     expr->accept(this);
   }
 }
@@ -215,7 +215,7 @@ void NodeCollector<T>::visit(AST::Param *node) {
   if constexpr (std::is_same_v<T, AST::Param>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
+  node->getVar()->accept(this);
 }
 
 template <typename T>
@@ -223,11 +223,11 @@ void NodeCollector<T>::visit(AST::FnDef *node) {
   if constexpr (std::is_same_v<T, AST::FnDef>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  for (const auto &param : node->m_params) {
+  node->getVar()->accept(this);
+  for (const auto &param : node->getParams()) {
     param->accept(this);
   }
-  node->m_body->accept(this);
+  node->getBody()->accept(this);
 }
 
 template <typename T>
@@ -249,8 +249,8 @@ void NodeCollector<T>::visit(AST::Field *node) {
   if constexpr (std::is_same_v<T, AST::Field>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  node->m_value->accept(this);
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
 }
 
 template <typename T>
@@ -258,13 +258,13 @@ void NodeCollector<T>::visit(AST::ClassDef *node) {
   if constexpr (std::is_same_v<T, AST::ClassDef>) {
     m_nodes.push_back(node);
   }
-  node->m_var->accept(this);
-  for (const auto &field : node->m_fields) {
+  node->getVar()->accept(this);
+  for (const auto &field : node->getFields()) {
     field->accept(this);
   }
-  if (node->m_ctor) node->m_ctor->accept(this);
-  if (node->m_dtor) node->m_dtor->accept(this);
-  for (const auto &method : node->m_methods) {
+  if (node->getCtor()) node->getCtor()->accept(this);
+  if (node->getDtor()) node->getDtor()->accept(this);
+  for (const auto &method : node->getMethods()) {
     method->accept(this);
   }
 }
@@ -274,8 +274,8 @@ void NodeCollector<T>::visit(AST::WhileLoop *node) {
   if constexpr (std::is_same_v<T, AST::WhileLoop>) {
     m_nodes.push_back(node);
   }
-  node->m_cond->accept(this);
-  node->m_body->accept(this);
+  node->getCondition()->accept(this);
+  node->getBody()->accept(this);
 }
 
 template <typename T>
@@ -283,10 +283,10 @@ void NodeCollector<T>::visit(AST::ForLoop *node) {
   if constexpr (std::is_same_v<T, AST::ForLoop>) {
     m_nodes.push_back(node);
   }
-  node->m_initialization->accept(this);
-  node->m_condition->accept(this);
-  node->m_increment->accept(this);
-  node->m_body->accept(this);
+  node->getInitial()->accept(this);
+  node->getCondition()->accept(this);
+  node->getIncrement()->accept(this);
+  node->getBody()->accept(this);
 }
 
 template <typename T>
@@ -294,9 +294,9 @@ void NodeCollector<T>::visit(AST::ForEachLoop *node) {
   if constexpr (std::is_same_v<T, AST::ForEachLoop>) {
     m_nodes.push_back(node);
   }
-  node->m_element->accept(this);
-  node->m_collection->accept(this);
-  node->m_body->accept(this);
+  node->getElement()->accept(this);
+  node->getCollection()->accept(this);
+  node->getBody()->accept(this);
 }
 
 template <typename T>
@@ -304,9 +304,9 @@ void NodeCollector<T>::visit(AST::IfStmt *node) {
   if constexpr (std::is_same_v<T, AST::IfStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_condition->accept(this);
-  node->m_body->accept(this);
-  for (const auto &elseBl : node->m_elseStmts) {
+  node->getCondition()->accept(this);
+  node->getBody()->accept(this);
+  for (const auto &elseBl : node->getElseStatements()) {
     elseBl->accept(this);
   }
 }
@@ -316,7 +316,7 @@ void NodeCollector<T>::visit(AST::ElseStmt *node) {
   if constexpr (std::is_same_v<T, AST::ElseStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_body->accept(this);
+  node->getBody()->accept(this);
 }
 
 template <typename T>
@@ -324,6 +324,6 @@ void NodeCollector<T>::visit(AST::ElseIfStmt *node) {
   if constexpr (std::is_same_v<T, AST::ElseIfStmt>) {
     m_nodes.push_back(node);
   }
-  node->m_condition->accept(this);
-  node->m_body->accept(this);
+  node->getCondition()->accept(this);
+  node->getBody()->accept(this);
 }
