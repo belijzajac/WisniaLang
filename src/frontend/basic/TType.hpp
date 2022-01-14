@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 namespace Wisnia::Basic {
+
 enum class TType {
   // Main types
   LIT_INT,

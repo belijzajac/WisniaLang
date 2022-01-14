@@ -2,6 +2,7 @@
 #define WISNIALANG_POSITION_HPP
 
 namespace Wisnia::Basic {
+
 class Position {
  public:
   Position(const std::string &file, size_t line)
