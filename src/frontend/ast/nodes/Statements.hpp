@@ -15,16 +15,24 @@ namespace AST {
 
 class BaseStmt : public Root {
  public:
+  BaseStmt() = default;
+
   void accept(Visitor *v) override = 0;
 
   void print(size_t level) const override {
     Root::print(level);
   }
+
+ protected:
+  explicit BaseStmt(const std::shared_ptr<Basic::Token> &tok)
+      : Root(tok) {}
 };
 
 class StmtBlock : public BaseStmt {
  public:
-  explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   StmtBlock() = default;
 
   void accept(Visitor *v) override {
@@ -55,7 +63,9 @@ class StmtBlock : public BaseStmt {
 
 class ReturnStmt : public BaseStmt {
  public:
-  explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   ReturnStmt() = default;
 
   void accept(Visitor *v) override {
@@ -85,7 +95,8 @@ class ReturnStmt : public BaseStmt {
 
 class BreakStmt : public BaseStmt {
  public:
-  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -98,7 +109,8 @@ class BreakStmt : public BaseStmt {
 
 class ContinueStmt : public BaseStmt {
  public:
-  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -111,7 +123,9 @@ class ContinueStmt : public BaseStmt {
 
 class VarDeclStmt : public BaseStmt {
  public:
-  explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   VarDeclStmt() = default;
 
   void accept(Visitor *v) override {
@@ -157,7 +171,9 @@ class VarDeclStmt : public BaseStmt {
 
 class VarAssignStmt : public BaseStmt {
  public:
-  explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   VarAssignStmt() = default;
 
   void accept(Visitor *v) override {
@@ -203,7 +219,9 @@ class VarAssignStmt : public BaseStmt {
 
 class ExprStmt : public BaseStmt {
  public:
-  explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   ExprStmt() = default;
 
   void accept(Visitor *v) override {
@@ -233,7 +251,9 @@ class ExprStmt : public BaseStmt {
 
 class ReadStmt : public BaseStmt {
  public:
-  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   ReadStmt() = default;
 
   void accept(Visitor *v) override {
@@ -264,7 +284,9 @@ class ReadStmt : public BaseStmt {
 
 class WriteStmt : public BaseStmt {
  public:
-  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
   WriteStmt() = default;
 
   void accept(Visitor *v) override {

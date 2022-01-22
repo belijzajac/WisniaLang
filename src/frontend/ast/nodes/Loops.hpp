@@ -29,12 +29,17 @@ class BaseLoop : public BaseStmt {
   }
 
  protected:
+  explicit BaseLoop(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
+ protected:
   std::unique_ptr<BaseStmt> m_body;
 };
 
 class WhileLoop : public BaseLoop {
  public:
-  explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok)
+      : BaseLoop(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -64,7 +69,8 @@ class WhileLoop : public BaseLoop {
 
 class ForLoop : public BaseLoop {
  public:
-  explicit ForLoop(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ForLoop(const std::shared_ptr<Basic::Token> &tok)
+      : BaseLoop(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -114,7 +120,8 @@ class ForLoop : public BaseLoop {
 
 class ForEachLoop : public BaseLoop {
  public:
-  explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok)
+      : BaseLoop(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);

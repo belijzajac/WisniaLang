@@ -13,10 +13,8 @@ namespace AST {
 
 class BaseType : public Root {
  public:
-  explicit BaseType(const std::shared_ptr<Basic::Token> &tok) {
-    m_type = tok->getType();
-    m_strType = typeToStr(m_type);
-  }
+  explicit BaseType(const std::shared_ptr<Basic::Token> &tok)
+      : Root(tok) { m_strType = typeToStr(getType()); }
 
   void accept(Visitor *v) override = 0;
 
@@ -24,8 +22,8 @@ class BaseType : public Root {
     Root::print(level);
   }
 
-  const Basic::TType &getType() const {
-    return m_type;
+  Basic::TType getType() const {
+    return m_token->getType();
   }
 
   const std::string &getStrType() const {
@@ -54,13 +52,13 @@ class BaseType : public Root {
   }
 
  private:
-  Basic::TType m_type;
   std::string m_strType;
 };
 
 class PrimitiveType : public BaseType {
  public:
-  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok) : BaseType(tok) { m_token = tok; }
+  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok)
+      : BaseType(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);

@@ -13,7 +13,8 @@ namespace AST {
 
 class Param : public Root {
  public:
-  explicit Param(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit Param(const std::shared_ptr<Basic::Token> &tok)
+      : Root(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -48,7 +49,8 @@ class Param : public Root {
 
 class BaseDef : public Root {
  public:
-  explicit BaseDef(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit BaseDef(const std::shared_ptr<Basic::Token> &tok)
+      : Root(tok) {}
 
   void accept(Visitor *v) override = 0;
 
@@ -78,7 +80,7 @@ class BaseDef : public Root {
 class MethodDef : public BaseDef {
  public:
   explicit MethodDef(const std::shared_ptr<Basic::Token> &tok)
-      : BaseDef(tok) { m_token = tok; }
+      : BaseDef(tok) {}
 
   void accept(Visitor *v) override = 0;
 
@@ -120,7 +122,7 @@ class MethodDef : public BaseDef {
 class FnDef : public MethodDef {
  public:
   explicit FnDef(const std::shared_ptr<Basic::Token> &tok)
-      : MethodDef(tok) { m_token = tok; }
+      : MethodDef(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -139,7 +141,7 @@ class FnDef : public MethodDef {
 class CtorDef : public MethodDef {
  public:
   explicit CtorDef(const std::shared_ptr<Basic::Token> &tok)
-      : MethodDef(tok) { m_token = tok; }
+      : MethodDef(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -158,7 +160,7 @@ class CtorDef : public MethodDef {
 class DtorDef : public MethodDef {
  public:
   explicit DtorDef(const std::shared_ptr<Basic::Token> &tok)
-      : MethodDef(tok) { m_token = tok; }
+      : MethodDef(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -176,7 +178,9 @@ class DtorDef : public MethodDef {
 
 class Field : public Root {
  public:
-  explicit Field(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit Field(const std::shared_ptr<Basic::Token> &tok)
+      : Root(tok) {}
+
   Field() = default;
 
   void accept(Visitor *v) override {
@@ -222,7 +226,7 @@ class Field : public Root {
 class ClassDef : public BaseDef {
  public:
   explicit ClassDef(const std::shared_ptr<Basic::Token> &tok)
-      : BaseDef(tok) { m_token = tok; }
+      : BaseDef(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);

@@ -185,12 +185,13 @@ std::unique_ptr<BaseStmt> Parser::parseReturnStmt() {
 std::unique_ptr<BaseExpr> Parser::parseExpr() {
   auto lhs = parseAndExpr();
   while (has(TType::OP_OR)) {  // ... <OR_SYMB> <AND_EXPR>
-    expect(TType::OP_OR);      // expect "||"
+    const auto &token = peek();
+    expect(token->getType());  // expect "||"
     auto rhs = parseAndExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<BooleanExpr>(TType::OP_OR);
+    lhs = std::make_unique<BooleanExpr>(token);
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -202,12 +203,13 @@ std::unique_ptr<BaseExpr> Parser::parseExpr() {
 std::unique_ptr<BaseExpr> Parser::parseAndExpr() {
   auto lhs = parseEqExpr();
   while (has(TType::OP_AND)) {  // ... <AND_SYMB> <EQUAL_EXPR>
-    expect(TType::OP_AND);      // expect "&&"
+    const auto &token = peek();
+    expect(token->getType());   // expect "&&"
     auto rhs = parseEqExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<BooleanExpr>(TType::OP_AND);
+    lhs = std::make_unique<BooleanExpr>(token);
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -220,13 +222,13 @@ std::unique_ptr<BaseExpr> Parser::parseEqExpr() {
   auto lhs = parseCompExpr();
   // ... <EQUALITY_SYMB> <COMPARE_EXPR>
   while (hasAnyOf(TType::OP_EQ, TType::OP_NE)) {
-    auto tokType = peek()->getType();
-    expect(tokType);  // expect either "==" or "!="
+    const auto &token = peek();
+    expect(token->getType());  // expect either "==" or "!="
     auto rhs = parseCompExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<EqExpr>(tokType);
+    lhs = std::make_unique<EqExpr>(token);
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -239,13 +241,13 @@ std::unique_ptr<BaseExpr> Parser::parseCompExpr() {
   auto lhs = parseAddExpr();
   // ... <COMPARISON_SYMB> <ADD_EXPR>
   while (hasAnyOf(TType::OP_G, TType::OP_GE, TType::OP_L, TType::OP_LE)) {
-    auto tokType = peek()->getType();
-    expect(tokType);  // expect any of ">", ">=", "<", "<="
+    const auto &token = peek();
+    expect(token->getType());  // expect any of ">", ">=", "<", "<="
     auto rhs = parseAddExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<CompExpr>(tokType);
+    lhs = std::make_unique<CompExpr>(token);
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -258,13 +260,13 @@ std::unique_ptr<BaseExpr> Parser::parseAddExpr() {
   auto lhs = parseMultExpr();
   // ... <ADD_OP> <MULT_EXPR>
   while (hasAnyOf(TType::OP_ADD, TType::OP_SUB)) {
-    auto tokType = peek()->getType();
-    expect(tokType);  // expect either "+" or "-"
+    const auto &token = peek();
+    expect(token->getType());  // expect either "+" or "-"
     auto rhs = parseMultExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<AddExpr>(tokType);
+    lhs = std::make_unique<AddExpr>(token);
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -277,13 +279,13 @@ std::unique_ptr<BaseExpr> Parser::parseMultExpr() {
   auto lhs = parseUnaryExpr();
   // ... <MULT_OP> <UNARY_EXPR>
   while (hasAnyOf(TType::OP_MUL, TType::OP_DIV)) {
-    auto tokType = peek()->getType();
-    expect(tokType);  // expect either "*" or "/"
+    const auto &token = peek();
+    expect(token->getType());  // expect either "*" or "/"
     auto rhs = parseUnaryExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<MultExpr>(tokType);
+    lhs = std::make_unique<MultExpr>(token);
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -299,11 +301,11 @@ std::unique_ptr<BaseExpr> Parser::parseUnaryExpr() {
   if (isAnyOf()) {
     auto lhs = std::unique_ptr<BaseExpr>();
     while (isAnyOf()) {  // <UNARY_SYM> ...
-      auto tokType = peek()->getType();
-      expect(tokType);  // expect either "!" or "++"
+      const auto &token = peek();
+      expect(token->getType());  // expect either "!" or "++"
       auto rhs = parseUnaryExpr();
       // Append the unary expression we've just found
-      lhs = std::make_unique<UnaryExpr>(tokType);
+      lhs = std::make_unique<UnaryExpr>(token);
       lhs->addChild(std::move(rhs));
     }
     return lhs;

@@ -21,13 +21,16 @@ class IVisitable {
 
 class Root : public IVisitable {
  public:
+  Root() = default;
   virtual ~Root() = default;
 
   void accept(Visitor *v) override {
     v->visit(this);
   }
 
-  virtual std::string kind() const { return "Root"; }
+  virtual std::string kind() const {
+    return "Root";
+  }
 
   virtual void print(size_t level = 0) const {
     fmt::print("{:>{}}{}\n", "", level * 2, kind()); level++;
@@ -56,6 +59,10 @@ class Root : public IVisitable {
   const std::vector<std::unique_ptr<Root>> &getGlobalFunctions() const {
     return m_globalFunctions;
   }
+
+ protected:
+  explicit Root(const std::shared_ptr<Basic::Token> &tok)
+      : m_token{tok} {}
 
  protected:
   std::shared_ptr<Basic::Token> m_token;

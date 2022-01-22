@@ -29,12 +29,17 @@ class BaseIf : public BaseStmt {
   }
 
  protected:
+  explicit BaseIf(const std::shared_ptr<Basic::Token> &tok)
+      : BaseStmt(tok) {}
+
+ protected:
   std::unique_ptr<BaseStmt> m_body;
 };
 
 class IfStmt : public BaseIf {
  public:
-  explicit IfStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit IfStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseIf(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -76,7 +81,8 @@ class IfStmt : public BaseIf {
 
 class ElseStmt : public BaseIf {
  public:
-  explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseIf(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -94,7 +100,8 @@ class ElseStmt : public BaseIf {
 
 class ElseIfStmt : public BaseIf {
  public:
-  explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok) { m_token = tok; }
+  explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok)
+      : BaseIf(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
