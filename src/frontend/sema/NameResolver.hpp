@@ -8,8 +8,6 @@
 namespace Wisnia {
 
 class NameResolver : public Visitor {
-  SymbolTable m_table;
-
  public:
   void visit(AST::Root *node) override;
   void visit(AST::PrimitiveType *node) override;
@@ -47,6 +45,9 @@ class NameResolver : public Visitor {
   void visit(AST::IfStmt *node) override;
   void visit(AST::ElseStmt *node) override;
   void visit(AST::ElseIfStmt *node) override;
+
+ private:
+  SymbolTable m_table;
 };
 
 }  // namespace Wisnia

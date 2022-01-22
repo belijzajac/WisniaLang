@@ -14,27 +14,10 @@ class VarExpr;
 }  // namespace AST
 
 class SymbolTable {
-  // internal struct
-  struct ScopedSymbolTable {
-    std::unordered_map<std::string, const AST::VarExpr *> m_info;
-    std::unique_ptr<ScopedSymbolTable> m_parentScope;
-
-    void addSymbol(const std::string &name, const AST::VarExpr *var) {
-      m_info[name] = var;
-    }
-
-    const AST::VarExpr *findSymbol(const std::string &name) const {
-      if (auto search = m_info.find(name); search != m_info.end())
-        return search->second;
-      if (m_parentScope) {
-        return m_parentScope->findSymbol(name);
-      }
-      throw Utils::SemanticError{"No variable named " + name};
-    }
-  };
-
  public:
-  SymbolTable() { m_table = std::make_unique<ScopedSymbolTable>(); };
+  SymbolTable() {
+    m_table = std::make_unique<ScopedSymbolTable>();
+  };
 
   void addSymbol(AST::VarExpr *var);
 
@@ -53,6 +36,24 @@ class SymbolTable {
   }
 
  private:
+  struct ScopedSymbolTable {
+    std::unordered_map<std::string, const AST::VarExpr *> m_info;
+    std::unique_ptr<ScopedSymbolTable> m_parentScope;
+
+    void addSymbol(const std::string &name, const AST::VarExpr *var) {
+      m_info[name] = var;
+    }
+
+    const AST::VarExpr *findSymbol(const std::string &name) const {
+      if (auto search = m_info.find(name); search != m_info.end())
+        return search->second;
+      if (m_parentScope) {
+        return m_parentScope->findSymbol(name);
+      }
+      throw Utils::SemanticError{"No variable named " + name};
+    }
+  };
+
   std::unique_ptr<ScopedSymbolTable> m_table;
 };
 
