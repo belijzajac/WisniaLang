@@ -10,10 +10,17 @@ using namespace AST;
 using namespace Basic;
 using namespace Utils;
 
-Parser::Parser(const Lexer &lexer) : m_tokens{lexer.getTokens()} {}
+Parser::Parser(const Lexer &lexer)
+    : m_tokens{lexer.getTokens()} {}
 
-bool Parser::has(const TType &token) const { return peek()->getType() == token; }
-bool Parser::has2(const TType &token) const { return m_tokens[m_pos + 2]->getType() == token; }
+bool Parser::has(const TType &token) const {
+  return peek()->getType() == token;
+}
+
+bool Parser::has2(const TType &token) const {
+  assert(m_pos + 2 < m_tokens.size());
+  return m_tokens[m_pos + 2]->getType() == token;
+}
 
 void Parser::expect(const TType &token) {
   if (peek()->getType() == token) {

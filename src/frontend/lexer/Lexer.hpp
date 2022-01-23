@@ -73,7 +73,7 @@ class Lexer {
   explicit Lexer(std::istringstream &sstream);
 
   // Returns tokens
-  std::vector<std::shared_ptr<Basic::Token>> getTokens() const { return m_tokens; }
+  const std::vector<std::shared_ptr<Basic::Token>> &getTokens() const { return m_tokens; }
 
   // Prints out tokens in a pretty table
   void prettyPrint();

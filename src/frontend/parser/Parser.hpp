@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <cassert>
 
 namespace Wisnia {
 class Lexer;
@@ -54,12 +55,16 @@ class Parser {
   // Consumes and returns current token
   // Used for obtaining tokens that represent names
   const std::shared_ptr<Basic::Token> &getNextToken() {
+    assert(m_pos + 1 < m_tokens.size());
     consume();
     return m_tokens[m_pos];
   }
 
   // Returns an instance of the following token (peeks)
-  const std::shared_ptr<Basic::Token> &peek() const { return m_tokens[m_pos + 1]; }
+  const std::shared_ptr<Basic::Token> &peek() const {
+    assert(m_pos + 1 < m_tokens.size());
+    return m_tokens[m_pos + 1];
+  }
 
   // Consumes token (skips current token position by 1)
   void consume() { m_pos++; }
