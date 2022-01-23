@@ -1,8 +1,9 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef WISNIALANG_PARSER_HPP
+#define WISNIALANG_PARSER_HPP
 
 #include <memory>
 #include <vector>
+#include <cassert>
 
 namespace Wisnia {
 class Lexer;
@@ -14,13 +15,13 @@ enum class TType;
 
 namespace AST {
 class Root;
-class Def;
+class BaseDef;
 class Param;
-class Expr;
-class Type;
-class Stmt;
-class Loop;
-class Cond;
+class BaseExpr;
+class BaseType;
+class BaseStmt;
+class BaseLoop;
+class BaseIf;
 class Field;
 }  // namespace AST
 
@@ -43,39 +44,43 @@ class Parser {
   }
 
   // Position of current token
-  int pos_{-1};
+  int m_pos{-1};
 
   // Expects the following token to be of type `token`
   void expect(const Basic::TType &token);
 
   // Returns an instance of the current token
-  const std::shared_ptr<Basic::Token> &curr() const { return tokens_.at(pos_); }
+  const std::shared_ptr<Basic::Token> &curr() const { return m_tokens[m_pos]; }
 
   // Consumes and returns current token
   // Used for obtaining tokens that represent names
   const std::shared_ptr<Basic::Token> &getNextToken() {
+    assert(m_pos + 1 < m_tokens.size());
     consume();
-    return tokens_.at(pos_);
+    return m_tokens[m_pos];
   }
 
   // Returns an instance of the following token (peeks)
-  const std::shared_ptr<Basic::Token> &peek() const { return tokens_.at(pos_ + 1); }
+  const std::shared_ptr<Basic::Token> &peek() const {
+    assert(m_pos + 1 < m_tokens.size());
+    return m_tokens[m_pos + 1];
+  }
 
   // Consumes token (skips current token position by 1)
-  void consume() { pos_++; }
+  void consume() { m_pos++; }
 
   // Checks if we haven't reached the end of token stream
-  bool hasNext() const { return pos_ + 1 < tokens_.size(); }
+  bool hasNext() const { return m_pos + 1 < m_tokens.size(); }
 
   // Tokens stream copied from Lexer through constructor call
-  std::vector<std::shared_ptr<Basic::Token>> tokens_;
+  std::vector<std::shared_ptr<Basic::Token>> m_tokens;
 
  private:
   // Parses identifier
-  std::unique_ptr<AST::Expr> parseVar();
+  std::unique_ptr<AST::BaseExpr> parseVar();
 
   // Parses function definitions
-  std::unique_ptr<AST::Def> parseFnDef();
+  std::unique_ptr<AST::BaseDef> parseFnDef();
 
   // Parses a single parameter
   std::unique_ptr<AST::Param> parseParam();
@@ -84,107 +89,107 @@ class Parser {
   std::vector<std::unique_ptr<AST::Param>> parseParamsList();
 
   // Parses function return type
-  std::unique_ptr<AST::Type> parsePrimitiveType();
+  std::unique_ptr<AST::BaseType> parsePrimitiveType();
 
   // Parses statement block
-  std::unique_ptr<AST::Stmt> parseStmtBlock();
+  std::unique_ptr<AST::BaseStmt> parseStmtBlock();
 
   // Parses statement of a specific type
-  std::unique_ptr<AST::Stmt> parseStmt();
+  std::unique_ptr<AST::BaseStmt> parseStmt();
 
   // Parses return statement
-  std::unique_ptr<AST::Stmt> parseReturnStmt();
+  std::unique_ptr<AST::BaseStmt> parseReturnStmt();
 
   // Parses loop break (break, continue) statement
-  std::unique_ptr<AST::Stmt> parseLoopBrkStmt();
+  std::unique_ptr<AST::BaseStmt> parseLoopBrkStmt();
 
   // Parses variable declaration statement
-  std::unique_ptr<AST::Stmt> parseVarDeclStmt();
+  std::unique_ptr<AST::BaseStmt> parseVarDeclStmt();
 
   // Parses variable assignment statement
-  std::unique_ptr<AST::Stmt> parseVarAssignStmt(bool expect_semicolon = true);
+  std::unique_ptr<AST::BaseStmt> parseVarAssignStmt(bool expect_semicolon = true);
 
   // Parses expression statement
-  std::unique_ptr<AST::Stmt> parseExprStmt();
+  std::unique_ptr<AST::BaseStmt> parseExprStmt();
 
   // Parses IO statement
-  std::unique_ptr<AST::Stmt> parseIOStmt();
+  std::unique_ptr<AST::BaseStmt> parseIOStmt();
 
   // Parses Read IO statement
-  std::unique_ptr<AST::Stmt> parseReadIOStmt();
+  std::unique_ptr<AST::BaseStmt> parseReadIOStmt();
 
   // Parses Write IO statement
-  std::unique_ptr<AST::Stmt> parseWriteIOStmt();
+  std::unique_ptr<AST::BaseStmt> parseWriteIOStmt();
 
   // Parses Loop statements
-  std::unique_ptr<AST::Loop> parseLoops();
+  std::unique_ptr<AST::BaseLoop> parseLoops();
 
   // Parses While loop statement
-  std::unique_ptr<AST::Loop> parseWhileLoop();
+  std::unique_ptr<AST::BaseLoop> parseWhileLoop();
 
   // Parses For loop statement
-  std::unique_ptr<AST::Loop> parseForLoop();
+  std::unique_ptr<AST::BaseLoop> parseForLoop();
 
   // Parses ForEach loop statement
-  std::unique_ptr<AST::Loop> parseForEachLoop();
+  std::unique_ptr<AST::BaseLoop> parseForEachLoop();
 
   // Parses if condition block statement
-  std::unique_ptr<AST::Cond> parseIfBlock();
+  std::unique_ptr<AST::BaseIf> parseIfBlock();
 
   // Parses multiple else block statements
-  std::vector<std::unique_ptr<AST::Cond>> parseMultipleElseBlock();
+  std::vector<std::unique_ptr<AST::BaseIf>> parseMultipleElseBlock();
 
   // Parses expression -- starts the whole parsing from this function
-  std::unique_ptr<AST::Expr> parseExpr();
+  std::unique_ptr<AST::BaseExpr> parseExpr();
 
   // Parses logical AND (&&) expression
-  std::unique_ptr<AST::Expr> parseAndExpr();
+  std::unique_ptr<AST::BaseExpr> parseAndExpr();
 
   // Parses logical Equality (==, !=) expression
-  std::unique_ptr<AST::Expr> parseEqExpr();
+  std::unique_ptr<AST::BaseExpr> parseEqExpr();
 
   // Parses comparison (>, >=, <, <=) expression
-  std::unique_ptr<AST::Expr> parseCompExpr();
+  std::unique_ptr<AST::BaseExpr> parseCompExpr();
 
   // Parses addition (+) expression
-  std::unique_ptr<AST::Expr> parseAddExpr();
+  std::unique_ptr<AST::BaseExpr> parseAddExpr();
 
   // Parses multiplication (*, /) expression
-  std::unique_ptr<AST::Expr> parseMultExpr();
+  std::unique_ptr<AST::BaseExpr> parseMultExpr();
 
   // Parses unary (!, ++) expression
-  std::unique_ptr<AST::Expr> parseUnaryExpr();
+  std::unique_ptr<AST::BaseExpr> parseUnaryExpr();
 
   // Parses other expressions
-  std::unique_ptr<AST::Expr> parseSomeExpr();
+  std::unique_ptr<AST::BaseExpr> parseSomeExpr();
 
   // Parses variangle expression (variable, class method call, function call)
-  std::unique_ptr<AST::Expr> parseVarExp();
+  std::unique_ptr<AST::BaseExpr> parseVarExp();
 
   // Parses function call
-  std::unique_ptr<AST::Expr> parseFnCall();
+  std::unique_ptr<AST::BaseExpr> parseFnCall();
 
   // Parses class method call
   // e.g. classPtr->getObj()->...->calculateFib(5)
-  std::unique_ptr<AST::Expr> parseMethodCall();
+  std::unique_ptr<AST::BaseExpr> parseMethodCall();
 
   // Parses argument list for function, class initialization, and method call
-  std::vector<std::unique_ptr<AST::Expr>> parseArgsList();
+  std::vector<std::unique_ptr<AST::BaseExpr>> parseArgsList();
 
   // Parses class initialization expression
-  std::unique_ptr<AST::Expr> parseClassInit();
+  std::unique_ptr<AST::BaseExpr> parseClassInit();
 
   // Parses constant expression
-  std::unique_ptr<AST::Expr> parseConstExpr();
+  std::unique_ptr<AST::BaseExpr> parseConstExpr();
 
   // Parses class definitions
-  std::unique_ptr<AST::Def> parseClassDef();
+  std::unique_ptr<AST::BaseDef> parseClassDef();
 
   // Parses class c-tor definition
-  std::unique_ptr<AST::Def> parseClassCtorDef();
+  std::unique_ptr<AST::BaseDef> parseClassCtorDef();
 
   // Parses class d-tor definition
-  std::unique_ptr<AST::Def> parseClassDtorDef();
+  std::unique_ptr<AST::BaseDef> parseClassDtorDef();
 
   // Parses class' fields
   std::unique_ptr<AST::Field> parseClassField();
@@ -192,4 +197,4 @@ class Parser {
 
 }  // namespace Wisnia
 
-#endif  // PARSER_H
+#endif  // WISNIALANG_PARSER_HPP

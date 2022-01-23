@@ -1,9 +1,9 @@
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  frontend/sema/NameResolver.h
+  frontend/sema/NameResolver.hpp
   frontend/sema/NameResolver.cpp
-  frontend/sema/SymbolTable.h
+  frontend/sema/SymbolTable.hpp
   frontend/sema/SymbolTable.cpp
-  frontend/sema/NodeCollector.h
+  frontend/sema/NodeCollector.hpp
   PARENT_SCOPE
 )

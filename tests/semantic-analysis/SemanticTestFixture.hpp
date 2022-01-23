@@ -1,12 +1,12 @@
-#ifndef SEMANTICTESTFIXTURE_H
-#define SEMANTICTESTFIXTURE_H
+#ifndef WISNIALANG_SEMANTICTESTFIXTURE_HPP
+#define WISNIALANG_SEMANTICTESTFIXTURE_HPP
 
 #include <gtest/gtest.h>
 
 namespace Wisnia {
 
 class SemanticTestFixture : public testing::Test {
-  const std::string program = R"(
+  const std::string kProgram = R"(
   class Foo {
     bool is_fifteen{false};
     float number = 5.0;
@@ -61,18 +61,18 @@ class SemanticTestFixture : public testing::Test {
 
  public:
   SemanticTestFixture() {
-    std::istringstream iss{program};
-    lexer = std::make_unique<Lexer>(iss);
-    parser = std::make_unique<Parser>(*lexer);
-    root = parser->parse();
+    std::istringstream iss{kProgram};
+    m_lexer = std::make_unique<Lexer>(iss);
+    m_parser = std::make_unique<Parser>(*m_lexer);
+    m_root = m_parser->parse();
   }
 
  protected:
-  std::unique_ptr<Lexer> lexer{};
-  std::unique_ptr<Parser> parser{};
-  std::unique_ptr<AST::Root> root{};
+  std::unique_ptr<Lexer> m_lexer;
+  std::unique_ptr<Parser> m_parser;
+  std::unique_ptr<AST::Root> m_root;
 };
 
 }  // namespace Wisnia
 
-#endif  // SEMANTICTESTFIXTURE_H
+#endif  // WISNIALANG_SEMANTICTESTFIXTURE_HPP

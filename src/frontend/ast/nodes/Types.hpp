@@ -1,22 +1,20 @@
-#ifndef AST_TYPES_H
-#define AST_TYPES_H
+#ifndef WISNIALANG_AST_TYPES_HPP
+#define WISNIALANG_AST_TYPES_HPP
 
 #include <sstream>
 // Wisnia
-#include "Root.h"
-#include "TType.h"
-#include "Token.h"
-#include "Exceptions.h"
+#include "Root.hpp"
+#include "TType.hpp"
+#include "Token.hpp"
+#include "Exceptions.hpp"
 
 namespace Wisnia {
 namespace AST {
-// An abstract definition for Type node
-class Type : public Root {
+
+class BaseType : public Root {
  public:
-  explicit Type(const std::shared_ptr<Basic::Token> &tok) {
-    type_ = tok->getType();
-    convertTypeToStr();
-  }
+  explicit BaseType(const std::shared_ptr<Basic::Token> &tok)
+      : Root(tok) { m_strType = typeToStr(getType()); }
 
   void accept(Visitor *v) override = 0;
 
@@ -24,11 +22,18 @@ class Type : public Root {
     Root::print(level);
   }
 
+  Basic::TType getType() const {
+    return m_token->getType();
+  }
+
+  const std::string &getStrType() const {
+    return m_strType;
+  }
+
  private:
-  void convertTypeToStr() {
-    // Returns a string equivalent of an enum
-    auto primTypeStr = [&]() -> std::string {
-      switch (type_) {
+  // Returns a string representation of the enum
+  std::string typeToStr(Basic::TType type) {
+      switch (type) {
         case Basic::TType::KW_CLASS:
           return "class";
         case Basic::TType::KW_VOID:
@@ -44,20 +49,16 @@ class Type : public Root {
         default:
           return "null";
       }
-    };
-
-    typeStr_ = primTypeStr();
   }
 
- public:
-  Basic::TType type_;    // enum representing type
-  std::string typeStr_;  // string representation of Type (for printing)
+ private:
+  std::string m_strType;
 };
 
-// Function Type node
-class PrimitiveType : public Type {
+class PrimitiveType : public BaseType {
  public:
-  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok) : Type(tok) { token_ = tok; }
+  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok)
+      : BaseType(tok) {}
 
   void accept(Visitor *v) override {
     v->visit(this);
@@ -65,16 +66,16 @@ class PrimitiveType : public Type {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "PrimitiveType" << " (" << typeStr_ << ")";
+    ss << "PrimitiveType" << " (" << getStrType() << ")";
     return ss.str();
   }
 
   void print(size_t level) const override {
-    Root::print(level);
+    BaseType::print(level);
   }
 };
 
 }  // namespace AST
 }  // namespace Wisnia
 
-#endif  // AST_TYPES_H
+#endif  // WISNIALANG_AST_TYPES_HPP

@@ -1,9 +1,9 @@
-#include "SymbolTable.h"
-#include "AST.h"
+#include "SymbolTable.hpp"
+#include "AST.hpp"
 
 using namespace Wisnia;
 using namespace AST;
 
 void SymbolTable::addSymbol(AST::VarExpr *var) {
-  table->addSymbol(var->token_->getValue<std::string>(), var); // todo: refactor
+  m_table->addSymbol(var->getToken()->getValue<std::string>(), var);
 }

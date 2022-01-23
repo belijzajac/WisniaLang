@@ -1,14 +1,23 @@
-#ifndef NAMERESOLVER_H
-#define NAMERESOLVER_H
+#ifndef WISNIALANG_NODECOLLECTOR_HPP
+#define WISNIALANG_NODECOLLECTOR_HPP
 
+#include <vector>
+#include <type_traits>
 // Wisnia
-#include "Visitor.h"
-#include "SymbolTable.h"
+#include "Visitor.hpp"
 
 namespace Wisnia {
 
-class NameResolver : public Visitor {
-  SymbolTable table{};
+template <typename T>
+class NodeCollector : public Visitor {
+ public:
+  NodeCollector() {
+    static_assert(std::is_base_of<AST::Root, T>::value, "Type parameter of this class must derive from AST::Root");
+  }
+
+  std::vector<const T *> getNodes() const {
+    return m_nodes;
+  }
 
  public:
   void visit(AST::Root *node) override;
@@ -47,8 +56,13 @@ class NameResolver : public Visitor {
   void visit(AST::IfStmt *node) override;
   void visit(AST::ElseStmt *node) override;
   void visit(AST::ElseIfStmt *node) override;
+
+ private:
+  std::vector<const T *> m_nodes;
 };
+
+#include "NodeCollector.tpp"
 
 }  // namespace Wisnia
 
-#endif  // NAMERESOLVER_H
+#endif  // WISNIALANG_NODECOLLECTOR_HPP

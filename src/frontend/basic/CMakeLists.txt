@@ -1,7 +1,7 @@
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  frontend/basic/Token.h
-  frontend/basic/TType.h
-  frontend/basic/PositionInFile.h
+  frontend/basic/Token.hpp
+  frontend/basic/TType.hpp
+  frontend/basic/Position.hpp
   PARENT_SCOPE
 )

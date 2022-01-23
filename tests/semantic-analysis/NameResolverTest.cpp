@@ -1,32 +1,29 @@
 // Wisnia
-#include "Lexer.h"
-#include "Parser.h"
-#include "AST.h"
-#include "NodeCollector.h"
-#include "NameResolver.h"
-#include "SemanticTestFixture.h"
+#include "Lexer.hpp"
+#include "Parser.hpp"
+#include "AST.hpp"
+#include "NodeCollector.hpp"
+#include "NameResolver.hpp"
+#include "SemanticTestFixture.hpp"
 
 using namespace Wisnia;
 using NameResolverTest = SemanticTestFixture;
 
 struct VarInfo {
-  constexpr VarInfo(const char *n, const char *t)
-      : name{n}
-      , type{t}
-  {}
-  const char *name;
-  const char *type;
+  constexpr VarInfo(const char *n, const char *t) : m_name{n}, m_type{t} {}
+  const char *m_name;
+  const char *m_type;
 };
 
 TEST_F(NameResolverTest, ResolveVarInfo) {
-  NodeCollector<AST::VarExpr> collector{};
-  NameResolver resolver{};
-  root->accept(&resolver);
-  root->accept(&collector);
+  NodeCollector<AST::VarExpr> collector;
+  NameResolver resolver;
+  m_root->accept(&resolver);
+  m_root->accept(&collector);
   auto collectedVars = collector.getNodes();
   EXPECT_EQ(collectedVars.size(), 44);
 
-  constexpr std::array<VarInfo, 44> expectedVars{
+  constexpr std::array<VarInfo, 44> kExpectedVars{
       VarInfo{"Foo", "class"}, VarInfo{"is_fifteen", "bool"}, VarInfo{"number", "float"},
       VarInfo{"digit", "int"}, VarInfo{"simple_operations", "void"}, VarInfo{"a", "float"},
       VarInfo{"number", "float"}, VarInfo{"i", "int"}, VarInfo{"i", "int"}, VarInfo{"i", "int"},
@@ -44,9 +41,9 @@ TEST_F(NameResolverTest, ResolveVarInfo) {
   };
 
   size_t collectedIdx{0};
-  for (const auto &[name, type] : expectedVars) {
-    EXPECT_STREQ(collectedVars[collectedIdx]->token_->getValue<std::string>().c_str(), name);
-    EXPECT_STREQ(collectedVars[collectedIdx]->type_->typeStr_.c_str(), type);
+  for (const auto &[name, type] : kExpectedVars) {
+    EXPECT_STREQ(collectedVars[collectedIdx]->getToken()->getValue<std::string>().c_str(), name);
+    EXPECT_STREQ(collectedVars[collectedIdx]->getType()->getStrType().c_str(), type);
     collectedIdx++;
   }
 }
