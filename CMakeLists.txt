@@ -22,12 +22,16 @@ include(Dependencies)
 # In order to have shorter paths to header files
 # Defined here because unit tests need to access them too
 include_directories(
+# utilities
   src/utilities/
+# frontend
   src/frontend/basic/
   src/frontend/ast/
   src/frontend/lexer/
   src/frontend/parser/
   src/frontend/sema/
+# backend
+  src/backend/ir/
 )
 
 add_subdirectory(src)
