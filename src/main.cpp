@@ -4,6 +4,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "NameResolver.hpp"
+#include "IRGenerator.hpp"
 #include "Exceptions.hpp"
 
 using namespace Wisnia;
@@ -26,6 +27,11 @@ int main(int argc, char *argv[]) {
     root->accept(&resolver);
     fmt::print("<~~~ {} ~~~>\n", "updated ast tree");
     root->print();
+    //...
+    fmt::print("<~~~ {} ~~~>\n", "ir instructions");
+    IRGenerator generator;
+    root->accept(&generator);
+    generator.printInstructions();
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;
