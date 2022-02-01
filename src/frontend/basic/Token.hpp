@@ -20,7 +20,7 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 class Token {
  public:
-  Token(TType type, const TokenValue &value, std::unique_ptr<Position> pif)
+  Token(TType type, const TokenValue &value, std::unique_ptr<Position> pif = nullptr)
       : m_type{type}, m_value{value}, m_position{std::move(pif)} {}
 
   Token(TType type, const TokenValue &value, const Position &pif)
@@ -38,14 +38,14 @@ class Token {
   // Primarily used in AST output for pretty token's value printing
   std::string getASTValueStr() const {
     std::string strResult{};
-    std::visit(overloaded{
-                   [&](const std::string &arg) { strResult = (m_type == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
-                   [&](int arg) { strResult = std::to_string(arg); },
-                   [&](float arg) { strResult = std::to_string(arg); },
-                   [&](bool arg) { strResult = arg ? "true" : "false"; },
-                   [&](nullptr_t arg) { strResult = "null"; },
-               },
-               m_value);
+    std::visit(overloaded {
+      [&](const std::string &arg) { strResult = (m_type == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
+      [&](int arg) { strResult = std::to_string(arg); },
+      [&](float arg) { strResult = std::to_string(arg); },
+      [&](bool arg) { strResult = arg ? "true" : "false"; },
+      [&](nullptr_t arg) { strResult = "null"; },
+    },
+    m_value);
     return strResult;
   };
 
