@@ -1,3 +1,4 @@
+#include <cassert>
 // Wisnia
 #include "IRGenerator.hpp"
 #include "Instruction.hpp"
@@ -15,6 +16,13 @@ void IRGenerator::printInstructions() const {
     ir->print();
     ++index;
   }
+}
+
+AST::Root *IRGenerator::popNode() {
+  assert(!m_stack.empty());
+  auto *topNode{m_stack.top()};
+  m_stack.pop();
+  return topNode;
 }
 
 void IRGenerator::visit(AST::Root *node) {
@@ -49,26 +57,22 @@ void IRGenerator::visit(AST::AddExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
 
-  auto rhs = std::get<AST::IntExpr *>(m_stack.top()); // 5 // TODO: template this?? std::get<T*> + m_stack.pop();
-  m_stack.pop();
-  auto lhs = std::get<AST::IntExpr *>(m_stack.top()); // 3
-  m_stack.pop();
-
+  auto rhs = popNode();
+  auto lhs = popNode();
   auto varToken = std::make_shared<Basic::Token>(
     Basic::TType::IDENT,
-    "_t0",
-    node->getToken()->getPosition()
+    "_t" + std::to_string(m_tempVars.size())
   );
 
   m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
   m_stack.push(m_tempVars.back().get());
 
-  // _t0 = 3 + 5;
+  // _tx = a + b;
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operator::ADD,   // +
-    varToken,        // target = _t0
-    rhs->getToken(), // 5
-    lhs->getToken()  // 3
+    varToken,        // _tx
+    rhs->getToken(), // a
+    lhs->getToken()  // b
   ));
 }
 
@@ -76,8 +80,23 @@ void IRGenerator::visit(AST::MultExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
 
-  // int b = 3 + 5 * 10;
-  // TODO
+  auto rhs = popNode();
+  auto lhs = popNode();
+  auto varToken = std::make_shared<Basic::Token>(
+    Basic::TType::IDENT,
+    "_t" + std::to_string(m_tempVars.size())
+  );
+
+  m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
+  m_stack.push(m_tempVars.back().get());
+
+  // _tx = a * b;
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operator::MUL,   // *
+    varToken,        // _tx
+    rhs->getToken(), // a
+    lhs->getToken()  // b
+  ));
 }
 
 void IRGenerator::visit(AST::UnaryExpr *node) {
@@ -135,18 +154,14 @@ void IRGenerator::visit(AST::VarDeclStmt *node) {
   node->getVar()->accept(this);
   node->getValue()->accept(this);
 
-  auto rhs = std::get<AST::VarExpr *>(m_stack.top()); // _t0
-  m_stack.pop();
-
-  // int b = m_stack.top();
+  auto rhs = popNode(); // _tx
+  // int a = _tx
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operator::MOV,
     std::make_shared<Basic::Token>(
       node->getVar()->getToken()->getType(),
-      node->getVar()->getToken()->getValue<std::string>(),
-      node->getVar()->getToken()->getPosition()
-    ), // int b
-    rhs->getToken(),
+      node->getVar()->getToken()->getValue<std::string>()
+    ), // int a
     rhs->getToken()
   ));
 }

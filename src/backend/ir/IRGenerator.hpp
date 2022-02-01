@@ -58,13 +58,10 @@ class IRGenerator : public Visitor {
   void visit(AST::ElseIfStmt *node) override;
 
  private:
-  using node_t = std::variant<
-    AST::VarExpr *,
-    AST::IntExpr *,
-    AST::FloatExpr *,
-    AST::BoolExpr *,
-    AST::StringExpr *
-  >;
+  AST::Root *popNode();
+
+ private:
+  using node_t = AST::Root *;
   std::stack<node_t> m_stack;
   std::vector<std::unique_ptr<Instruction>> m_instructions;
   std::vector<std::unique_ptr<AST::VarExpr>> m_tempVars;
