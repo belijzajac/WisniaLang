@@ -17,7 +17,7 @@ enum class Operator {
   MUL,
 };
 
-static inline std::unordered_map<Operator, std::string> Operator2Str = {
+static inline std::unordered_map<Operator, std::string> Operator2Str {
   {Operator::MOV, "<-"},
   {Operator::ADD, "+"},
   {Operator::SUB, "-"},
@@ -30,7 +30,7 @@ class Instruction {
     Operator op,
     const std::shared_ptr<Basic::Token> &target,
     const std::shared_ptr<Basic::Token> &arg1,
-    const std::shared_ptr<Basic::Token> &arg2
+    const std::shared_ptr<Basic::Token> &arg2 = nullptr
   ) : m_operator{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
 
   void print() const;

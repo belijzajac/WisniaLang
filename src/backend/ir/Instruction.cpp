@@ -8,6 +8,6 @@ void Wisnia::Instruction::print() const {
     m_target->getASTValueStr(),
     Operator2Str[m_operator],
     m_arg1->getASTValueStr(),
-    m_arg2->getASTValueStr()
+    m_arg2 ? m_arg2->getASTValueStr() : ""
   );
 }
