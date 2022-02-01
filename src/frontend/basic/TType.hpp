@@ -72,9 +72,8 @@ enum class TType {
   TOK_EOF
 };
 
-// A string representations for TType`s
-static inline std::unordered_map<TType, std::string> TokenType2Str = {
-  // Main types  
+static inline std::unordered_map<TType, std::string> TokenType2Str {
+  // Main types
   {TType::LIT_INT, "LIT_INT"},
   {TType::LIT_FLT, "LIT_FLT"},
   {TType::LIT_STR, "LIT_STR"},
@@ -137,38 +136,38 @@ static inline std::unordered_map<TType, std::string> TokenType2Str = {
   {TType::OP_BRACE_C, "OP_BRACE_C"},
   // Other
   {TType::TOK_INVALID, "TOK_INVALID"},
-  {TType::TOK_EOF, "TOK_EOF"}};
+  {TType::TOK_EOF, "TOK_EOF"}
+};
 
-// String to TType of Keyword type
-static inline std::unordered_map<std::string, TType> Str2TokenKw = {
-    {"fn", TType::KW_FN},          {"class", TType::KW_CLASS},
-    {"new", TType::KW_CLASS_INIT}, {"def", TType::KW_CLASS_DEF},
-    {"rem", TType::KW_CLASS_REM},  {"return", TType::KW_RETURN},
-    {"if", TType::KW_IF},          {"elif", TType::KW_ELIF},
-    {"else", TType::KW_ELSE},      {"for", TType::KW_FOR},
-    {"while", TType::KW_WHILE},    {"for_each", TType::KW_FOREACH},
-    {"in", TType::KW_FOREACH_IN},  {"continue", TType::KW_CONTINUE},
-    {"break", TType::KW_BREAK},    {"true", TType::KW_TRUE},
-    {"false", TType::KW_FALSE},    {"read", TType::KW_READ},
-    {"print", TType::KW_PRINT},    {"void", TType::KW_VOID},
-    {"int", TType::KW_INT},        {"bool", TType::KW_BOOL},
-    {"float", TType::KW_FLOAT},    {"string", TType::KW_STRING}};
+static inline std::unordered_map<std::string, TType> Str2TokenKw {
+  {"fn", TType::KW_FN},          {"class", TType::KW_CLASS},
+  {"new", TType::KW_CLASS_INIT}, {"def", TType::KW_CLASS_DEF},
+  {"rem", TType::KW_CLASS_REM},  {"return", TType::KW_RETURN},
+  {"if", TType::KW_IF},          {"elif", TType::KW_ELIF},
+  {"else", TType::KW_ELSE},      {"for", TType::KW_FOR},
+  {"while", TType::KW_WHILE},    {"for_each", TType::KW_FOREACH},
+  {"in", TType::KW_FOREACH_IN},  {"continue", TType::KW_CONTINUE},
+  {"break", TType::KW_BREAK},    {"true", TType::KW_TRUE},
+  {"false", TType::KW_FALSE},    {"read", TType::KW_READ},
+  {"print", TType::KW_PRINT},    {"void", TType::KW_VOID},
+  {"int", TType::KW_INT},        {"bool", TType::KW_BOOL},
+  {"float", TType::KW_FLOAT},    {"string", TType::KW_STRING}
+};
 
-// String to TType of Operator type
-static inline std::unordered_map<std::string, TType> Str2TokenOp = {
-    {"=", TType::OP_ASSN},        {"->", TType::OP_FN_ARROW},
-    {".", TType::OP_METHOD_CALL}, {"+", TType::OP_ADD},
-    {"-", TType::OP_SUB},         {"*", TType::OP_MUL},
-    {"/", TType::OP_DIV},         {"++", TType::OP_UADD},
-    {"!", TType::OP_UNEG},        {"&&", TType::OP_AND},
-    {"||", TType::OP_OR},         {"==", TType::OP_EQ},
-    {"<", TType::OP_L},           {">", TType::OP_G},
-    {"<=", TType::OP_LE},         {">=", TType::OP_GE},
-    {"!=", TType::OP_NE},         {"(", TType::OP_PAREN_O},
-    {")", TType::OP_PAREN_C},     {"{", TType::OP_BRACE_O},
-    {"}", TType::OP_BRACE_C},     {",", TType::OP_COMMA},
-    {":", TType::OP_COL},         {";", TType::OP_SEMICOLON},
-    {"--", TType::OP_USUB},
+static inline std::unordered_map<std::string, TType> Str2TokenOp {
+  {"=", TType::OP_ASSN},        {"->", TType::OP_FN_ARROW},
+  {".", TType::OP_METHOD_CALL}, {"+", TType::OP_ADD},
+  {"-", TType::OP_SUB},         {"*", TType::OP_MUL},
+  {"/", TType::OP_DIV},         {"++", TType::OP_UADD},
+  {"!", TType::OP_UNEG},        {"&&", TType::OP_AND},
+  {"||", TType::OP_OR},         {"==", TType::OP_EQ},
+  {"<", TType::OP_L},           {">", TType::OP_G},
+  {"<=", TType::OP_LE},         {">=", TType::OP_GE},
+  {"!=", TType::OP_NE},         {"(", TType::OP_PAREN_O},
+  {")", TType::OP_PAREN_C},     {"{", TType::OP_BRACE_O},
+  {"}", TType::OP_BRACE_C},     {",", TType::OP_COMMA},
+  {":", TType::OP_COL},         {";", TType::OP_SEMICOLON},
+  {"--", TType::OP_USUB},
 };
 
 }  // namespace Wisnia::Basic
