@@ -27,7 +27,9 @@ class NodeCollector : public Visitor {
   void visit(AST::EqExpr *node) override;
   void visit(AST::CompExpr *node) override;
   void visit(AST::AddExpr *node) override;
+  void visit(AST::SubExpr *node) override;
   void visit(AST::MultExpr *node) override;
+  void visit(AST::DivExpr *node) override;
   void visit(AST::UnaryExpr *node) override;
   void visit(AST::FnCallExpr *node) override;
   void visit(AST::ClassInitExpr *node) override;

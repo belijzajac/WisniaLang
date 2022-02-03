@@ -76,6 +76,11 @@ void IRGenerator::visit(AST::AddExpr *node) {
   ));
 }
 
+void IRGenerator::visit(AST::SubExpr *node) {
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
 void IRGenerator::visit(AST::MultExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
@@ -97,6 +102,11 @@ void IRGenerator::visit(AST::MultExpr *node) {
     rhs->getToken(), // a
     lhs->getToken()  // b
   ));
+}
+
+void IRGenerator::visit(AST::DivExpr *node) {
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
 }
 
 void IRGenerator::visit(AST::UnaryExpr *node) {

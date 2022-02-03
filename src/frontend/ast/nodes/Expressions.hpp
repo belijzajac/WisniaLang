@@ -203,6 +203,22 @@ class AddExpr : public BinaryExpr {
   }
 };
 
+class SubExpr : public BinaryExpr {
+ public:
+  explicit SubExpr(const std::shared_ptr<Basic::Token> &tok)
+      : BinaryExpr(tok) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "SubExpr" << " (" << m_strOperand << ")";
+    return ss.str();
+  }
+};
+
 class MultExpr : public BinaryExpr {
  public:
   explicit MultExpr(const std::shared_ptr<Basic::Token> &tok)
@@ -215,6 +231,22 @@ class MultExpr : public BinaryExpr {
   std::string kind() const override {
     std::stringstream ss;
     ss << "MultExpr" << " (" << m_strOperand << ")";
+    return ss.str();
+  }
+};
+
+class DivExpr : public BinaryExpr {
+ public:
+  explicit DivExpr(const std::shared_ptr<Basic::Token> &tok)
+      : BinaryExpr(tok) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "DivExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };

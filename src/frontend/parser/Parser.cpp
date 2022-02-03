@@ -273,7 +273,11 @@ std::unique_ptr<BaseExpr> Parser::parseAddExpr() {
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<AddExpr>(token);
+    if (token->getType() == TType::OP_ADD) {
+      lhs = std::make_unique<AddExpr>(token);
+    } else {
+      lhs = std::make_unique<SubExpr>(token);
+    }
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -292,7 +296,11 @@ std::unique_ptr<BaseExpr> Parser::parseMultExpr() {
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<MultExpr>(token);
+    if (token->getType() == TType::OP_MUL) {
+      lhs = std::make_unique<MultExpr>(token);
+    } else {
+      lhs = std::make_unique<DivExpr>(token);
+    }
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }

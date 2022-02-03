@@ -151,10 +151,10 @@ class Parser {
   // Parses comparison (>, >=, <, <=) expression
   std::unique_ptr<AST::BaseExpr> parseCompExpr();
 
-  // Parses addition (+) expression
+  // Parses addition and subtraction (+, -) expression
   std::unique_ptr<AST::BaseExpr> parseAddExpr();
 
-  // Parses multiplication (*, /) expression
+  // Parses multiplication and division (*, /) expression
   std::unique_ptr<AST::BaseExpr> parseMultExpr();
 
   // Parses unary (!, ++) expression

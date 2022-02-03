@@ -65,8 +65,26 @@ void NodeCollector<T>::visit(AST::AddExpr *node) {
 }
 
 template <typename T>
+void NodeCollector<T>::visit(AST::SubExpr *node) {
+  if constexpr (std::is_same_v<T, AST::SubExpr>) {
+    m_nodes.push_back(node);
+  }
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
+template <typename T>
 void NodeCollector<T>::visit(AST::MultExpr *node) {
   if constexpr (std::is_same_v<T, AST::MultExpr>) {
+    m_nodes.push_back(node);
+  }
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
+template <typename T>
+void NodeCollector<T>::visit(AST::DivExpr *node) {
+  if constexpr (std::is_same_v<T, AST::DivExpr>) {
     m_nodes.push_back(node);
   }
   node->lhs()->accept(this);

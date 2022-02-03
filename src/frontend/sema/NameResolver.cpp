@@ -50,7 +50,17 @@ void NameResolver::visit(AST::AddExpr *node) {
   node->rhs()->accept(this);
 }
 
+void NameResolver::visit(AST::SubExpr *node) {
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
 void NameResolver::visit(AST::MultExpr *node) {
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
+void NameResolver::visit(AST::DivExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
 }
