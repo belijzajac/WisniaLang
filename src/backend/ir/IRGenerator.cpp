@@ -6,6 +6,7 @@
 
 using namespace Wisnia;
 using namespace Utils;
+using namespace Basic;
 using namespace AST;
 
 void IRGenerator::printInstructions() const {
@@ -25,6 +26,81 @@ AST::Root *IRGenerator::popNode() {
   return topNode;
 }
 
+constexpr std::array<std::array<Operation, 2>, 12> binaryExprMapping {{
+  {{Operation::IADD, Operation::FADD}},
+  {{Operation::ISUB, Operation::FSUB}},
+  {{Operation::IMUL, Operation::FMUL}},
+  {{Operation::IDIV, Operation::FDIV}},
+  {{Operation::IEQ,  Operation::FEQ }},
+  {{Operation::ILT,  Operation::FLT }},
+  {{Operation::ILE,  Operation::FLE }},
+  {{Operation::IGT,  Operation::FGT }},
+  {{Operation::IGE,  Operation::FGE }},
+  {{Operation::INE,  Operation::FNE }},
+  {{Operation::AND,  Operation::NOP }},
+  {{Operation::OR,   Operation::NOP }}
+}};
+
+constexpr Operation getOperationForBinaryExpr(Basic::TType exprType, bool isFloat) {
+  switch (exprType) {
+    case Basic::TType::OP_ADD:
+      return binaryExprMapping[0][isFloat];
+    case Basic::TType::OP_SUB:
+      return binaryExprMapping[1][isFloat];
+    case Basic::TType::OP_MUL:
+      return binaryExprMapping[2][isFloat];
+    case Basic::TType::OP_DIV:
+      return binaryExprMapping[3][isFloat];
+    case Basic::TType::OP_EQ:
+      return binaryExprMapping[4][isFloat];
+    case Basic::TType::OP_L:
+      return binaryExprMapping[5][isFloat];
+    case Basic::TType::OP_G:
+      return binaryExprMapping[6][isFloat];
+    case Basic::TType::OP_LE:
+      return binaryExprMapping[7][isFloat];
+    case Basic::TType::OP_GE:
+      return binaryExprMapping[8][isFloat];
+    case Basic::TType::OP_NE:
+      return binaryExprMapping[9][isFloat];
+    case Basic::TType::OP_AND:
+      return binaryExprMapping[10][0];
+    case Basic::TType::OP_OR:
+      return binaryExprMapping[11][0];
+    default:
+      throw InstructionError{"Undefined binary expression"};
+  }
+}
+
+void IRGenerator::genBinaryExpr(Basic::TType exprType) {
+  auto rhs = popNode();
+  auto lhs = popNode();
+
+  // Assume that ttype(lhs) == ttype(rhs). In the semantic analysis step, it's mandatory to check
+  // node types, and perhaps replace them if they differ and are guaranteed to be of the same type.
+  // That is the case here as well, except rhs/lfs might be a temporary variable that we just created
+  assert(rhs->getToken()->getType() == lhs->getToken()->getType());
+
+  auto varToken = std::make_shared<Basic::Token>(
+    rhs->getToken()->getType(),
+    "_t" + std::to_string(m_tempVars.size())
+  );
+
+  m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
+  m_stack.push(m_tempVars.back().get());
+
+  bool isFloat = rhs->getToken()->getType() == TType::LIT_FLT;
+  Operation op = getOperationForBinaryExpr(exprType, isFloat);
+
+  // _tx = a <op> b;
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    op,              // <op>
+    varToken,        // _tx
+    rhs->getToken(), // a
+    lhs->getToken()  // b
+  ));
+}
+
 void IRGenerator::visit(AST::Root *node) {
   for (const auto &function : node->getGlobalFunctions()) {
     function->accept(this);
@@ -41,77 +117,48 @@ void IRGenerator::visit(AST::VarExpr *node) {
 void IRGenerator::visit(AST::BooleanExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::EqExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::CompExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::AddExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
-
-  auto rhs = popNode();
-  auto lhs = popNode();
-  auto varToken = std::make_shared<Basic::Token>(
-    Basic::TType::IDENT,
-    "_t" + std::to_string(m_tempVars.size())
-  );
-
-  m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
-  m_stack.push(m_tempVars.back().get());
-
-  // _tx = a + b;
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operator::ADD,   // +
-    varToken,        // _tx
-    rhs->getToken(), // a
-    lhs->getToken()  // b
-  ));
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::SubExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::MultExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
-
-  auto rhs = popNode();
-  auto lhs = popNode();
-  auto varToken = std::make_shared<Basic::Token>(
-    Basic::TType::IDENT,
-    "_t" + std::to_string(m_tempVars.size())
-  );
-
-  m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
-  m_stack.push(m_tempVars.back().get());
-
-  // _tx = a * b;
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operator::MUL,   // *
-    varToken,        // _tx
-    rhs->getToken(), // a
-    lhs->getToken()  // b
-  ));
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::DivExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
+  genBinaryExpr(node->getToken()->getType());
 }
 
 void IRGenerator::visit(AST::UnaryExpr *node) {
   node->lhs()->accept(this);
-  node->rhs()->accept(this);
+  // TODO: similar to `genBinaryExpr`
 }
 
 void IRGenerator::visit(AST::FnCallExpr *node) {
@@ -167,7 +214,7 @@ void IRGenerator::visit(AST::VarDeclStmt *node) {
   auto rhs = popNode(); // _tx
   // int a = _tx
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operator::MOV,
+    Operation::MOV,
     std::make_shared<Basic::Token>(
       node->getVar()->getToken()->getType(),
       node->getVar()->getToken()->getValue<std::string>()

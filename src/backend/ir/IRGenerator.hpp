@@ -6,8 +6,9 @@
 #include <stack>
 #include <variant>
 // Wisnia
-#include "Visitor.hpp"
 #include "Instruction.hpp"
+#include "Visitor.hpp"
+#include "TType.hpp"
 
 namespace Wisnia {
 
@@ -61,6 +62,7 @@ class IRGenerator : public Visitor {
 
  private:
   AST::Root *popNode();
+  void genBinaryExpr(Basic::TType exprType);
 
  private:
   using node_t = AST::Root *;
