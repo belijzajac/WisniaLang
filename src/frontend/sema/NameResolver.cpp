@@ -67,7 +67,6 @@ void NameResolver::visit(AST::DivExpr *node) {
 
 void NameResolver::visit(AST::UnaryExpr *node) {
   node->lhs()->accept(this);
-  node->rhs()->accept(this);
 }
 
 void NameResolver::visit(AST::FnCallExpr *node) {

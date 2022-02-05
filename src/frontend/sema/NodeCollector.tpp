@@ -97,7 +97,6 @@ void NodeCollector<T>::visit(AST::UnaryExpr *node) {
     m_nodes.push_back(node);
   }
   node->lhs()->accept(this);
-  node->rhs()->accept(this);
 }
 
 template <typename T>
