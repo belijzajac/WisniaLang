@@ -43,6 +43,13 @@ class SemanticError : public WisniaError {
   {}
 };
 
+class InstructionError : public WisniaError {
+ public:
+  explicit InstructionError(const std::string& msg)
+      : WisniaError("Instruction Error: " + msg)
+  {}
+};
+
 class NotImplementedError : public WisniaError {
  public:
   explicit NotImplementedError(const std::string& msg)
