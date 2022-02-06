@@ -27,8 +27,10 @@ void Parser::expect(const TType &token) {
     consume();
     return;
   }
-  throw ParserError{"Expected " + TokenType2Str[token] + " but found " +
-                    TokenType2Str[peek()->getType()]};
+  throw ParserError{
+    "Expected " + TokenType2Str[token] +
+    " but found " + TokenType2Str[peek()->getType()]
+  };
 }
 
 std::unique_ptr<Root> Parser::parse() {
@@ -102,10 +104,10 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
 
 // <TYPE> ::= "void" | "int" | "bool" | "float" | "string"
 std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
-  constexpr std::array<TType, 5> kPrimitiveTypes{TType::KW_VOID, TType::KW_INT, TType::KW_BOOL,
-                                                 TType::KW_FLOAT, TType::KW_STRING};
-  if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(),
-                  [&](TType t) { return peek()->getType() == t; })) {
+  constexpr std::array<TType, 5> kPrimitiveTypes{
+    TType::KW_VOID, TType::KW_INT, TType::KW_BOOL, TType::KW_FLOAT, TType::KW_STRING
+  };
+  if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
   }
   throw ParserError{"Function definition doesn't have any of the supported types"};
@@ -146,7 +148,8 @@ std::unique_ptr<BaseStmt> Parser::parseStmt() {
     case TType::KW_BOOL:
     case TType::KW_FLOAT:
     case TType::KW_STRING:
-      if (has2(TType::IDENT)) return parseVarDeclStmt();
+      if (has2(TType::IDENT))
+        return parseVarDeclStmt();
     // <ASSIGNMENT_STMT>
     case TType::IDENT: {         // "a"
       if (has2(TType::OP_ASSN))  // "a="
@@ -394,7 +397,7 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
         tempVar->getToken()->getType(),
         className->getValue<std::string>() + "::" + tempVar->getToken()->getValue<std::string>(),
         tempVar->getToken()->getPosition());
-    return std::make_unique<VarExpr>(methodTok);
+    return std::make_unique<VarExpr>(std::move(methodTok));
   };
 
   auto lhsVar = methodVarExpr();
@@ -428,9 +431,10 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
 std::vector<std::unique_ptr<BaseExpr>> Parser::parseArgsList() {
   // To map possible argsBody types to their selectable closing body types
-  std::unordered_map<TType, TType> expectBodyType = {
-      {TType::OP_PAREN_O, TType::OP_PAREN_C},
-      {TType::OP_BRACE_O, TType::OP_BRACE_C}};
+  std::unordered_map<TType, TType> expectBodyType {
+    {TType::OP_PAREN_O, TType::OP_PAREN_C},
+    {TType::OP_BRACE_O, TType::OP_BRACE_C}
+  };
 
   consume();  // idk why's this required,
               // but it solved the issue with incorrect token types
@@ -466,26 +470,18 @@ std::unique_ptr<BaseExpr> Parser::parseClassInit() {
 std::unique_ptr<BaseExpr> Parser::parseConstExpr() {
   switch (peek()->getType()) {
     // <NUMERIC_CONSTANT> : integer
-    case TType::LIT_INT: {
-      auto intExpr = std::make_unique<IntExpr>(getNextToken());
-      return intExpr;
-    }
+    case TType::LIT_INT:
+      return std::make_unique<IntExpr>(getNextToken());
     // <NUMERIC_CONSTANT> : float
-    case TType::LIT_FLT: {
-      auto fltExpr = std::make_unique<FloatExpr>(getNextToken());
-      return fltExpr;
-    }
+    case TType::LIT_FLT:
+      return std::make_unique<FloatExpr>(getNextToken());
     // <BOOL_CONSTANT>
     case TType::KW_TRUE:
-    case TType::KW_FALSE: {
-      auto boolExpr = std::make_unique<BoolExpr>(getNextToken());
-      return boolExpr;
-    }
+    case TType::KW_FALSE:
+      return std::make_unique<BoolExpr>(getNextToken());
     // <STRING>
-    case TType::LIT_STR: {
-      auto strExpr = std::make_unique<StringExpr>(getNextToken());
-      return strExpr;
-    }
+    case TType::LIT_STR:
+      return std::make_unique<StringExpr>(getNextToken());
   }
   throw ParserError{"Unknown constant expression"};
 }
@@ -755,10 +751,11 @@ std::unique_ptr<BaseDef> Parser::parseClassDef() {
   auto classTypeTok = std::make_shared<Token>(
       TType::KW_CLASS,
       var->getToken()->getValue<std::string>(),
-      var->getToken()->getPosition());
+      var->getToken()->getPosition()
+  );
 
   classDef->addVar(std::move(var));
-  classDef->addType(std::make_unique<PrimitiveType>(classTypeTok));
+  classDef->addType(std::make_unique<PrimitiveType>(std::move(classTypeTok)));
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"

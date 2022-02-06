@@ -111,8 +111,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         return nullptr;
       }
       else {
-        throw LexerError{m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                         ": Unrecognized char"};
+        throw LexerError{
+          m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+          ": Unrecognized char"
+        };
       }
       return nullptr;
 
@@ -145,8 +147,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         } else if (ch == '\"') {
           return finishTok(TType::LIT_STR);
         } else if (ch == -1) {
-          throw LexerError{m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                           ": Unterminated string"};
+          throw LexerError{
+            m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+            ": Unterminated string"
+          };
         }
         m_tokenState.m_buff += ch;
       }
@@ -176,8 +180,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
           break;
         default:
           m_tokenState.m_buff += ch;
-          throw LexerError{m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                           ": Unknown escape symbol"};
+          throw LexerError{
+            m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+            ": Unknown escape symbol"
+          };
       }
       // Continue parsing
       m_tokenState.m_state = State::STRING;
@@ -278,8 +284,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         ++m_tokenState.m_lineNo;
       } else if (ch == -1) {
         // Found EOF
-        throw LexerError{m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                         ": comment wasn't closed"};
+        throw LexerError{
+          m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+          ": comment wasn't closed"
+        };
       }
       return nullptr;
 
@@ -290,8 +298,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         m_tokenState.m_state = State::START;
       } else if (ch == -1) {
         // Reached EOF
-        throw LexerError{m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                         ": comment wasn't closed"};
+        throw LexerError{
+          m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+          ": comment wasn't closed"
+        };
       } else if (ch != '*') {
         // Any other symbol other than '/' must be skipped
         m_tokenState.m_state = State::CMT_II;
@@ -300,8 +310,10 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
 
     /* ~~~ CASE: ERRONEOUS ~~~ */
     default:
-      throw LexerError{m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                       ": Unexpected state"};
+      throw LexerError{
+        m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+        ": Unexpected state"
+      };
   }
 }
 
@@ -339,8 +351,10 @@ void Lexer::tokenizeInput()
       if (result->getType() != TType::TOK_INVALID) {
         m_tokens.push_back(result);
       } else {
-        throw LexerError(m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-                         ": Invalid suffix for " + m_tokenState.m_errType);
+        throw LexerError{
+          m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+          ": Invalid suffix for " + m_tokenState.m_errType
+        };
       }
     }
     ++m_tokenState.m_iterator;
@@ -348,8 +362,7 @@ void Lexer::tokenizeInput()
 
   // Add the EOF token to mark the file's ending
   auto pif = std::make_unique<Position>(m_tokenState.m_fileName, m_tokenState.m_lineNo);
-  auto token = std::make_shared<Token>(TType::TOK_EOF, "[EOF]", std::move(pif));
-  m_tokens.push_back(token);
+  m_tokens.emplace_back(std::make_shared<Token>(TType::TOK_EOF, "[EOF]", std::move(pif)));
 }
 
 void Lexer::prettyPrint() {
