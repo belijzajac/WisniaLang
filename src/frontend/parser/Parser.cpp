@@ -196,7 +196,7 @@ std::unique_ptr<BaseExpr> Parser::parseExpr() {
   auto lhs = parseAndExpr();
   while (has(TType::OP_OR)) {  // ... <OR_SYMB> <AND_EXPR>
     const auto &token = peek();
-    expect(token->getType());  // expect "||"
+    consume();                 // eat "||"
     auto rhs = parseAndExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -214,7 +214,7 @@ std::unique_ptr<BaseExpr> Parser::parseAndExpr() {
   auto lhs = parseEqExpr();
   while (has(TType::OP_AND)) {  // ... <AND_SYMB> <EQUAL_EXPR>
     const auto &token = peek();
-    expect(token->getType());   // expect "&&"
+    consume();                  // eat "&&"
     auto rhs = parseEqExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -233,7 +233,7 @@ std::unique_ptr<BaseExpr> Parser::parseEqExpr() {
   // ... <EQUALITY_SYMB> <COMPARE_EXPR>
   while (hasAnyOf(TType::OP_EQ, TType::OP_NE)) {
     const auto &token = peek();
-    expect(token->getType());  // expect either "==" or "!="
+    consume(); // eat either "==" or "!="
     auto rhs = parseCompExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -252,7 +252,7 @@ std::unique_ptr<BaseExpr> Parser::parseCompExpr() {
   // ... <COMPARISON_SYMB> <ADD_EXPR>
   while (hasAnyOf(TType::OP_G, TType::OP_GE, TType::OP_L, TType::OP_LE)) {
     const auto &token = peek();
-    expect(token->getType());  // expect any of ">", ">=", "<", "<="
+    consume(); // eat any of ">", ">=", "<", "<="
     auto rhs = parseAddExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -271,7 +271,7 @@ std::unique_ptr<BaseExpr> Parser::parseAddExpr() {
   // ... <ADD_OP> <MULT_EXPR>
   while (hasAnyOf(TType::OP_ADD, TType::OP_SUB)) {
     const auto &token = peek();
-    expect(token->getType());  // expect either "+" or "-"
+    consume(); // eat either "+" or "-"
     auto rhs = parseMultExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -294,7 +294,7 @@ std::unique_ptr<BaseExpr> Parser::parseMultExpr() {
   // ... <MULT_OP> <UNARY_EXPR>
   while (hasAnyOf(TType::OP_MUL, TType::OP_DIV)) {
     const auto &token = peek();
-    expect(token->getType());  // expect either "*" or "/"
+    consume(); // eat either "*" or "/"
     auto rhs = parseUnaryExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -320,7 +320,7 @@ std::unique_ptr<BaseExpr> Parser::parseUnaryExpr() {
     auto lhs = std::unique_ptr<BaseExpr>();
     while (isAnyOf()) {  // <UNARY_SYM> ...
       const auto &token = peek();
-      expect(token->getType());  // expect either "!" or "++"
+      consume(); // eat either "!" or "++"
       auto rhs = parseUnaryExpr();
       // Append the unary expression we've just found
       lhs = std::make_unique<UnaryExpr>(token);
