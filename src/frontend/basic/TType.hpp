@@ -10,6 +10,7 @@ enum class TType {
   LIT_INT,
   LIT_FLT,
   LIT_STR,
+  LIT_BOOL,
   IDENT,
   // Keywords
   KW_FN,
