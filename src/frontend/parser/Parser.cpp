@@ -515,7 +515,6 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
   auto varType = parsePrimitiveType();
   varDeclPtr->addVar(parseVar());
-  varDeclPtr->addType(std::move(varType));
   std::unique_ptr<BaseExpr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -531,9 +530,33 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   }
   // <TYPE> <VAR>
   else {
-    expect(TType::OP_SEMICOLON);
-    return varDeclPtr;
+    // add default values
+    switch (varType->getType()) {
+      case TType::KW_INT: {
+        auto intToken = std::make_shared<Token>(TType::LIT_INT, 0, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<IntExpr>(std::move(intToken));
+        break;
+      }
+      case TType::KW_FLOAT: {
+        auto floatToken = std::make_shared<Token>(TType::LIT_FLT, 0.0f, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<FloatExpr>(std::move(floatToken));
+        break;
+      }
+      case TType::KW_STRING: {
+        auto stringToken = std::make_shared<Token>(TType::LIT_STR, "", varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<StringExpr>(std::move(stringToken));
+        break;
+      }
+      case TType::KW_BOOL: {
+        auto boolToken = std::make_shared<Token>(TType::LIT_BOOL, false, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<BoolExpr>(std::move(boolToken));
+        break;
+      }
+      default:
+        throw ParserError{"Failed to assign default value for " + varDeclPtr->getVar()->getToken()->getASTValueStr()};
+    }
   }
+  varDeclPtr->addType(std::move(varType));
   varDeclPtr->addValue(std::move(varValue));
   expect(TType::OP_SEMICOLON);
   return varDeclPtr;
