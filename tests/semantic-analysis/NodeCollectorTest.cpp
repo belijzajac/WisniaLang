@@ -63,9 +63,9 @@ TEST_F(NodeCollectorTest, AddExpr) {
   NodeCollector<AST::AddExpr> collector;
   m_root->accept(&collector);
   auto collectedNodes = collector.getNodes();
-  EXPECT_EQ(collector.getNodes().size(), 4);
-  constexpr std::array<char, 4> kExpectedValues{'+', '+', '+', '-'};
-  for (size_t i = 0; i < 4; i++) {
+  EXPECT_EQ(collector.getNodes().size(), 3);
+  constexpr std::array<char, 3> kExpectedValues{'+', '+', '+'};
+  for (size_t i = 0; i < 3; i++) {
     EXPECT_TRUE(collectedNodes[i]->getStrOperand() == std::string{kExpectedValues[i]});
   }
 }

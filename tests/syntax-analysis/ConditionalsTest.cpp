@@ -62,7 +62,7 @@ TEST(ParserTest, Conditionals) {
     EXPECT_STREQ(ifFnCall->getToken()->getValue<std::string>().c_str(), "f");
     EXPECT_EQ(ifFnCall->getArgs().size(), 2);
     // (5 - 1,
-    auto ifFnCallSubArg = dynamic_cast<AST::AddExpr *>(&*ifFnCall->getArgs()[0]);
+    auto ifFnCallSubArg = dynamic_cast<AST::SubExpr *>(&*ifFnCall->getArgs()[0]);
     EXPECT_NE(ifFnCallSubArg, nullptr);
     EXPECT_EQ(ifFnCallSubArg->getOperand(), TType::OP_SUB);
     // 5
