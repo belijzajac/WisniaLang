@@ -13,9 +13,16 @@
 namespace Wisnia {
 
 class IRGenerator : public Visitor {
+  using instructions_list  = std::vector<std::unique_ptr<Instruction>>;
+  using tmp_variables_list = std::vector<std::unique_ptr<AST::VarExpr>>;
+
  public:
-  const std::vector<std::unique_ptr<Instruction>> &getInstructions() const {
+  const instructions_list &getInstructions() const {
     return m_instructions;
+  }
+
+  const tmp_variables_list &getTemporaryVars() const {
+    return m_tempVars;
   }
 
   void printInstructions() const;
@@ -65,10 +72,9 @@ class IRGenerator : public Visitor {
   void genBinaryExpr(Basic::TType exprType);
 
  private:
-  using node_t = AST::Root *;
-  std::stack<node_t> m_stack;
-  std::vector<std::unique_ptr<Instruction>> m_instructions;
-  std::vector<std::unique_ptr<AST::VarExpr>> m_tempVars;
+  std::stack<AST::Root *> m_stack;
+  instructions_list m_instructions;
+  tmp_variables_list m_tempVars;
 };
 
 }  // namespace Wisnia
