@@ -11,9 +11,12 @@ if(UNIT_TESTS)
   include(GoogleTest)
   enable_testing()
 
+  # frontend
   add_subdirectory(lexical-analysis)
   add_subdirectory(syntax-analysis)
   add_subdirectory(semantic-analysis)
+  # backend
+  add_subdirectory(intermediate-representation)
 
   modify_sources(WISNIA_SOURCES)
   add_executable(wisnia-tests
