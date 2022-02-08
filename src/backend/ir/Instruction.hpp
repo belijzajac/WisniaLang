@@ -37,7 +37,7 @@ enum class Operation {
   NOP   // do nothing
 };
 
-static inline std::unordered_map<Operation, std::string> Operator2Str {
+static inline std::unordered_map<Operation, std::string> Operation2Str {
   // arithmetic (each for int and float)
   {Operation::IADD, "+"}, {Operation::FADD, "+"},
   {Operation::ISUB, "-"}, {Operation::FSUB, "-"},
@@ -65,21 +65,28 @@ static inline std::unordered_map<Operation, std::string> Operator2Str {
 };
 
 class Instruction {
+  using token_ptr = std::shared_ptr<Basic::Token>;
+
  public:
   Instruction(
     Operation op,
-    const std::shared_ptr<Basic::Token> &target,
-    const std::shared_ptr<Basic::Token> &arg1,
-    const std::shared_ptr<Basic::Token> &arg2 = nullptr
-  ) : m_operator{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
+    const token_ptr &target,
+    const token_ptr &arg1,
+    const token_ptr &arg2 = nullptr
+  ) : m_operation{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
+
+  Operation getOperation() const { return m_operation; }
+  const token_ptr &getTarget() const { return m_target; }
+  const token_ptr &getArg1() const { return m_arg1; }
+  const token_ptr &getArg2() const { return m_arg2; }
 
   void print() const;
 
  private:
-  Operation m_operator;
-  std::shared_ptr<Basic::Token> m_target;
-  std::shared_ptr<Basic::Token> m_arg1;
-  std::shared_ptr<Basic::Token> m_arg2;
+  Operation m_operation;
+  token_ptr m_target;
+  token_ptr m_arg1;
+  token_ptr m_arg2;
 };
 
 }  // namespace Wisnia
