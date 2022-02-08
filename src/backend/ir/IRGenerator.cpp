@@ -55,9 +55,9 @@ constexpr Operation getOperationForBinaryExpr(Basic::TType exprType, bool isFloa
       return binaryExprMapping[4][isFloat];
     case Basic::TType::OP_L:
       return binaryExprMapping[5][isFloat];
-    case Basic::TType::OP_G:
-      return binaryExprMapping[6][isFloat];
     case Basic::TType::OP_LE:
+      return binaryExprMapping[6][isFloat];
+    case Basic::TType::OP_G:
       return binaryExprMapping[7][isFloat];
     case Basic::TType::OP_GE:
       return binaryExprMapping[8][isFloat];
@@ -76,11 +76,6 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
   auto rhs = popNode();
   auto lhs = popNode();
 
-  // Assume that ttype(lhs) == ttype(rhs). In the semantic analysis step, it's mandatory to check
-  // node types, and perhaps replace them if they differ and are guaranteed to be of the same type.
-  // That is the case here as well, except rhs/lfs might be a temporary variable that we just created
-  assert(rhs->getToken()->getType() == lhs->getToken()->getType());
-
   auto varToken = std::make_shared<Basic::Token>(
     rhs->getToken()->getType(),
     "_t" + std::to_string(m_tempVars.size())
@@ -96,8 +91,8 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     op,              // <op>
     varToken,        // _tx
-    rhs->getToken(), // a
-    lhs->getToken()  // b
+    lhs->getToken(), // b
+    rhs->getToken()  // a
   ));
 }
 
