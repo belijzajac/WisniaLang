@@ -387,12 +387,6 @@ class ConstExpr : public BaseExpr {
     v->visit(this);
   }
 
-  std::string kind() const override {
-    std::stringstream ss;
-    ss << "ConstExpr" << " (" << m_token->getASTValueStr() << ")";
-    return ss.str();
-  }
-
  protected:
   explicit ConstExpr(const std::shared_ptr<Basic::Token> &tok)
       : BaseExpr(tok) {}
@@ -406,6 +400,12 @@ class IntExpr : public ConstExpr {
   void accept(Visitor *v) override {
     v->visit(this);
   }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "IntExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
+  }
 };
 
 class FloatExpr : public ConstExpr {
@@ -415,6 +415,12 @@ class FloatExpr : public ConstExpr {
 
   void accept(Visitor *v) override {
     v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "FloatExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
   }
 };
 
@@ -426,6 +432,12 @@ class BoolExpr : public ConstExpr {
   void accept(Visitor *v) override {
     v->visit(this);
   }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "BoolExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
+  }
 };
 
 class StringExpr : public ConstExpr {
@@ -435,6 +447,12 @@ class StringExpr : public ConstExpr {
 
   void accept(Visitor *v) override {
     v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "StringExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
   }
 };
 

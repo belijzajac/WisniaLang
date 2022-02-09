@@ -139,7 +139,7 @@ class VarDeclStmt : public BaseStmt {
   void print(size_t level) const override {
     BaseStmt::print(level++);
     m_var->print(level);
-    if (m_value) m_value->print(level);
+    m_value->print(level);
   }
 
   void addType(std::unique_ptr<BaseType> type) const {
