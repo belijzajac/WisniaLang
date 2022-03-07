@@ -104,7 +104,7 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
 
 // <TYPE> ::= "void" | "int" | "bool" | "float" | "string"
 std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
-  constexpr std::array<TType, 5> kPrimitiveTypes{
+  constexpr std::array<TType, 5> kPrimitiveTypes {
     TType::KW_VOID, TType::KW_INT, TType::KW_BOOL, TType::KW_FLOAT, TType::KW_STRING
   };
   if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {

@@ -12,6 +12,11 @@ enum class TType {
   LIT_STR,
   LIT_BOOL,
   IDENT,
+  IDENT_VOID,
+  IDENT_INT,
+  IDENT_BOOL,
+  IDENT_FLOAT,
+  IDENT_STRING,
   // Keywords
   KW_FN,
   KW_CLASS,
@@ -79,6 +84,11 @@ static inline std::unordered_map<TType, std::string> TokenType2Str {
   {TType::LIT_FLT, "LIT_FLT"},
   {TType::LIT_STR, "LIT_STR"},
   {TType::IDENT, "IDENT"},
+  {TType::IDENT_VOID, "IDENT_VOID"},
+  {TType::IDENT_INT, "IDENT_INT"},
+  {TType::IDENT_BOOL, "IDENT_BOOL"},
+  {TType::IDENT_FLOAT, "IDENT_FLOAT"},
+  {TType::IDENT_STRING, "IDENT_STRING"},
   // Keywords
   {TType::KW_FN, "KW_FN"},
   {TType::KW_CLASS, "KW_CLASS"},

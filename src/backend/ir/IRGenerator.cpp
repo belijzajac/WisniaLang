@@ -11,8 +11,8 @@ using namespace AST;
 
 void IRGenerator::printInstructions() const {
   size_t index = 0;
-  fmt::print("{:^17}|{:^5}|{:^17}|{:^17}\n", "Target", "Op", "Arg1", "Arg2");
-  fmt::print("-----------------+-----+-----------------+-----------------\n");
+  fmt::print("{:^34}|{:^8}|{:^34}|{:^34}\n", "Target", "Op", "Arg1", "Arg2");
+  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", 35, "+", 9, "+", 35, "", 34);
   for (const auto &ir : m_instructions) {
     ir->print();
     ++index;

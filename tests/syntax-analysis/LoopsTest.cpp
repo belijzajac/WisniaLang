@@ -61,7 +61,7 @@ TEST(ParserTest, Loops) {
     auto forLoopInitVar = dynamic_cast<AST::VarExpr *>(&*forLoopInit->getVar());
     EXPECT_EQ(forLoopInitVar->getType()->getType(), TType::KW_INT);
     // i
-    EXPECT_EQ(forLoopInitVar->getToken()->getType(), TType::IDENT);
+    EXPECT_EQ(forLoopInitVar->getToken()->getType(), TType::IDENT_INT);
     EXPECT_STREQ(forLoopInitVar->getToken()->getValue<std::string>().c_str(), "i");
     // 0
     auto forLoopInitConstExpr = dynamic_cast<AST::IntExpr *>(&*forLoopInit->getValue());

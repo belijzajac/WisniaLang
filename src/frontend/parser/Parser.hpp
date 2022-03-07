@@ -88,7 +88,7 @@ class Parser {
   // Parses parameters list, found in function and ctor/dtor definitions
   std::vector<std::unique_ptr<AST::Param>> parseParamsList();
 
-  // Parses function return type
+  // Parses primitive types
   std::unique_ptr<AST::BaseType> parsePrimitiveType();
 
   // Parses statement block

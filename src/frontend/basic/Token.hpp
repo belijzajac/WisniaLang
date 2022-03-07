@@ -50,6 +50,7 @@ class Token {
   };
 
   TType getType() const { return m_type; }
+  void setType(TType type) { m_type = type; }
   std::string &getName() const { return TokenType2Str[m_type]; }
   Position &getPosition() const { return *m_position; }
 

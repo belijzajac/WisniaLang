@@ -58,6 +58,27 @@ class VarExpr : public BaseExpr {
 
   void addType(std::unique_ptr<BaseType> type) {
     m_type = std::move(type);
+    Basic::TType tokenType;
+    switch (m_type->getType()) {
+      case Basic::TType::KW_VOID:
+        tokenType = Basic::TType::IDENT_VOID;
+        break;
+      case Basic::TType::KW_INT:
+        tokenType = Basic::TType::IDENT_INT;
+        break;
+      case Basic::TType::KW_BOOL:
+        tokenType = Basic::TType::IDENT_BOOL;
+        break;
+      case Basic::TType::KW_FLOAT:
+        tokenType = Basic::TType::IDENT_FLOAT;
+        break;
+      case Basic::TType::KW_STRING:
+        tokenType = Basic::TType::IDENT_STRING;
+        break;
+      default:
+        tokenType = m_type->getType();
+    }
+    m_token->setType(tokenType);
   }
 
   const std::unique_ptr<BaseType> &getType() const {
