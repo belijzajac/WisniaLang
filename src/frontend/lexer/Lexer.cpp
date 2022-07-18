@@ -59,7 +59,7 @@ std::shared_ptr<Token> Lexer::finishIdent() {
 }
 
 // Tokenize the following character
-std::shared_ptr<Token> Lexer::tokNext(char ch) {
+std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
   switch (m_tokenState.m_state) {
     /* ~~~ CASE: START ~~~ */
     case State::START:
@@ -97,7 +97,6 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       }
       else if (ch == '/') {
         m_tokenState.m_state = State::CMT_I;
-        return nullptr;
       }
       else if (ch == '#') {
         m_tokenState.m_state = State::CMT_SINGLE;
@@ -108,7 +107,6 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       }
       else if (isspace(ch)) {
         if (ch == '\n') ++m_tokenState.m_lineNo;
-        return nullptr;
       }
       else {
         throw LexerError{
@@ -116,14 +114,14 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
           ": Unrecognized char"
         };
       }
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: IDENT ~~~ */
     case State::IDENT:
       if (isspace(ch)) return finishIdent();
       if (!isalpha(ch) && !isdigit(ch) && ch != '_') return finishIdent();
       m_tokenState.m_buff += ch;
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: OP_COMPARE ~~~ */
     case State::OP_COMPARE:
@@ -154,7 +152,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         }
         m_tokenState.m_buff += ch;
       }
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: ESCAPE_SEQ ~~~ */
     case State::ESCAPE_SEQ:
@@ -187,7 +185,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
       }
       // Continue parsing
       m_tokenState.m_state = State::STRING;
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: INTEGER ~~~ */
     case State::INTEGER:
@@ -202,7 +200,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         return finishTok(TType::LIT_INT, true);
       }
       m_tokenState.m_buff += ch;
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: FLOAT ~~~ */
     case State::FLOAT:
@@ -215,7 +213,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         return finishTok(TType::LIT_FLT, true);
       }
       m_tokenState.m_buff += ch;
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: ERRONEOUS_NUMBER ~~~ */
     case State::ERRONEOUS_NUMBER:
@@ -224,7 +222,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         return finishTok(TType::TOK_INVALID);
       }
       m_tokenState.m_buff += ch;
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: LOGIC_AND ~~~ */
     case State::LOGIC_AND:
@@ -260,14 +258,14 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         m_tokenState.m_state = State::START;
         ++m_tokenState.m_lineNo;
       }
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: CMT_I ~~~ */
     case State::CMT_I:
       if (ch == '*') {
         // It's indeed a multi-line comment
         m_tokenState.m_state = State::CMT_II;
-        return nullptr;
+        return {};
       } else {
         // It was just a division symbol
         m_tokenState.m_state = State::START;
@@ -289,7 +287,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
           ": comment wasn't closed"
         };
       }
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: CMT_III ~~~ */
     case State::CMT_III:
@@ -306,7 +304,7 @@ std::shared_ptr<Token> Lexer::tokNext(char ch) {
         // Any other symbol other than '/' must be skipped
         m_tokenState.m_state = State::CMT_II;
       }
-      return nullptr;
+      return {};
 
     /* ~~~ CASE: ERRONEOUS ~~~ */
     default:
@@ -341,20 +339,17 @@ void Lexer::tokenizeInput()
   // when we reach the end of file and escape the condition `if(currState == MAIN)`
   if (m_tokenState.m_data.back() != '\n') m_tokenState.m_data += '\n';
 
-  // Set an iterator to the begin of the data
+  // Set an iterator to the beginning of the data
   // And file name for the file being tokenized at the moment
   m_tokenState.m_iterator = m_tokenState.m_data.begin();
   while (m_tokenState.m_iterator != m_tokenState.m_data.end()) {
-    auto result = tokNext(*m_tokenState.m_iterator);
-    // Put only valid tokens into the tokens vector
-    if (result != nullptr) {
-      if (result->getType() != TType::TOK_INVALID) {
-        m_tokens.push_back(result);
+    if (auto result = tokNext(*m_tokenState.m_iterator); result.has_value()) {
+      if (result.value()->getType() != TType::TOK_INVALID) {
+        m_tokens.push_back(*result);
       } else {
         throw LexerError{
-          m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-          ": Invalid suffix for " + m_tokenState.m_errType
-        };
+            m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
+            ": Invalid suffix for " + m_tokenState.m_errType};
       }
     }
     ++m_tokenState.m_iterator;

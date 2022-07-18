@@ -2,6 +2,7 @@
 #define WISNIALANG_LEXER_HPP
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -59,7 +60,7 @@ class Lexer {
   std::shared_ptr<Basic::Token> finishIdent();
 
   // Continues to tokenize the next letter
-  std::shared_ptr<Basic::Token> tokNext(char ch);
+  std::optional<std::shared_ptr<Basic::Token>> tokNext(char ch);
 
   // Tokenizes whatever was passed to the tokenize function
   void tokenizeInput();
