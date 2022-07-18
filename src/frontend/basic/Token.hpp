@@ -39,11 +39,11 @@ class Token {
   std::string getASTValueStr() const {
     std::string strResult{};
     std::visit(overloaded {
-      [&](const std::string &arg) { strResult = (m_type == TType::LIT_STR) ? "\"" + arg + "\"" : arg; },
-      [&](int arg) { strResult = std::to_string(arg); },
-      [&](float arg) { strResult = std::to_string(arg); },
-      [&](bool arg) { strResult = arg ? "true" : "false"; },
-      [&](nullptr_t arg) { strResult = "null"; },
+      [&](const std::string& arg) { strResult = (m_type == TType::LIT_STR) ? ("\"" + arg + "\"") : arg; },
+      [&](int arg)                { strResult = std::to_string(arg); },
+      [&](float arg)              { strResult = std::to_string(arg); },
+      [&](bool arg)               { strResult = arg ? "true" : "false"; },
+      [&](nullptr_t arg)          { strResult = "null"; },
     },
     m_value);
     return strResult;

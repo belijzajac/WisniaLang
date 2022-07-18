@@ -7,8 +7,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   set(UNIT_TESTS ON)
 endif()
 
-# We're using C++17
-set(CMAKE_CXX_STANDARD 17)
+# We're using C++20
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Locate CMake helper modules
