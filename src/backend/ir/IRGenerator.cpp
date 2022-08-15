@@ -1,3 +1,4 @@
+#include <array>
 #include <cassert>
 // Wisnia
 #include "IRGenerator.hpp"

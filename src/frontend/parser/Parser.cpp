@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <unordered_map>
 // Wisnia
 #include "Parser.hpp"
@@ -482,8 +483,9 @@ std::unique_ptr<BaseExpr> Parser::parseConstExpr() {
     // <STRING>
     case TType::LIT_STR:
       return std::make_unique<StringExpr>(getNextToken());
+    default:
+      throw ParserError{"Unknown constant expression"};
   }
-  throw ParserError{"Unknown constant expression"};
 }
 
 // <LOOP_BREAK_STMT> <STMT_END>

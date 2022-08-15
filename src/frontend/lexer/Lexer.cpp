@@ -1,11 +1,12 @@
+#include <fmt/format.h>
+
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include <vector>
-#include <fmt/format.h>
 // Wisnia
 #include "Lexer.hpp"
 #include "Exceptions.hpp"
