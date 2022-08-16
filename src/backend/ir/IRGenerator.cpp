@@ -12,8 +12,8 @@ using namespace AST;
 
 void IRGenerator::printInstructions() const {
   size_t index = 0;
-  fmt::print("{:^34}|{:^8}|{:^34}|{:^34}\n", "Target", "Op", "Arg1", "Arg2");
-  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", 35, "+", 9, "+", 35, "", 34);
+  fmt::print("{:^34}|{:^9}|{:^34}|{:^34}\n", "Target", "Op", "Arg1", "Arg2");
+  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", 35, "+", 10, "+", 35, "", 34);
   for (const auto &ir : m_instructions) {
     ir->print();
     ++index;
@@ -238,6 +238,37 @@ void IRGenerator::visit(AST::WriteStmt *node) {
   for (const auto &expr : node->getExprs()) {
     expr->accept(this);
   }
+
+  auto expr = popNode();
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::IDENT, "rdx"),
+    std::make_shared<Basic::Token>(TType::IDENT_INT, static_cast<int>(expr->getToken()->getValue<std::string/*decltype(expr)*/>().length()))
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::IDENT, "rcx"),
+    std::make_shared<Basic::Token>(TType::IDENT_STRING, expr->getToken()->getValue<std::string/*decltype(expr)*/>())
+  ));
+  // write to STDOUT
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::IDENT, "rbx"),
+    std::make_shared<Basic::Token>(TType::IDENT_INT, 1)
+  ));
+  // sys_write
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::IDENT, "rax"),
+    std::make_shared<Basic::Token>(TType::IDENT_INT, 4)
+  ));
+  // syscall
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::SYSCALL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_INT, 128)
+  ));
 }
 
 void IRGenerator::visit(AST::Param *node) {

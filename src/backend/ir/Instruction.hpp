@@ -28,13 +28,13 @@ enum class Operation {
   AND,
   OR,
   // miscellaneous
-  MOV,  // move to/from register
-  JMP,  // unconditional jump
-  BR,   // conditional branch
-  CALL, // function invocation
-  RET,  // function return
-  PRNT, // output values to the console
-  NOP   // do nothing
+  MOV,     // move to/from register
+  JMP,     // unconditional jump
+  BR,      // conditional branch
+  CALL,    // function invocation
+  SYSCALL, // system call
+  RET,     // function return
+  NOP      // do nothing
 };
 
 static inline std::unordered_map<Operation, std::string> Operation2Str {
@@ -55,13 +55,13 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::AND, "&&"},
   {Operation::OR,  "||"},
   // miscellaneous
-  {Operation::MOV,  "<-"   },
-  {Operation::JMP,  "jmp"  },
-  {Operation::BR,   "br"   },
-  {Operation::CALL, "call" },
-  {Operation::RET,  "ret"  },
-  {Operation::PRNT, "print"},
-  {Operation::NOP,  "nop"  },
+  {Operation::MOV,     "<-"      },
+  {Operation::JMP,     "jmp"     },
+  {Operation::BR,      "br"      },
+  {Operation::CALL,    "call"    },
+  {Operation::SYSCALL, "syscall" },
+  {Operation::RET,     "ret"     },
+  {Operation::NOP,     "nop"     },
 };
 
 class Instruction {
