@@ -20,5 +20,6 @@ set(WISNIA_SOURCES
   backend/ir/IRGenerator.cpp
   backend/ir/Instruction.hpp
   backend/ir/Instruction.cpp
+  backend/ir/Operation.hpp
   PARENT_SCOPE
 )

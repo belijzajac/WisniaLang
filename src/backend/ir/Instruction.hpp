@@ -22,67 +22,13 @@
 #define WISNIALANG_INSTRUCTION_HPP
 
 #include <memory>
-#include <string>
-#include <unordered_map>
+// Wisnia
+#include "Operation.hpp"
 
 namespace Wisnia {
 namespace Basic {
 class Token;
 }  // namespace Basic
-
-enum class Operation {
-  // arithmetic (each for int and float)
-  IADD,  FADD,
-  ISUB,  FSUB,
-  IMUL,  FMUL,
-  IDIV,  FDIV,
-  // comparison (each for int and float)
-  IEQ,   FEQ,
-  ILT,   FLT,
-  ILE,   FLE,
-  IGT,   FGT,
-  IGE,   FGE,
-  INE,   FNE,
-  // logical
-  NOT,
-  AND,
-  OR,
-  // miscellaneous
-  MOV,     // move to/from register
-  JMP,     // unconditional jump
-  BR,      // conditional branch
-  CALL,    // function invocation
-  SYSCALL, // system call
-  RET,     // function return
-  NOP      // do nothing
-};
-
-static inline std::unordered_map<Operation, std::string> Operation2Str {
-  // arithmetic (each for int and float)
-  {Operation::IADD, "+"}, {Operation::FADD, "+"},
-  {Operation::ISUB, "-"}, {Operation::FSUB, "-"},
-  {Operation::IMUL, "*"}, {Operation::FMUL, "*"},
-  {Operation::IDIV, "/"}, {Operation::FDIV, "/"},
-  // comparison (each for int and float)
-  {Operation::IEQ, "=="}, {Operation::FEQ, "=="},
-  {Operation::ILT, "<" }, {Operation::FLT, "<" },
-  {Operation::ILE, "<="}, {Operation::FLE, "<="},
-  {Operation::IGT, ">" }, {Operation::FGT, ">" },
-  {Operation::IGE, ">="}, {Operation::FGE, ">="},
-  {Operation::INE, "!="}, {Operation::FNE, "!="},
-  // logical
-  {Operation::NOT, "!" },
-  {Operation::AND, "&&"},
-  {Operation::OR,  "||"},
-  // miscellaneous
-  {Operation::MOV,     "<-"      },
-  {Operation::JMP,     "jmp"     },
-  {Operation::BR,      "br"      },
-  {Operation::CALL,    "call"    },
-  {Operation::SYSCALL, "syscall" },
-  {Operation::RET,     "ret"     },
-  {Operation::NOP,     "nop"     },
-};
 
 class Instruction {
   using token_ptr = std::shared_ptr<Basic::Token>;
