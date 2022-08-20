@@ -26,6 +26,8 @@
 namespace Wisnia::Basic {
 
 enum class TType {
+  // Low level
+  REGISTER,
   // Main types
   LIT_INT,
   LIT_FLT,
@@ -99,6 +101,8 @@ enum class TType {
 };
 
 static inline std::unordered_map<TType, std::string> TokenType2Str {
+  // Low level
+  {TType::REGISTER, "REGISTER"},
   // Main types
   {TType::LIT_INT, "LIT_INT"},
   {TType::LIT_FLT, "LIT_FLT"},

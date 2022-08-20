@@ -263,27 +263,24 @@ void IRGenerator::visit(AST::WriteStmt *node) {
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    std::make_shared<Basic::Token>(TType::IDENT, "rdx"),
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
     std::make_shared<Basic::Token>(TType::IDENT_INT, static_cast<int>(expr->getToken()->getValue<std::string/*decltype(expr)*/>().length()))
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    std::make_shared<Basic::Token>(TType::IDENT, "rcx"),
+    std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
     std::make_shared<Basic::Token>(TType::IDENT_STRING, expr->getToken()->getValue<std::string/*decltype(expr)*/>())
   ));
-  // write to STDOUT
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    std::make_shared<Basic::Token>(TType::IDENT, "rbx"),
+    std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
     std::make_shared<Basic::Token>(TType::IDENT_INT, 1)
   ));
-  // sys_write
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    std::make_shared<Basic::Token>(TType::IDENT, "rax"),
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
     std::make_shared<Basic::Token>(TType::IDENT_INT, 4)
   ));
-  // syscall
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::SYSCALL,
     nullptr,
