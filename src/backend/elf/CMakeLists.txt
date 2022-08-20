@@ -14,11 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-add_subdirectory(ir)
-add_subdirectory(elf)
-add_subdirectory(codegen)
-
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
+  backend/elf/ELF.hpp
+  backend/elf/ELF.cpp
   PARENT_SCOPE
 )

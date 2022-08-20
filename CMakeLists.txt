@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(WisniaLang)
 
-option(UNIT_TESTS "Build all of wisnia's unit tests" OFF)
+option(UNIT_TESTS "Build unit tests" OFF)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   set(UNIT_TESTS ON)
@@ -48,6 +48,8 @@ include_directories(
   src/frontend/sema/
 # backend
   src/backend/ir/
+  src/backend/elf/
+  src/backend/codegen/
 )
 
 add_subdirectory(src)
