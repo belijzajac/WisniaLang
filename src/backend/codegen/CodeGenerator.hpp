@@ -21,9 +21,25 @@
 #ifndef WISNIALANG_CODE_GENERATOR_HPP
 #define WISNIALANG_CODE_GENERATOR_HPP
 
+#include <memory>
+#include <vector>
+
 namespace Wisnia {
+class Instruction;
 
 class CodeGenerator {
+  using instruction_list = std::vector<std::unique_ptr<Instruction>>;
+  using byte_list = std::vector<std::byte>;
+ public:
+  const byte_list &getTextSection() const { return m_textSection; }
+  const byte_list &getDataSection() const { return m_dataSection; }
+  void generateCode(const instruction_list &instructions);
+ private:
+  void emitMove(const std::unique_ptr<Instruction> &instruction);
+ private:
+  instruction_list m_instructions;
+  byte_list m_textSection;
+  byte_list m_dataSection;
 };
 
 }  // namespace Wisnia

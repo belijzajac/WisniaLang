@@ -21,11 +21,12 @@
 #include <iostream>
 // Wisnia
 #include "AST.hpp"
-#include "Lexer.hpp"
-#include "Parser.hpp"
-#include "NameResolver.hpp"
-#include "IRGenerator.hpp"
+#include "CodeGenerator.hpp"
 #include "Exceptions.hpp"
+#include "IRGenerator.hpp"
+#include "Lexer.hpp"
+#include "NameResolver.hpp"
+#include "Parser.hpp"
 
 using namespace Wisnia;
 using namespace Utils;
@@ -52,6 +53,9 @@ int main(int argc, char *argv[]) {
     IRGenerator generator;
     root->accept(&generator);
     generator.printInstructions();
+    //...
+    auto codeGenerator = std::make_unique<CodeGenerator>();
+    codeGenerator->generateCode(generator.getInstructions());
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;
@@ -59,6 +63,4 @@ int main(int argc, char *argv[]) {
     std::cerr << "Caught an undefined exception\n";
     return -1;
   }
-
-  return 0;
 }

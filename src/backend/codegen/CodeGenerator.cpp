@@ -18,8 +18,52 @@
 
 ***/
 
+#include <bitset>
+#include <cstddef>
+#include <iostream>
 // Wisnia
 #include "CodeGenerator.hpp"
+#include "Instruction.hpp"
+#include "Token.hpp"
 
 using namespace Wisnia;
+using namespace Basic;
 
+std::ostream& operator<< (std::ostream& os, std::byte b) {
+  return os << std::to_integer<int>(b);
+}
+
+static inline std::unordered_map<std::string, std::byte> RegisterNumber {
+  {"rax", std::byte{0xc0}},
+  {"rcx", std::byte{0xc1}},
+  {"rdx", std::byte{0xc2}},
+  {"rbx", std::byte{0xc3}},
+  {"rsp", std::byte{0xc4}},
+  {"rbp", std::byte{0xc5}},
+  {"rsi", std::byte{0xc6}},
+  {"rdi", std::byte{0xc7}}
+};
+
+void CodeGenerator::generateCode(const CodeGenerator::instruction_list &instructions) {
+  for (const auto &instruction : instructions) {
+    switch (instruction->getOperation()) {
+      case Operation::MOV:
+        emitMove(instruction);
+        break;
+    }
+  }
+  std::cout << "Instructions:\n";
+  for (const auto byte : m_textSection) {
+    std::cout << byte << '\n';
+  }
+}
+
+void CodeGenerator::emitMove(const std::unique_ptr<Instruction> &instruction) {
+  // Moving a number to a register
+  if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_INT) {
+    m_textSection.emplace_back(std::byte{0x48});
+    m_textSection.emplace_back(std::byte{0xc7});
+    m_textSection.emplace_back(RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
+    m_textSection.emplace_back(std::byte{(std::byte)instruction->getArg1()->getValue<int>()});
+  }
+}
