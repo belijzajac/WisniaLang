@@ -22,6 +22,7 @@
 // Wisnia
 #include "AST.hpp"
 #include "CodeGenerator.hpp"
+#include "ELF.hpp"
 #include "Exceptions.hpp"
 #include "IRGenerator.hpp"
 #include "Lexer.hpp"
@@ -56,6 +57,9 @@ int main(int argc, char *argv[]) {
     //...
     auto codeGenerator = std::make_unique<CodeGenerator>();
     codeGenerator->generateCode(generator.getInstructions());
+    //...
+    auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
+    elf->compile();
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;

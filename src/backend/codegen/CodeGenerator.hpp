@@ -28,18 +28,21 @@ namespace Wisnia {
 class Instruction;
 
 class CodeGenerator {
-  using instruction_list = std::vector<std::unique_ptr<Instruction>>;
-  using byte_list = std::vector<std::byte>;
+  using InstructionValue = std::unique_ptr<Instruction>;
+  using Bytes = std::vector<std::byte>;
+
  public:
-  const byte_list &getTextSection() const { return m_textSection; }
-  const byte_list &getDataSection() const { return m_dataSection; }
-  void generateCode(const instruction_list &instructions);
+  const Bytes &getTextSection() const { return m_textSection; }
+  const Bytes &getDataSection() const { return m_dataSection; }
+  void generateCode(const std::vector<InstructionValue> &instructions);
+
  private:
-  void emitMove(const std::unique_ptr<Instruction> &instruction);
+  void emitMove(const InstructionValue &instruction);
+
  private:
-  instruction_list m_instructions;
-  byte_list m_textSection;
-  byte_list m_dataSection;
+  std::vector<InstructionValue> m_instructions;
+  Bytes m_textSection;
+  Bytes m_dataSection;
 };
 
 }  // namespace Wisnia

@@ -21,9 +21,23 @@
 #ifndef WISNIALANG_ELF_HPP
 #define WISNIALANG_ELF_HPP
 
+#include <vector>
+
 namespace Wisnia {
 
 class ELF {
+  using Bytes = std::vector<std::byte>;
+
+ public:
+  ELF(const Bytes &textSection, const Bytes &dataSection);
+  void compile();
+
+ private:
+  Bytes assembleELF();
+
+ private:
+  Bytes mTextSection{};
+  Bytes mDataSection{};
 };
 
 }  // namespace Wisnia

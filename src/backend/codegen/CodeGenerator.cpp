@@ -29,9 +29,9 @@
 using namespace Wisnia;
 using namespace Basic;
 
-std::ostream& operator<< (std::ostream& os, std::byte b) {
-  return os << std::to_integer<int>(b);
-}
+//std::ostream& operator<< (std::ostream &os, std::byte b) {
+//  return os << std::to_integer<int>(b);
+//}
 
 static inline std::unordered_map<std::string, std::byte> RegisterNumber {
   {"rax", std::byte{0xc0}},
@@ -44,7 +44,7 @@ static inline std::unordered_map<std::string, std::byte> RegisterNumber {
   {"rdi", std::byte{0xc7}}
 };
 
-void CodeGenerator::generateCode(const CodeGenerator::instruction_list &instructions) {
+void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionValue> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
       case Operation::MOV:
@@ -52,18 +52,23 @@ void CodeGenerator::generateCode(const CodeGenerator::instruction_list &instruct
         break;
     }
   }
-  std::cout << "Instructions:\n";
-  for (const auto byte : m_textSection) {
-    std::cout << byte << '\n';
-  }
+  //std::cout << "Instructions:\n";
+  //for (const auto byte : m_textSection) {
+  //  std::cout << byte << '\n';
+  //}
 }
 
-void CodeGenerator::emitMove(const std::unique_ptr<Instruction> &instruction) {
+void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction) {
   // Moving a number to a register
   if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_INT) {
     m_textSection.emplace_back(std::byte{0x48});
     m_textSection.emplace_back(std::byte{0xc7});
     m_textSection.emplace_back(RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
-    m_textSection.emplace_back(std::byte{(std::byte)instruction->getArg1()->getValue<int>()});
+    // int value
+    auto val = static_cast<uint32_t>(instruction->getArg1()->getValue<int>());
+    m_textSection.emplace_back(std::byte{(std::byte)(val)});
+    m_textSection.emplace_back(std::byte{(std::byte)(val >> 8)});
+    m_textSection.emplace_back(std::byte{(std::byte)(val >> 16)});
+    m_textSection.emplace_back(std::byte{(std::byte)(val >> 24)});
   }
 }
