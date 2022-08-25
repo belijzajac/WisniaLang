@@ -18,5 +18,6 @@ set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
   utilities/Exceptions.hpp
   utilities/Visitor.hpp
+  utilities/ByteArray.hpp
   PARENT_SCOPE
 )
