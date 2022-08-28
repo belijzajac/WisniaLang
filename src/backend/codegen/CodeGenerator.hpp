@@ -18,22 +18,23 @@
 
 ***/
 
-#ifndef WISNIALANG_CODE_GENERATOR_HPP
-#define WISNIALANG_CODE_GENERATOR_HPP
+#ifndef WISNIALANG_CODEGENERATOR_HPP
+#define WISNIALANG_CODEGENERATOR_HPP
 
 #include <memory>
 #include <vector>
+// Wisnia
+#include "ByteArray.hpp"
 
 namespace Wisnia {
 class Instruction;
 
 class CodeGenerator {
   using InstructionValue = std::unique_ptr<Instruction>;
-  using Bytes = std::vector<std::byte>;
 
  public:
-  const Bytes &getTextSection() const { return m_textSection; }
-  const Bytes &getDataSection() const { return m_dataSection; }
+  const ByteArray &getTextSection() const { return m_textSection; }
+  const ByteArray &getDataSection() const { return m_dataSection; }
   void generateCode(const std::vector<InstructionValue> &instructions);
 
  private:
@@ -41,10 +42,10 @@ class CodeGenerator {
 
  private:
   std::vector<InstructionValue> m_instructions;
-  Bytes m_textSection;
-  Bytes m_dataSection;
+  ByteArray m_textSection;
+  ByteArray m_dataSection;
 };
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_CODE_GENERATOR_HPP
+#endif  // WISNIALANG_CODEGENERATOR_HPP

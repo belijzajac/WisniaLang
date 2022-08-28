@@ -22,22 +22,22 @@
 #define WISNIALANG_ELF_HPP
 
 #include <vector>
+// Wisnia
+#include "ByteArray.hpp"
 
 namespace Wisnia {
 
 class ELF {
-  using Bytes = std::vector<std::byte>;
-
  public:
-  ELF(const Bytes &textSection, const Bytes &dataSection);
+  ELF(const ByteArray &textSection, const ByteArray &dataSection);
   void compile();
 
  private:
-  Bytes assembleELF();
+  ByteArray assembleELF();
 
  private:
-  Bytes mTextSection{};
-  Bytes mDataSection{};
+  ByteArray mTextSection{};
+  ByteArray mDataSection{};
 };
 
 }  // namespace Wisnia

@@ -61,14 +61,7 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction) {
   // Moving a number to a register
   if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_INT) {
-    m_textSection.emplace_back(std::byte{0x48});
-    m_textSection.emplace_back(std::byte{0xc7});
-    m_textSection.emplace_back(RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
-    // int value
-    auto val = static_cast<uint32_t>(instruction->getArg1()->getValue<int>());
-    m_textSection.emplace_back(std::byte{(std::byte)(val)});
-    m_textSection.emplace_back(std::byte{(std::byte)(val >> 8)});
-    m_textSection.emplace_back(std::byte{(std::byte)(val >> 16)});
-    m_textSection.emplace_back(std::byte{(std::byte)(val >> 24)});
+    m_textSection.putBytes(std::byte{0x48}, std::byte{0xc7}, RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
+    m_textSection.putU32(instruction->getArg1()->getValue<int>());
   }
 }

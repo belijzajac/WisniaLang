@@ -23,9 +23,16 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <sstream>
 #include <vector>
 
 namespace Wisnia {
+
+namespace {
+  std::ostream &operator<<(std::ostream &os, std::byte b) {
+    return os << std::to_integer<int>(b);
+  }
+}  // namespace
 
 class ByteArray {
   using Bytes = std::vector<std::byte>;
@@ -65,6 +72,14 @@ class ByteArray {
 
   constexpr void putBytes(const ByteArray &other) {
     mByteData.insert(mByteData.end(), other.begin(), other.end());
+  }
+
+  std::string getString() const {
+    std::stringstream str{};
+    for (const auto b : mByteData) {
+      str << b << ' ';
+    }
+    return str.str();
   }
 
  private:
