@@ -30,7 +30,6 @@
 #include "Parser.hpp"
 
 using namespace Wisnia;
-using namespace Utils;
 
 int main(int argc, char *argv[]) {
   try {

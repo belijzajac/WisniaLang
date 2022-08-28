@@ -24,7 +24,7 @@
 #include <exception>
 #include <string>
 
-namespace Wisnia::Utils {
+namespace Wisnia {
 
 class WisniaError : public std::exception {
  public:
@@ -70,6 +70,6 @@ class NotImplementedError : public WisniaError {
       : WisniaError("Not Implemented Error: " + msg) {}
 };
 
-}  // namespace Wisnia::Utils
+}  // namespace Wisnia
 
 #endif  // WISNIALANG_EXCEPTION_HPP

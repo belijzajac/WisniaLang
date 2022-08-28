@@ -51,7 +51,7 @@ class Token {
     try {
       return std::get<T>(m_value);
     } catch (const std::bad_variant_access &ex) {
-      throw Wisnia::Utils::TokenError{ex.what()};
+      throw Wisnia::TokenError{ex.what()};
     }
   }
 

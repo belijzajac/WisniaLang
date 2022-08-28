@@ -70,7 +70,7 @@ class SymbolTable {
       if (m_parentScope) {
         return m_parentScope->findSymbol(name);
       }
-      throw Utils::SemanticError{"No variable named " + name};
+      throw SemanticError{"No variable named " + name};
     }
   };
 

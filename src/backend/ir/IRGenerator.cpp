@@ -26,7 +26,6 @@
 #include "AST.hpp"
 
 using namespace Wisnia;
-using namespace Utils;
 using namespace Basic;
 using namespace AST;
 

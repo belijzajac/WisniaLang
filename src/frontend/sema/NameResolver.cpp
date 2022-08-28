@@ -25,7 +25,6 @@
 #include "AST.hpp"
 
 using namespace Wisnia;
-using namespace Utils;
 using namespace AST;
 
 void NameResolver::visit(AST::Root *node) {

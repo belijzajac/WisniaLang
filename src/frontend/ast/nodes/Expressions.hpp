@@ -172,7 +172,7 @@ class BinaryExpr : public BaseExpr {
         case Basic::TType::OP_NE:
           return "!=";
         default:
-          throw Utils::ParserError{"Invalid operand type"};
+          throw ParserError{"Invalid operand type"};
       }
     };
 

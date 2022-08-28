@@ -29,7 +29,6 @@
 using namespace Wisnia;
 using namespace AST;
 using namespace Basic;
-using namespace Utils;
 
 Parser::Parser(const Lexer &lexer)
     : m_tokens{lexer.getTokens()} {}

@@ -34,7 +34,6 @@
 
 using namespace Wisnia;
 using namespace Basic;
-using namespace Utils;
 
 constexpr std::array<char, 9> kSimpleOperands{'.', '*', '(', ')', '{', '}', ',', ':', ';'};
 
