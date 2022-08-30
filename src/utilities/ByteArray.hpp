@@ -30,7 +30,7 @@ namespace Wisnia {
 
 namespace {
   std::ostream &operator<<(std::ostream &os, std::byte b) {
-    return os << std::to_integer<int>(b);
+    return os << std::hex << std::to_integer<int>(b);
   }
 }  // namespace
 

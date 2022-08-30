@@ -29,10 +29,6 @@
 using namespace Wisnia;
 using namespace Basic;
 
-//std::ostream& operator<< (std::ostream &os, std::byte b) {
-//  return os << std::to_integer<int>(b);
-//}
-
 static inline std::unordered_map<std::string, std::byte> RegisterNumber {
   {"rax", std::byte{0xc0}},
   {"rcx", std::byte{0xc1}},
@@ -50,12 +46,13 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
       case Operation::MOV:
         emitMove(instruction);
         break;
+      case Operation::SYSCALL:
+        emitSysCall(instruction);
+        break;
     }
   }
-  //std::cout << "Instructions:\n";
-  //for (const auto byte : m_textSection) {
-  //  std::cout << byte << '\n';
-  //}
+  if (m_dataSection.size() > 0) std::cout << "Data section:\n" << m_dataSection.getString() << "\n";
+  if (m_textSection.size() > 0) std::cout << "Text section:\n" << m_textSection.getString() << "\n";
 }
 
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction) {
@@ -64,4 +61,9 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction)
     m_textSection.putBytes(std::byte{0x48}, std::byte{0xc7}, RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
     m_textSection.putU32(instruction->getArg1()->getValue<int>());
   }
+}
+
+void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instruction) {
+  m_textSection.putBytes(std::byte{0xcd});
+  m_textSection.putBytes((std::byte)instruction->getArg1()->getValue<int>());
 }

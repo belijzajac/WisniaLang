@@ -120,6 +120,27 @@ void IRGenerator::visit(AST::Root *node) {
   for (const auto &function : node->getGlobalFunctions()) {
     function->accept(this);
   }
+
+  /*
+    mov rbx, 0x00      ;; return code is 0
+    mov rax, 0x01      ;; sys_exit
+    int 0x80           ;; syscall
+  */
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
+    std::make_shared<Basic::Token>(TType::IDENT_INT, 0)
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
+    std::make_shared<Basic::Token>(TType::IDENT_INT, 1)
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::SYSCALL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_INT, 128)
+  ));
 }
 
 void IRGenerator::visit(AST::PrimitiveType *node) {
@@ -260,6 +281,13 @@ void IRGenerator::visit(AST::WriteStmt *node) {
 
   auto expr = popNode();
 
+  /*
+    mov rdx, N         ;; length N of the string X
+    mov rcx, X         ;; starting at the string X
+    mov rbx, 1         ;; write to STDOUT
+    mov rax, 4         ;; sys_write
+    int 0x80           ;; syscall
+  */
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),

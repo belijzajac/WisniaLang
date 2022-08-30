@@ -39,6 +39,7 @@ class CodeGenerator {
 
  private:
   void emitMove(const InstructionValue &instruction);
+  void emitSysCall(const InstructionValue &instruction);
 
  private:
   std::vector<InstructionValue> m_instructions;
