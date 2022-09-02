@@ -59,7 +59,25 @@ class Token {
   std::string getASTValueStr() const {
     std::string strResult{};
     std::visit(overloaded {
-      [&](const std::string& arg) { strResult = (m_type == TType::LIT_STR) ? ("\"" + arg + "\"") : arg; },
+      [&](const std::string& arg) {
+        if (m_type == TType::LIT_STR) {
+          std::string temp{};
+          for (const auto ch : arg) {
+            switch (ch) {
+              case '\f': temp += "\\f"; break;
+              case '\r': temp += "\\r"; break;
+              case '\t': temp += "\\t"; break;
+              case '\v': temp += "\\v"; break;
+              case '\n': temp += "\\n"; break;
+              case '\"': temp += "\\"; break;
+              default  : temp += ch;
+            }
+          }
+          strResult = "\"" + temp + "\"";
+        } else {
+          strResult = arg;
+        }
+      },
       [&](int arg)                { strResult = std::to_string(arg); },
       [&](float arg)              { strResult = std::to_string(arg); },
       [&](bool arg)               { strResult = arg ? "true" : "false"; },
@@ -71,6 +89,7 @@ class Token {
 
   TType getType() const { return m_type; }
   void setType(TType type) { m_type = type; }
+  void setValue(const TokenValue &value) { m_value = value; }
   std::string &getName() const { return TokenType2Str[m_type]; }
   Position &getPosition() const { return *m_position; }
 

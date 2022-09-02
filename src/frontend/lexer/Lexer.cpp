@@ -380,7 +380,7 @@ void Lexer::tokenizeInput()
   m_tokens.emplace_back(std::make_shared<Token>(TType::TOK_EOF, "[EOF]", std::move(pif)));
 }
 
-void Lexer::prettyPrint() {
+void Lexer::prettyPrint() const {
   size_t index = 0;
   fmt::print("{:^6}|{:^6}|{:^17}|{:^17}\n", "ID", "LN", "TYPE", "VALUE");
   fmt::print("------+------+-----------------+-----------------\n");

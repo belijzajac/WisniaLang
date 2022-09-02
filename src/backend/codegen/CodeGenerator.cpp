@@ -18,11 +18,10 @@
 
 ***/
 
-#include <bitset>
-#include <cstddef>
 #include <iostream>
 // Wisnia
 #include "CodeGenerator.hpp"
+#include "ELF.hpp"
 #include "Instruction.hpp"
 #include "Token.hpp"
 
@@ -51,15 +50,43 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
         break;
     }
   }
+
+  // Patch data
+  for (const auto &patch : m_patches) {
+    auto start{patch.start};
+    auto offset{patch.offset};
+
+    auto newAddress{kVirtualStartAddress + offset + m_textSection.size() + kTextOffset};
+    ByteArray bytes{};
+    bytes.putU32(newAddress);
+
+    for (size_t i = 0; i < bytes.size(); i++) {
+      m_textSection.insert(i + start, bytes.data()[i]);
+    }
+  }
+
   if (m_dataSection.size() > 0) std::cout << "Data section:\n" << m_dataSection.getString() << "\n";
   if (m_textSection.size() > 0) std::cout << "Text section:\n" << m_textSection.getString() << "\n";
 }
 
-void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
   // Moving a number to a register
   if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_INT) {
     m_textSection.putBytes(std::byte{0x48}, std::byte{0xc7}, RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
+    if (label) {
+      m_patches.emplace_back(Patch{m_textSection.size(), (size_t)instruction->getArg1()->getValue<int>()});
+    }
     m_textSection.putU32(instruction->getArg1()->getValue<int>());
+  }
+  // Moving a string to a register
+  if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_STRING) {
+    auto strVal = instruction->getArg1()->getValue<std::string>();
+    for (const auto ch : strVal) {
+      m_dataSection.putBytes(std::byte(ch));
+    }
+    instruction->getArg1()->setType(TType::IDENT_INT);
+    instruction->getArg1()->setValue(std::abs(static_cast<int>(m_dataSection.size() - strVal.size())));
+    emitMove(instruction, true);
   }
 }
 

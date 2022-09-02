@@ -27,6 +27,11 @@
 
 namespace Wisnia {
 
+constexpr uint64_t kVirtualStartAddress{0x400000};
+constexpr uint64_t kDataVirtualStartAddress{0x600000};
+constexpr uint64_t kAlignment{0x200000};
+constexpr uint64_t kTextOffset{0x40 + (2 * 0x38)};
+
 class ELF {
  public:
   ELF(const ByteArray &textSection, const ByteArray &dataSection);

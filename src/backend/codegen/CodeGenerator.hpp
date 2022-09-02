@@ -32,19 +32,26 @@ class Instruction;
 class CodeGenerator {
   using InstructionValue = std::unique_ptr<Instruction>;
 
+  struct Patch {
+    size_t start;
+    size_t offset;
+  };
+
  public:
   const ByteArray &getTextSection() const { return m_textSection; }
   const ByteArray &getDataSection() const { return m_dataSection; }
   void generateCode(const std::vector<InstructionValue> &instructions);
 
  private:
-  void emitMove(const InstructionValue &instruction);
+  void emitMove(const InstructionValue &instruction, bool label = false);
   void emitSysCall(const InstructionValue &instruction);
 
  private:
   std::vector<InstructionValue> m_instructions;
   ByteArray m_textSection;
   ByteArray m_dataSection;
+  std::vector<size_t> m_dataOffsets;
+  std::vector<Patch> m_patches;
 };
 
 }  // namespace Wisnia

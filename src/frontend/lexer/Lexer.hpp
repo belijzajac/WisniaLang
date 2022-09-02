@@ -97,7 +97,7 @@ class Lexer {
   const std::vector<std::shared_ptr<Basic::Token>> &getTokens() const { return m_tokens; }
 
   // Prints out tokens in a pretty table
-  void prettyPrint();
+  void prettyPrint() const;
 
  private:
   std::vector<std::shared_ptr<Basic::Token>> m_tokens;

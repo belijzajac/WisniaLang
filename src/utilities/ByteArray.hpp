@@ -21,8 +21,8 @@
 #ifndef WISNIALANG_BYTEARRAY_HPP
 #define WISNIALANG_BYTEARRAY_HPP
 
+#include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <sstream>
 #include <vector>
 
@@ -42,8 +42,18 @@ class ByteArray {
   constexpr auto end() const noexcept { return mByteData.end(); }
 
  public:
-  size_t size() const { return mByteData.size(); }
-  const std::byte *data() const { return mByteData.data(); }
+  constexpr size_t size() const { return mByteData.size(); }
+  constexpr const std::byte *data() const { return mByteData.data(); }
+
+  constexpr const auto &operator[](std::size_t index) const {
+    assert(index < size());
+    return mByteData[index];
+  }
+
+  constexpr void insert(size_t index, std::byte value) {
+    assert(index < size());
+    mByteData[index] = value;
+  }
 
   constexpr void putU32(uint32_t value) {
     mByteData.emplace_back(static_cast<std::byte>(value));
@@ -76,8 +86,9 @@ class ByteArray {
 
   std::string getString() const {
     std::stringstream str{};
-    for (const auto b : mByteData) {
-      str << b << ' ';
+    for (size_t i = 0; i < mByteData.size(); i++) {
+      str << "0x" << mByteData[i];
+      if (i + 1 < mByteData.size()) str << ' ';
     }
     return str.str();
   }
