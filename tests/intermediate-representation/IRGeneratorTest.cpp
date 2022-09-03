@@ -45,15 +45,14 @@ class IRGeneratorTestFixture : public testing::Test {
 using IRGeneratorTest = IRGeneratorTestFixture;
 
 TEST_F(IRGeneratorTest, VarDeclStmt) {
-  std::string program = R"(
+  constexpr std::string_view program = R"(
   fn main () -> int {
     int aa = 5 + 2 * 10;
     int ba = 7 - 1;
     bool bb = 6 > 5 && 6 != ba;
     return 0;
-  }
-  )";
-  SetUp(program);
+  })";
+  SetUp(program.data());
 
   EXPECT_EQ(generator.getTemporaryVars().size(), 6); // from _t0 to _t5
   const auto &instructions = generator.getInstructions();

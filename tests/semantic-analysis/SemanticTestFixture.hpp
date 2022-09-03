@@ -26,7 +26,7 @@
 namespace Wisnia {
 
 class SemanticTestFixture : public testing::Test {
-  const std::string kProgram = R"(
+  static constexpr std::string_view kProgram = R"(
   class Foo {
     bool is_fifteen{false};
     float number = 5.0;
@@ -76,12 +76,11 @@ class SemanticTestFixture : public testing::Test {
     }
 
     return 5;
-  }
-  )";
+  })";
 
  public:
   SemanticTestFixture() {
-    std::istringstream iss{kProgram};
+    std::istringstream iss{kProgram.data()};
     m_lexer = std::make_unique<Lexer>(iss);
     m_parser = std::make_unique<Parser>(*m_lexer);
     m_root = m_parser->parse();

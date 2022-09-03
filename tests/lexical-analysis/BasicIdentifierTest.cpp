@@ -27,8 +27,8 @@ using namespace Wisnia;
 using namespace Basic;
 
 TEST(LexerTest, BasicIdentifier) {
-  std::string program = R"(ab + ac;)";
-  std::istringstream iss{program};
+  constexpr std::string_view program = R"(ab + ac;)";
+  std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);
   auto tokens = lexer->getTokens();

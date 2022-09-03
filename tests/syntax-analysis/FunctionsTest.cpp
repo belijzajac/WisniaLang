@@ -28,11 +28,11 @@ using namespace Wisnia;
 using namespace Basic;
 
 TEST(ParserTest, Functions) {
-  std::string program = R"(
+  constexpr std::string_view program = R"(
   fn empty () -> void {}
   fn main (argc : int, argv : string) -> int { return 5; }
   )";
-  std::istringstream iss{program};
+  std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);
   auto parser = std::make_unique<Parser>(*lexer);

@@ -33,6 +33,8 @@ if(UNIT_TESTS)
   add_subdirectory(semantic-analysis)
   # backend
   add_subdirectory(intermediate-representation)
+  # programs
+  add_subdirectory(programs)
 
   modify_sources(WISNIA_SOURCES)
   add_executable(wisnia-tests
