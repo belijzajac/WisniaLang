@@ -20,10 +20,11 @@
 
 #include <gtest/gtest.h>
 // Wisnia
-#include "Lexer.hpp"
-#include "Parser.hpp"
 #include "AST.hpp"
 #include "IRGenerator.hpp"
+#include "Lexer.hpp"
+#include "NameResolver.hpp"
+#include "Parser.hpp"
 
 using namespace Wisnia;
 using namespace Basic;
@@ -35,11 +36,15 @@ class IRGeneratorTestFixture : public testing::Test {
     auto lexer = std::make_unique<Lexer>(iss);
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
+    root->accept(&resolver);
     root->accept(&generator);
   }
 
  protected:
   IRGenerator generator{};
+
+ private:
+  NameResolver resolver{};
 };
 
 using IRGeneratorTest = IRGeneratorTestFixture;

@@ -25,6 +25,7 @@
 #include "ELF.hpp"
 #include "IRGenerator.hpp"
 #include "Lexer.hpp"
+#include "NameResolver.hpp"
 #include "Parser.hpp"
 
 using namespace Wisnia;
@@ -37,6 +38,7 @@ class IProgramTestFixture : public testing::Test {
     auto lexer = std::make_unique<Lexer>(iss);
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
+    root->accept(&resolver);
     root->accept(&generator);
     auto codeGenerator = std::make_unique<CodeGenerator>();
     codeGenerator->generateCode(generator.getInstructions());
@@ -56,6 +58,7 @@ class IProgramTestFixture : public testing::Test {
   }
 
  private:
+  NameResolver resolver{};
   IRGenerator generator{};
 };
 

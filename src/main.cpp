@@ -56,6 +56,8 @@ int main(int argc, char *argv[]) {
     //...
     auto codeGenerator = std::make_unique<CodeGenerator>();
     codeGenerator->generateCode(generator.getInstructions());
+    if (const auto &data = codeGenerator->getDataSection(); data.size() > 0) std::cout << "<~~~ data section ~~~>\n" << data.getString() << "\n";
+    if (const auto &text = codeGenerator->getTextSection(); text.size() > 0) std::cout << "<~~~ text section ~~~>\n" << text.getString() << "\n";
     //...
     auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
     elf->compile();

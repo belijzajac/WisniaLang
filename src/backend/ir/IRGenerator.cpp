@@ -92,19 +92,30 @@ constexpr Operation getOperationForBinaryExpr(Basic::TType exprType, bool isFloa
   }
 }
 
+constexpr TType getIdentForLitType(TType type) {
+  switch (type) {
+    case TType::LIT_INT:  return TType::IDENT_INT;
+    case TType::LIT_FLT:  return TType::IDENT_FLOAT;
+    case TType::LIT_STR:  return TType::IDENT_STRING;
+    case TType::LIT_BOOL: return TType::IDENT_BOOL;
+    default: return type;
+  }
+}
+
 void IRGenerator::genBinaryExpr(Basic::TType exprType) {
   auto rhs = popNode();
   auto lhs = popNode();
 
   auto varToken = std::make_shared<Basic::Token>(
-    rhs->getToken()->getType(),
+    getIdentForLitType(rhs->getToken()->getType()),
     "_t" + std::to_string(m_tempVars.size())
   );
 
   m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
   m_stack.push(m_tempVars.back().get());
 
-  bool isFloat = rhs->getToken()->getType() == TType::LIT_FLT;
+  bool isFloat = rhs->getToken()->getType() == TType::LIT_FLT ||
+                 rhs->getToken()->getType() == TType::IDENT_FLOAT;
   Operation op = getOperationForBinaryExpr(exprType, isFloat);
 
   // _tx = a <op> b;
@@ -129,17 +140,17 @@ void IRGenerator::visit(AST::Root *node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
-    std::make_shared<Basic::Token>(TType::IDENT_INT, 0)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 0)
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
-    std::make_shared<Basic::Token>(TType::IDENT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::SYSCALL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_INT, 128)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 128)
   ));
 }
 
@@ -291,27 +302,27 @@ void IRGenerator::visit(AST::WriteStmt *node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
-    std::make_shared<Basic::Token>(TType::IDENT_INT, static_cast<int>(expr->getToken()->getValue<std::string/*decltype(expr)*/>().length()))
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(expr->getToken()->getValue<std::string/*decltype(expr)*/>().length()))
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
-    std::make_shared<Basic::Token>(TType::IDENT_STRING, expr->getToken()->getValue<std::string/*decltype(expr)*/>())
+    std::make_shared<Basic::Token>(TType::LIT_STR, expr->getToken()->getValue<std::string/*decltype(expr)*/>())
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
-    std::make_shared<Basic::Token>(TType::IDENT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
-    std::make_shared<Basic::Token>(TType::IDENT_INT, 4)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 4)
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::SYSCALL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_INT, 128)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 128)
   ));
 }
 

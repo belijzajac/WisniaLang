@@ -64,14 +64,11 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
       m_textSection.insert(i + start, bytes.data()[i]);
     }
   }
-
-  if (m_dataSection.size() > 0) std::cout << "<~~~ data section ~~~>\n" << m_dataSection.getString() << "\n";
-  if (m_textSection.size() > 0) std::cout << "<~~~ text section ~~~>\n" << m_textSection.getString() << "\n";
 }
 
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
   // Moving a number to a register
-  if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_INT) {
+  if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::LIT_INT) {
     m_textSection.putBytes(std::byte{0x48}, std::byte{0xc7}, RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
     if (label) {
       m_patches.emplace_back(Patch{m_textSection.size(), (size_t)instruction->getArg1()->getValue<int>()});
@@ -79,12 +76,12 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     m_textSection.putU32(instruction->getArg1()->getValue<int>());
   }
   // Moving a string to a register
-  if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::IDENT_STRING) {
+  if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::LIT_STR) {
     auto strVal = instruction->getArg1()->getValue<std::string>();
     for (const auto ch : strVal) {
       m_dataSection.putBytes(std::byte(ch));
     }
-    instruction->getArg1()->setType(TType::IDENT_INT);
+    instruction->getArg1()->setType(TType::LIT_INT);
     instruction->getArg1()->setValue(std::abs(static_cast<int>(m_dataSection.size() - strVal.size())));
     emitMove(instruction, true);
   }
