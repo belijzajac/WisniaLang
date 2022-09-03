@@ -65,8 +65,8 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
     }
   }
 
-  if (m_dataSection.size() > 0) std::cout << "Data section:\n" << m_dataSection.getString() << "\n";
-  if (m_textSection.size() > 0) std::cout << "Text section:\n" << m_textSection.getString() << "\n";
+  if (m_dataSection.size() > 0) std::cout << "<~~~ data section ~~~>\n" << m_dataSection.getString() << "\n";
+  if (m_textSection.size() > 0) std::cout << "<~~~ text section ~~~>\n" << m_textSection.getString() << "\n";
 }
 
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {

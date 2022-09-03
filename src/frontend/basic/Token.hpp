@@ -60,7 +60,7 @@ class Token {
     std::string strResult{};
     std::visit(overloaded {
       [&](const std::string& arg) {
-        if (m_type == TType::LIT_STR) {
+        if (m_type == TType::LIT_STR || m_type == TType::IDENT_STRING) {
           std::string temp{};
           for (const auto ch : arg) {
             switch (ch) {
@@ -78,10 +78,10 @@ class Token {
           strResult = arg;
         }
       },
-      [&](int arg)                { strResult = std::to_string(arg); },
-      [&](float arg)              { strResult = std::to_string(arg); },
-      [&](bool arg)               { strResult = arg ? "true" : "false"; },
-      [&](nullptr_t arg)          { strResult = "null"; },
+      [&](int arg)       { strResult = std::to_string(arg); },
+      [&](float arg)     { strResult = std::to_string(arg); },
+      [&](bool arg)      { strResult = arg ? "true" : "false"; },
+      [&](nullptr_t arg) { strResult = "null"; },
     },
     m_value);
     return strResult;
