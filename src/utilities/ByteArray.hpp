@@ -42,6 +42,9 @@ class ByteArray {
   constexpr auto end() const noexcept { return mByteData.end(); }
 
  public:
+  ByteArray() = default;
+  ByteArray(std::initializer_list<std::byte> list) : mByteData(list) {}
+
   constexpr size_t size() const { return mByteData.size(); }
   constexpr const std::byte *data() const { return mByteData.data(); }
 

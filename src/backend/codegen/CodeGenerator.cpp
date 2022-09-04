@@ -28,15 +28,23 @@
 using namespace Wisnia;
 using namespace Basic;
 
-static inline std::unordered_map<std::string, std::byte> RegisterNumber {
-  {"rax", std::byte{0xc0}},
-  {"rcx", std::byte{0xc1}},
-  {"rdx", std::byte{0xc2}},
-  {"rbx", std::byte{0xc3}},
-  {"rsp", std::byte{0xc4}},
-  {"rbp", std::byte{0xc5}},
-  {"rsi", std::byte{0xc6}},
-  {"rdi", std::byte{0xc7}}
+static inline std::unordered_map<std::string, ByteArray> MovMachineCode {
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc0}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc1}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc2}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc3}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc4}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc5}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc6}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc7}}},
+  {"r8",  ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc0}}},
+  {"r9",  ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc1}}},
+  {"r10", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc2}}},
+  {"r11", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc3}}},
+  {"r12", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc4}}},
+  {"r13", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc5}}},
+  {"r14", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc6}}},
+  {"r15", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc7}}},
 };
 
 void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionValue> &instructions) {
@@ -69,7 +77,7 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
   // Moving a number to a register
   if (instruction->getTarget()->getType() == TType::REGISTER && instruction->getArg1()->getType() == TType::LIT_INT) {
-    m_textSection.putBytes(std::byte{0x48}, std::byte{0xc7}, RegisterNumber[instruction->getTarget()->getValue<std::string>()]);
+    m_textSection.putBytes(MovMachineCode[instruction->getTarget()->getValue<std::string>()]);
     if (label) {
       m_patches.emplace_back(Patch{m_textSection.size(), (size_t)instruction->getArg1()->getValue<int>()});
     }

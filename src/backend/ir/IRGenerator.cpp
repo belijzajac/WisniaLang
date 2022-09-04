@@ -133,8 +133,8 @@ void IRGenerator::visit(AST::Root *node) {
   }
 
   /*
-    mov rbx, 0x00      ;; return code is 0
-    mov rax, 0x01      ;; sys_exit
+    mov rbx, 0x0       ;; return code
+    mov rax, 0x1       ;; sys_exit
     int 0x80           ;; syscall
   */
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -295,8 +295,8 @@ void IRGenerator::visit(AST::WriteStmt *node) {
   /*
     mov rdx, N         ;; length N of the string X
     mov rcx, X         ;; starting at the string X
-    mov rbx, 1         ;; write to STDOUT
-    mov rax, 4         ;; sys_write
+    mov rbx, 0x1       ;; write to STDOUT
+    mov rax, 0x4       ;; sys_write
     int 0x80           ;; syscall
   */
   m_instructions.emplace_back(std::make_unique<Instruction>(
