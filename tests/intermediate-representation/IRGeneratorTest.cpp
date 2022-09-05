@@ -27,7 +27,6 @@
 #include "Parser.hpp"
 
 using namespace Wisnia;
-using namespace Basic;
 
 class IRGeneratorTestFixture : public testing::Test {
  protected:
@@ -36,15 +35,15 @@ class IRGeneratorTestFixture : public testing::Test {
     auto lexer = std::make_unique<Lexer>(iss);
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
-    root->accept(&resolver);
-    root->accept(&generator);
+    root->accept(&m_resolver);
+    root->accept(&m_generator);
   }
 
  protected:
-  IRGenerator generator{};
+  IRGenerator m_generator{};
 
  private:
-  NameResolver resolver{};
+  NameResolver m_resolver{};
 };
 
 using IRGeneratorTest = IRGeneratorTestFixture;
@@ -59,8 +58,8 @@ TEST_F(IRGeneratorTest, VarDeclStmt) {
   })";
   SetUp(program.data());
 
-  EXPECT_EQ(generator.getTemporaryVars().size(), 6); // from _t0 to _t5
-  const auto &instructions = generator.getInstructions();
+  EXPECT_EQ(m_generator.getTemporaryVars().size(), 6); // from _t0 to _t5
+  const auto &instructions = m_generator.getInstructions();
   // <_t0, *, 2, 10>
   EXPECT_STREQ(instructions[0]->getTarget()->getValue<std::string>().c_str(), "_t0");
   EXPECT_EQ(instructions[0]->getOperation(), Operation::IMUL);

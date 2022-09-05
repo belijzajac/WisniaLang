@@ -29,7 +29,6 @@
 #include "Parser.hpp"
 
 using namespace Wisnia;
-using namespace Basic;
 
 class IProgramTestFixture : public testing::Test {
  protected:
@@ -38,28 +37,29 @@ class IProgramTestFixture : public testing::Test {
     auto lexer = std::make_unique<Lexer>(iss);
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
-    root->accept(&resolver);
-    root->accept(&generator);
+    root->accept(&m_resolver);
+    root->accept(&m_generator);
     auto codeGenerator = std::make_unique<CodeGenerator>();
-    codeGenerator->generateCode(generator.getInstructions());
+    codeGenerator->generateCode(m_generator.getInstructions());
     auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
     elf->compile();
   }
 
-  static std::string exec(std::string_view cmd) {
+  void exec(std::string_view cmd) {
     std::array<char, 128> buffer{};
-    std::string result{};
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.data(), "r"), pclose);
     if (!pipe) throw std::runtime_error("popen() failed");
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-      result += buffer.data();
+      m_result += buffer.data();
     }
-    return result;
   }
 
+ protected:
+  std::string m_result{};
+
  private:
-  NameResolver resolver{};
-  IRGenerator generator{};
+  NameResolver m_resolver{};
+  IRGenerator m_generator{};
 };
 
 using ProgramTest = IProgramTestFixture;
@@ -72,6 +72,6 @@ TEST_F(ProgramTest, WriteOutput) {
     print "lole\n";
   })";
   SetUp(program);
-  auto result{exec("./a.out")};
-  EXPECT_STREQ(result.c_str(), "hello world\nhahaha\nlole\n");
+  ASSERT_EXIT(exec("./a.out"), ::testing::ExitedWithCode(0), ".*");
+  EXPECT_STREQ(m_result.c_str(), "hello world\nhahaha\nlole\n");
 }
