@@ -41,8 +41,8 @@ class ELF {
   ByteArray assembleELF();
 
  private:
-  ByteArray mTextSection{};
-  ByteArray mDataSection{};
+  ByteArray m_textSection{};
+  ByteArray m_dataSection{};
 };
 
 }  // namespace Wisnia

@@ -28,13 +28,13 @@
 using namespace Wisnia;
 
 ELF::ELF(const ByteArray &textSection, const ByteArray &dataSection)
-    : mTextSection{textSection}, mDataSection{dataSection} {}
+    : m_textSection{textSection}, m_dataSection{dataSection} {}
 
 ByteArray ELF::assembleELF() {
   ByteArray elf{};
 
-  const auto textSize = uint64_t(mTextSection.size());
-  const auto dataSize = uint64_t(mDataSection.size());
+  const auto textSize = uint64_t(m_textSection.size());
+  const auto dataSize = uint64_t(m_dataSection.size());
   const auto dataOffset = uint64_t(kTextOffset + textSize);
   const auto dataVirtualAddress = uint64_t(kDataVirtualStartAddress + dataOffset);
 
@@ -105,8 +105,8 @@ ByteArray ELF::assembleELF() {
   elf.putU64(dataSize);           // Number of bytes in memory image
   elf.putU64(kAlignment);         // Alignment
 
-  elf.putBytes(mTextSection); // Output the text segment
-  elf.putBytes(mDataSection); // Output the data segment
+  elf.putBytes(m_textSection); // Output the text segment
+  elf.putBytes(m_dataSection); // Output the data segment
 
   return elf;
 }

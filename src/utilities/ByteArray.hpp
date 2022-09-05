@@ -38,66 +38,66 @@ class ByteArray {
   using Bytes = std::vector<std::byte>;
 
  private:
-  constexpr auto begin() const noexcept { return mByteData.begin(); }
-  constexpr auto end() const noexcept { return mByteData.end(); }
+  constexpr auto begin() const noexcept { return m_byteData.begin(); }
+  constexpr auto end() const noexcept { return m_byteData.end(); }
 
  public:
   ByteArray() = default;
-  ByteArray(std::initializer_list<std::byte> list) : mByteData(list) {}
+  ByteArray(std::initializer_list<std::byte> list) : m_byteData(list) {}
 
-  constexpr size_t size() const { return mByteData.size(); }
-  constexpr const std::byte *data() const { return mByteData.data(); }
+  constexpr size_t size() const { return m_byteData.size(); }
+  constexpr const std::byte *data() const { return m_byteData.data(); }
 
   constexpr const auto &operator[](std::size_t index) const {
     assert(index < size());
-    return mByteData[index];
+    return m_byteData[index];
   }
 
   constexpr void insert(size_t index, std::byte value) {
     assert(index < size());
-    mByteData[index] = value;
+    m_byteData[index] = value;
   }
 
   constexpr void putU32(uint32_t value) {
-    mByteData.emplace_back(static_cast<std::byte>(value));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 8));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 16));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 24));
+    m_byteData.emplace_back(static_cast<std::byte>(value));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 16));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 24));
   }
 
   constexpr void putU64(uint64_t value) {
-    mByteData.emplace_back(static_cast<std::byte>(value));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 8));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 16));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 24));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 32));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 40));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 48));
-    mByteData.emplace_back(static_cast<std::byte>(value >> 56));
+    m_byteData.emplace_back(static_cast<std::byte>(value));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 16));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 24));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 32));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 40));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 48));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 56));
   }
 
   template <typename... Ts>
   requires (std::is_same_v<Ts, std::byte> || ...)
   constexpr void putBytes(Ts &&...t) {
-    std::byte dummy[] = {std::byte{0}, (mByteData.emplace_back(std::forward<Ts>(t)), std::byte{0})...};
+    std::byte dummy[] = {std::byte{0}, (m_byteData.emplace_back(std::forward<Ts>(t)), std::byte{0})...};
     (void)dummy;
   }
 
   constexpr void putBytes(const ByteArray &other) {
-    mByteData.insert(mByteData.end(), other.begin(), other.end());
+    m_byteData.insert(m_byteData.end(), other.begin(), other.end());
   }
 
   std::string getString() const {
     std::stringstream str{};
-    for (size_t i = 0; i < mByteData.size(); i++) {
-      str << "0x" << mByteData[i];
-      if (i + 1 < mByteData.size()) str << ' ';
+    for (size_t i = 0; i < m_byteData.size(); i++) {
+      str << "0x" << m_byteData[i];
+      if (i + 1 < m_byteData.size()) str << ' ';
     }
     return str.str();
   }
 
  private:
-  Bytes mByteData{};
+  Bytes m_byteData{};
 };
 
 }  // namespace Wisnia

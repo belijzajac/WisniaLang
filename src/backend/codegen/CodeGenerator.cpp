@@ -61,8 +61,8 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
 
   // Patch data
   for (const auto &patch : m_patches) {
-    auto start{patch.start};
-    auto offset{patch.offset};
+    auto start{patch.m_start};
+    auto offset{patch.m_offset};
 
     auto newAddress{kVirtualStartAddress + offset + m_textSection.size() + kTextOffset};
     ByteArray bytes{};

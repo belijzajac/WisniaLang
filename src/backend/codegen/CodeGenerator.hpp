@@ -33,8 +33,8 @@ class CodeGenerator {
   using InstructionValue = std::unique_ptr<Instruction>;
 
   struct Patch {
-    size_t start;
-    size_t offset;
+    size_t m_start;
+    size_t m_offset;
   };
 
  public:
