@@ -19,6 +19,7 @@
 ***/
 
 #include <gtest/gtest.h>
+#include <fstream>
 // Wisnia
 #include "AST.hpp"
 #include "CodeGenerator.hpp"
@@ -31,6 +32,12 @@
 using namespace Wisnia;
 
 class IProgramTestFixture : public testing::Test {
+  struct Program {
+    int m_status;
+    std::string m_output;
+    std::string m_error;
+  };
+
  protected:
   void SetUp(std::string_view program) {
     std::istringstream iss{program.data()};
@@ -46,21 +53,67 @@ class IProgramTestFixture : public testing::Test {
   }
 
   void exec(std::string_view cmd) {
-    std::array<char, 128> buffer{};
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.data(), "r"), pclose);
-    if (!pipe) throw std::runtime_error("popen() failed");
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-      m_result += buffer.data();
+    const auto outFile = makeTemporaryFilename();
+    const auto errFile = makeTemporaryFilename();
+
+    // Redirect the command's output appropriately
+    std::ostringstream ss;
+    ss << cmd.data() << " >" << outFile << " 2>" << errFile;
+
+    m_program.m_status = std::system(ss.str().c_str());
+    m_program.m_output = readFile(outFile);
+    m_program.m_error  = readFile(errFile);
+
+    std::remove(outFile.c_str());
+    std::remove(errFile.c_str());
+  }
+
+ private:
+  static std::string randomString(size_t length) {
+    const auto randomChar = []() -> char {
+      constexpr char charset[] =
+          "0123456789"
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+          "abcdefghijklmnopqrstuvwxyz";
+      constexpr size_t maxIndex = (sizeof(charset) - 1);
+      return charset[rand() % maxIndex];
+    };
+    std::string str(length, 0);
+    std::generate_n(str.begin(), length, randomChar);
+    return str;
+  }
+
+  static std::string makeTemporaryFilename() {
+    std::ostringstream ss;
+    ss << "/tmp/" << randomString(10);
+    return ss.str();
+  }
+
+  static std::string readFile(std::string_view filename) {
+    std::string result{};
+    std::ifstream file(filename.data());
+    char c;
+    while (file.get(c)) {
+      result += c;
     }
+    return result;
   }
 
  protected:
-  std::string m_result{};
+  Program m_program{};
 
  private:
   NameResolver m_resolver{};
   IRGenerator m_generator{};
 };
+
+#define EXPECT_PROGRAM_OUTPUT(statement, output)      \
+  do {                                                \
+    statement;                                        \
+    EXPECT_EQ(m_program.m_status, 0);                 \
+    EXPECT_STREQ(m_program.m_error.c_str(), "");      \
+    EXPECT_STREQ(m_program.m_output.c_str(), output); \
+  } while (0)
 
 using ProgramTest = IProgramTestFixture;
 
@@ -72,6 +125,5 @@ TEST_F(ProgramTest, WriteOutput) {
     print "lole\n";
   })";
   SetUp(program);
-  ASSERT_EXIT(exec("./a.out"), ::testing::ExitedWithCode(0), ".*");
-  EXPECT_STREQ(m_result.c_str(), "hello world\nhahaha\nlole\n");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hello world\nhahaha\nlole\n");
 }
