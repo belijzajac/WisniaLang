@@ -26,15 +26,23 @@
 #include <stack>
 #include <variant>
 // Wisnia
-#include "Instruction.hpp"
-#include "Visitor.hpp"
+#include "RegisterAllocator.hpp"
 #include "TType.hpp"
+#include "Visitor.hpp"
 
 namespace Wisnia {
+class Instruction;
 
 class IRGenerator : public Visitor {
-  using instructions_list  = std::vector<std::unique_ptr<Instruction>>;
-  using tmp_variables_list = std::vector<std::unique_ptr<AST::VarExpr>>;
+  using instructions_list  = std::vector<std::shared_ptr<Instruction>>;
+  using tmp_variables_list = std::vector<std::shared_ptr<AST::VarExpr>>;
+
+  template <typename T>
+  std::vector<T> vec_slice(const std::vector<T> &vec, size_t start, size_t end) {
+    const auto first = vec.begin() + start;
+    const auto last  = vec.begin() + end;
+    return std::vector<T>{first, last};
+  }
 
  public:
   const instructions_list &getInstructions() const {
@@ -46,6 +54,7 @@ class IRGenerator : public Visitor {
   }
 
   void printInstructions() const;
+  void printUpdatedInstructions() const;
 
  public: // TODO: why are these public???
   void visit(AST::Root *node) override;
@@ -95,6 +104,7 @@ class IRGenerator : public Visitor {
   std::stack<AST::Root *> m_stack;
   instructions_list m_instructions;
   tmp_variables_list m_tempVars;
+  RegisterAllocator registerAllocator{};
 };
 
 }  // namespace Wisnia

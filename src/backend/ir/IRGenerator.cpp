@@ -39,6 +39,10 @@ void IRGenerator::printInstructions() const {
   }
 }
 
+void IRGenerator::printUpdatedInstructions() const {
+  registerAllocator.printInstructions();
+}
+
 AST::Root *IRGenerator::popNode() {
   assert(!m_stack.empty());
   auto *topNode{m_stack.top()};
@@ -128,8 +132,12 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
 }
 
 void IRGenerator::visit(AST::Root *node) {
+  size_t last{0};
   for (const auto &function : node->getGlobalFunctions()) {
     function->accept(this);
+    const size_t start = last;
+    const size_t end   = last = m_instructions.size();
+    registerAllocator.allocateRegisters(vec_slice(m_instructions, start, end));
   }
 
   /*
@@ -152,6 +160,9 @@ void IRGenerator::visit(AST::Root *node) {
     nullptr,
     std::make_shared<Basic::Token>(TType::LIT_INT, 128)
   ));
+
+  // Insert the last three instructions
+  registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 3, m_instructions.size()));
 }
 
 void IRGenerator::visit(AST::PrimitiveType *node) {

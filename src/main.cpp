@@ -54,6 +54,9 @@ int main(int argc, char *argv[]) {
     root->accept(&generator);
     generator.printInstructions();
     //...
+    fmt::print("<~~~ {} ~~~>\n", "updated ir instructions");
+    generator.printUpdatedInstructions();
+    //...
     auto codeGenerator = std::make_unique<CodeGenerator>();
     codeGenerator->generateCode(generator.getInstructions());
     if (const auto &data = codeGenerator->getDataSection(); data.size() > 0) std::cout << "<~~~ data section ~~~>\n" << data.getString() << "\n";

@@ -18,42 +18,26 @@
 
 ***/
 
-#ifndef WISNIALANG_CODEGENERATOR_HPP
-#define WISNIALANG_CODEGENERATOR_HPP
+#ifndef WISNIALANG_REGISTERALLOCATOR_HPP
+#define WISNIALANG_REGISTERALLOCATOR_HPP
 
 #include <memory>
 #include <vector>
-// Wisnia
-#include "ByteArray.hpp"
 
 namespace Wisnia {
 class Instruction;
 
-class CodeGenerator {
-  using InstructionValue = std::shared_ptr<Instruction>;
-
-  struct Patch {
-    size_t m_start;
-    size_t m_offset;
-  };
+class RegisterAllocator {
+  using instructions_list = std::vector<std::shared_ptr<Instruction>>;
 
  public:
-  const ByteArray &getTextSection() const { return m_textSection; }
-  const ByteArray &getDataSection() const { return m_dataSection; }
-  void generateCode(const std::vector<InstructionValue> &instructions);
+  void printInstructions() const;
+  void allocateRegisters(const instructions_list &instructions);
 
  private:
-  void emitMove(const InstructionValue &instruction, bool label = false);
-  void emitSysCall(const InstructionValue &instruction);
-
- private:
-  std::vector<InstructionValue> m_instructions;
-  ByteArray m_textSection;
-  ByteArray m_dataSection;
-  std::vector<size_t> m_dataOffsets;
-  std::vector<Patch> m_patches;
+  instructions_list m_instructions;
 };
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_CODEGENERATOR_HPP
+#endif  // WISNIALANG_REGISTERALLOCATOR_HPP
