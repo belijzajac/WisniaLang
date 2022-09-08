@@ -22,6 +22,7 @@
 // Wisnia
 #include "AST.hpp"
 #include "IRGenerator.hpp"
+#include "Instruction.hpp"
 #include "Lexer.hpp"
 #include "NameResolver.hpp"
 #include "Parser.hpp"
