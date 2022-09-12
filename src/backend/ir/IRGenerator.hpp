@@ -45,6 +45,8 @@ class IRGenerator : public Visitor {
   }
 
  public:
+  explicit IRGenerator(bool allocateRegisters = true) : m_allocateRegisters{allocateRegisters} {}
+
   const instructions_list &getInstructions() const {
     return m_instructions;
   }
@@ -104,6 +106,7 @@ class IRGenerator : public Visitor {
   std::stack<AST::Root *> m_stack;
   instructions_list m_instructions;
   tmp_variables_list m_tempVars;
+  bool m_allocateRegisters; // we want to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
 };
 

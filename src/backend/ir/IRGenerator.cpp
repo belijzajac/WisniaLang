@@ -137,7 +137,9 @@ void IRGenerator::visit(AST::Root *node) {
     function->accept(this);
     const size_t start = last;
     const size_t end   = last = m_instructions.size();
-    registerAllocator.allocateRegisters(vec_slice(m_instructions, start, end));
+    if (m_allocateRegisters) {
+      registerAllocator.allocateRegisters(vec_slice(m_instructions, start, end));
+    }
   }
 
   /*
@@ -162,7 +164,9 @@ void IRGenerator::visit(AST::Root *node) {
   ));
 
   // Insert the last three instructions
-  registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 3, m_instructions.size()));
+  if (m_allocateRegisters) {
+    registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 3, m_instructions.size()));
+  }
 }
 
 void IRGenerator::visit(AST::PrimitiveType *node) {

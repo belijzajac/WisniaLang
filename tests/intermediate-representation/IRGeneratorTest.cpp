@@ -41,7 +41,7 @@ class IRGeneratorTestFixture : public testing::Test {
   }
 
  protected:
-  IRGenerator m_generator{};
+  IRGenerator m_generator{false};
 
  private:
   NameResolver m_resolver{};

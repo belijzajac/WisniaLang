@@ -41,10 +41,10 @@ class Instruction {
     const token_ptr &arg2 = nullptr
   ) : m_operation{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
 
-  Operation getOperation() const { return m_operation; }
-  const token_ptr &getTarget() const { return m_target; }
-  const token_ptr &getArg1() const { return m_arg1; }
-  const token_ptr &getArg2() const { return m_arg2; }
+  const Operation &getOperation() const { return m_operation; }
+  token_ptr &getTarget() { return m_target; }
+  token_ptr &getArg1() { return m_arg1; }
+  token_ptr &getArg2() { return m_arg2; }
 
   void print() const;
 
