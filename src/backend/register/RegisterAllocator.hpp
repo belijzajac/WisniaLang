@@ -21,11 +21,9 @@
 #ifndef WISNIALANG_REGISTERALLOCATOR_HPP
 #define WISNIALANG_REGISTERALLOCATOR_HPP
 
-#include <cassert>
-#include <memory>
-#include <set>
-#include <vector>
 #include <algorithm>
+#include <array>
+#include <memory>
 
 namespace Wisnia {
 class Instruction;
@@ -33,24 +31,24 @@ class Instruction;
 class RegisterAllocator {
   using instructions_list = std::vector<std::shared_ptr<Instruction>>;
 
-  struct Register {
-    std::string m_name;
-    bool m_assigned;
-  };
-
   struct Registers {
-    Register &operator[](std::string_view reg) {
+    struct register_t {
+      std::string m_name;
+      bool m_assigned;
+    };
+
+    register_t &operator[](std::string_view reg) {
       auto it = std::find_if(m_registers.begin(), m_registers.end(), [&](const auto &r) { return r.m_name == reg; });
       if (it != m_registers.end()) return *it;
-      throw std::out_of_range{"Failed to look up register"};
+      throw std::runtime_error{"Failed to look up register"};
     }
 
-    std::vector<Register> m_registers {
+    std::array<register_t, 16> m_registers {{
       {"rax", false}, {"rcx", false}, {"rdx", false}, {"rbx", false},
       {"rsp", false}, {"rbp", false}, {"rsi", false}, {"rdi", false},
       {"r8" , false}, {"r9",  false}, {"r10", false}, {"r11", false},
       {"r12", false}, {"r13", false}, {"r14", false}, {"r15", false},
-    };
+    }};
   };
 
   struct Live {
@@ -60,6 +58,7 @@ class RegisterAllocator {
   };
 
  public:
+  const instructions_list &getInstructions() const { return m_instructions; }
   void printInstructions() const;
   void allocateRegisters(instructions_list &&instructions);
 

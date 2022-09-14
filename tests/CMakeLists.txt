@@ -33,6 +33,7 @@ if(UNIT_TESTS)
   add_subdirectory(semantic-analysis)
   # backend
   add_subdirectory(intermediate-representation)
+  add_subdirectory(register-allocation)
   # programs
   add_subdirectory(programs)
 

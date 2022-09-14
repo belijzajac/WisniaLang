@@ -47,7 +47,7 @@ class IProgramTestFixture : public testing::Test {
     root->accept(&m_resolver);
     root->accept(&m_generator);
     auto codeGenerator = std::make_unique<CodeGenerator>();
-    codeGenerator->generateCode(m_generator.getInstructions());
+    codeGenerator->generateCode(m_generator.getUpdatedInstructions());
     auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
     elf->compile();
   }

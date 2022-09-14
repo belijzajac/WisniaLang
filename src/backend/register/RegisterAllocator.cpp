@@ -20,8 +20,9 @@
 
 #include <fmt/format.h>
 
-#include <functional>
 #include <optional>
+#include <set>
+#include <vector>
 // Wisnia
 #include "RegisterAllocator.hpp"
 #include "Instruction.hpp"
@@ -64,7 +65,7 @@ bool checkVariable(const TToken token, const TVariable &variable) {
 void RegisterAllocator::allocateRegisters(instructions_list &&instructions) {
   // List of live intervals
   const auto cmp_1 = [](const auto &a, const auto &b) { return a.m_start < b.m_start; };
-  std::set<Live, decltype(cmp_1)> liveIntervals;
+  std::set<Live, decltype(cmp_1)> liveIntervals{};
 
   // Populate the list with each variable's starting and ending interval points
   for (size_t i = 0; i < instructions.size(); i++) {
@@ -86,11 +87,11 @@ void RegisterAllocator::allocateRegisters(instructions_list &&instructions) {
   }
 
   // List of available registers
-  Registers availableRegisters;
+  Registers availableRegisters{};
 
   // List of the intervals that have been given a register and overlap with the current interval
   const auto cmp_2 = [](const auto &a, const auto &b) { return a.m_start > b.m_start; };
-  std::set<Live, decltype(cmp_2)> activeIntervals;
+  std::set<Live, decltype(cmp_2)> activeIntervals{};
 
   // Process each interval in the list in order
   for (const auto &interval : liveIntervals) {
@@ -123,7 +124,7 @@ void RegisterAllocator::allocateRegisters(instructions_list &&instructions) {
     } else {
       // We ran out of registers - spill it
       auto node = liveIntervals.extract(interval);
-      node.value().m_register = "spill"; // todo: push/pop
+      node.value().m_register = "[spill]"; // todo: push/pop
       liveIntervals.insert(std::move(node));
     }
   }
@@ -132,19 +133,16 @@ void RegisterAllocator::allocateRegisters(instructions_list &&instructions) {
   for (auto& instr : instructions) {
     for (const auto &live : liveIntervals) {
       if (const auto &var = instr->getTarget(); var && checkVariable(var, live.m_variable)) {
-        auto &target = instr->getTarget();
-        target->setType(TType::REGISTER);
-        target->setValue(live.m_register);
+        var->setType(TType::REGISTER);
+        var->setValue(live.m_register);
       }
       if (const auto &var = instr->getArg1(); var && checkVariable(var, live.m_variable)) {
-        auto &arg1 = instr->getArg1();
-        arg1->setType(TType::REGISTER);
-        arg1->setValue(live.m_register);
+        var->setType(TType::REGISTER);
+        var->setValue(live.m_register);
       }
       if (const auto &var = instr->getArg2(); var && checkVariable(var, live.m_variable)) {
-        auto &arg2 = instr->getArg2();
-        arg2->setType(TType::REGISTER);
-        arg2->setValue(live.m_register);
+        var->setType(TType::REGISTER);
+        var->setValue(live.m_register);
       }
     }
   }

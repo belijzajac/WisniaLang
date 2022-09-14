@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     generator.printUpdatedInstructions();
     //...
     auto codeGenerator = std::make_unique<CodeGenerator>();
-    codeGenerator->generateCode(generator.getInstructions());
+    codeGenerator->generateCode(generator.getUpdatedInstructions());
     if (const auto &data = codeGenerator->getDataSection(); data.size() > 0) std::cout << "<~~~ data section ~~~>\n" << data.getString() << "\n";
     if (const auto &text = codeGenerator->getTextSection(); text.size() > 0) std::cout << "<~~~ text section ~~~>\n" << text.getString() << "\n";
     //...

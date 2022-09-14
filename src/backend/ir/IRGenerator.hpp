@@ -51,6 +51,10 @@ class IRGenerator : public Visitor {
     return m_instructions;
   }
 
+  const instructions_list &getUpdatedInstructions() const {
+    return registerAllocator.getInstructions();
+  }
+
   const tmp_variables_list &getTemporaryVars() const {
     return m_tempVars;
   }
