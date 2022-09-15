@@ -52,9 +52,6 @@ int main(int argc, char *argv[]) {
     fmt::print("<~~~ {} ~~~>\n", "ir instructions");
     IRGenerator generator;
     root->accept(&generator);
-    generator.printInstructions();
-    //...
-    fmt::print("<~~~ {} ~~~>\n", "updated ir instructions");
     generator.printUpdatedInstructions();
     //...
     auto codeGenerator = std::make_unique<CodeGenerator>();

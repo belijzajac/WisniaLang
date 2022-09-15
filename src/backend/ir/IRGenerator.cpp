@@ -300,45 +300,79 @@ void IRGenerator::visit(AST::ReadStmt *node) {
   }
 }
 
+/*
+  mov rdx, N         ;; length N of the string X
+  mov rcx, X         ;; starting at the string X
+  mov rbx, 0x1       ;; write to STDOUT
+  mov rax, 0x4       ;; sys_write
+  int 0x80           ;; syscall
+*/
 void IRGenerator::visit(AST::WriteStmt *node) {
+  //for (const auto &expr : node->getExprs()) {
+  //  expr->accept(this);
+  //}
+
+  // todo: what do we do about binary expressions that have both lhs and rhs values ???
   for (const auto &expr : node->getExprs()) {
-    expr->accept(this);
+    //popNode();
+
+    const auto &token = expr->getToken();
+    const auto &type  = token->getType();
+
+    const auto satisfiesIdentifierType {
+      type == TType::IDENT_INT    || type == TType::IDENT_FLOAT ||
+      type == TType::IDENT_STRING || type == TType::IDENT_BOOL
+    };
+    const auto satisfiesLiteralType {
+      type == TType::LIT_INT || type == TType::LIT_FLT ||
+      type == TType::LIT_STR || type == TType::LIT_BOOL
+    };
+
+    if (satisfiesIdentifierType) {
+      // Resolved at compiled program's run-time
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::MOV,
+        std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
+        std::make_shared<Basic::Token>(TType::LIT_INT, 5) // todo: for now we have a hardcoded length of 5
+      ));
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::MOV,
+        std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
+        std::make_shared<Basic::Token>(type, token->getValue<std::string>()) // todo: for now prepend strings up to length 5 with '%', e.g. "88%%%"
+      ));
+    } else if (satisfiesLiteralType) {
+      // Resolved at "compile-time"
+      const auto str = token->getValueStr();
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::MOV,
+        std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
+        std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(str.size()))
+      ));
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::MOV,
+        std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
+        std::make_shared<Basic::Token>(TType::LIT_STR, str)
+      ));
+    } else {
+      throw std::runtime_error{"fuck"};
+    }
+
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::MOV,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
+      std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::MOV,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
+      std::make_shared<Basic::Token>(TType::LIT_INT, 4)
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::SYSCALL,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::LIT_INT, 128)
+    ));
   }
-
-  auto expr = popNode();
-
-  /*
-    mov rdx, N         ;; length N of the string X
-    mov rcx, X         ;; starting at the string X
-    mov rbx, 0x1       ;; write to STDOUT
-    mov rax, 0x4       ;; sys_write
-    int 0x80           ;; syscall
-  */
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(expr->getToken()->getValue<std::string/*decltype(expr)*/>().length()))
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
-    std::make_shared<Basic::Token>(TType::LIT_STR, expr->getToken()->getValue<std::string/*decltype(expr)*/>())
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 4)
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::SYSCALL,
-    nullptr,
-    std::make_shared<Basic::Token>(TType::LIT_INT, 128)
-  ));
 }
 
 void IRGenerator::visit(AST::Param *node) {

@@ -55,11 +55,24 @@ class Token {
     }
   }
 
+  std::string getValueStr() const {
+    std::string strResult{};
+    std::visit(overloaded {
+      [&](const std::string &arg) { strResult = arg; },
+      [&](int arg)                { strResult = std::to_string(arg); },
+      [&](float arg)              { strResult = std::to_string(arg); },
+      [&](bool arg)               { strResult = arg ? "1" : "0"; },
+      [&](nullptr_t arg)          { strResult = "null"; },
+    },
+    m_value);
+    return strResult;
+  };
+
   // Primarily used in AST output for pretty token's value printing
   std::string getASTValueStr() const {
     std::string strResult{};
     std::visit(overloaded {
-      [&](const std::string& arg) {
+      [&](const std::string &arg) {
         if (m_type == TType::LIT_STR || m_type == TType::IDENT_STRING) {
           std::string temp{};
           for (const auto ch : arg) {
