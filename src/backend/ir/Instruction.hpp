@@ -34,11 +34,11 @@ class Instruction {
   using token_ptr = std::shared_ptr<Basic::Token>;
 
  public:
-  Instruction(
+  explicit Instruction(
     Operation op,
-    const token_ptr &target,
-    const token_ptr &arg1,
-    const token_ptr &arg2 = nullptr
+    const token_ptr &target = nullptr,
+    const token_ptr &arg1   = nullptr,
+    const token_ptr &arg2   = nullptr
   ) : m_operation{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
 
   const Operation &getOperation() const { return m_operation; }

@@ -74,9 +74,9 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   })";
   SetUp(program.data());
 
-  constexpr std::array<std::string_view, 16> kExpectedRegisters {
-    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-    "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15"
+  constexpr std::array<std::string_view, 15> kExpectedRegisters {
+    "rax", "rcx", "rdx", "rbx", "rbp", "rsi", "rdi", "r8",
+    "r9",  "r10", "r11", "r12", "r13", "r14", "r15"
   };
 
   const auto &instructions = m_generator.getUpdatedInstructions();
@@ -101,15 +101,14 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
 
   // mov rbx, 0x0
   EXPECT_EQ(instructions[instructions.size() - 3]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[instructions.size() - 3]->getTarget()->getValue<std::string>().c_str(), "rbx");
+  EXPECT_STREQ(instructions[instructions.size() - 3]->getTarget()->getValue<std::string>().c_str(), "rdi");
   EXPECT_EQ(instructions[instructions.size() - 3]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[instructions.size() - 3]->getArg1()->getValue<int>(), 0);
-  // mov rax, 0x1
+  // mov rax, 0x3c
   EXPECT_EQ(instructions[instructions.size() - 2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_STREQ(instructions[instructions.size() - 2]->getTarget()->getValue<std::string>().c_str(), "rax");
   EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getValue<int>(), 1);
-  // int 0x80
-  EXPECT_EQ(instructions[instructions.size() - 1]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[instructions.size() - 1]->getArg1()->getValue<int>(), 128);
+  EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getValue<int>(), 60);
+  // syscall
+  EXPECT_EQ(instructions[instructions.size() - 1]->getOperation(), Operation::SYSCALL);
 }

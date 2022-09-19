@@ -45,9 +45,9 @@ class RegisterAllocator {
 
     std::array<register_t, 16> m_registers {{
       {"rax", false}, {"rcx", false}, {"rdx", false}, {"rbx", false},
-      {"rsp", false}, {"rbp", false}, {"rsi", false}, {"rdi", false},
-      {"r8" , false}, {"r9",  false}, {"r10", false}, {"r11", false},
-      {"r12", false}, {"r13", false}, {"r14", false}, {"r15", false},
+      {"rbp", false}, {"rsi", false}, {"rdi", false}, {"r8" , false},
+      {"r9",  false}, {"r10", false}, {"r11", false}, {"r12", false},
+      {"r13", false}, {"r14", false}, {"r15", false},
     }};
   };
 

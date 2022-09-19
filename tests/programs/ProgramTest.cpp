@@ -117,7 +117,7 @@ class IProgramTestFixture : public testing::Test {
 
 using ProgramTest = IProgramTestFixture;
 
-TEST_F(ProgramTest, WriteOutput) {
+TEST_F(ProgramTest, PrintStrings) {
   constexpr std::string_view program = R"(
   fn main () -> void {
     print "hello world\n";
@@ -126,4 +126,14 @@ TEST_F(ProgramTest, WriteOutput) {
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hello world\nhahaha\nlole\n");
+}
+
+TEST_F(ProgramTest, PrintVariables) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    string str = "ABCDE";
+    print str, "12345";
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE12345");
 }

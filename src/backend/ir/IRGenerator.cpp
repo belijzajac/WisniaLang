@@ -143,27 +143,25 @@ void IRGenerator::visit(AST::Root *node) {
   }
 
   /*
-    mov rbx, 0x0       ;; return code
-    mov rax, 0x1       ;; sys_exit
-    int 0x80           ;; syscall
+    mov rax, 0x3c      ;; exit
+    mov rdi, 0x0       ;; exit code is 0
+    syscall            ;; make the system call
   */
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
     std::make_shared<Basic::Token>(TType::LIT_INT, 0)
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 60)
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::SYSCALL,
-    nullptr,
-    std::make_shared<Basic::Token>(TType::LIT_INT, 128)
+    Operation::SYSCALL
   ));
 
-  // Insert the last three instructions
+  // Insert the last two instructions
   if (m_allocateRegisters) {
     registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 3, m_instructions.size()));
   }
@@ -302,10 +300,10 @@ void IRGenerator::visit(AST::ReadStmt *node) {
 
 /*
   mov rdx, N         ;; length N of the string X
-  mov rcx, X         ;; starting at the string X
-  mov rbx, 0x1       ;; write to STDOUT
-  mov rax, 0x4       ;; sys_write
-  int 0x80           ;; syscall
+  mov rsi, X         ;; starting at the string X
+  mov rax, 0x1       ;; write
+  mov rdi, 0x1       ;; stdout file descriptor
+  syscall            ;; make the system call
 */
 void IRGenerator::visit(AST::WriteStmt *node) {
   //for (const auto &expr : node->getExprs()) {
@@ -332,13 +330,13 @@ void IRGenerator::visit(AST::WriteStmt *node) {
       // Resolved at compiled program's run-time
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
-        std::make_shared<Basic::Token>(TType::LIT_INT, 5) // todo: for now we have a hardcoded length of 5
+        std::make_shared<Basic::Token>(TType::REGISTER, "rdx"), // todo: push old rdx value on the stack
+        std::make_shared<Basic::Token>(TType::LIT_INT, 5) // print 5 bytes
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
-        std::make_shared<Basic::Token>(type, token->getValue<std::string>()) // todo: for now prepend strings up to length 5 with '%', e.g. "88%%%"
+        std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
+        std::make_shared<Basic::Token>(type, token->getValue<std::string>())
       ));
     } else if (satisfiesLiteralType) {
       // Resolved at "compile-time"
@@ -350,7 +348,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, "rcx"),
+        std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
         std::make_shared<Basic::Token>(TType::LIT_STR, str)
       ));
     } else {
@@ -359,18 +357,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
 
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
-      std::make_shared<Basic::Token>(TType::REGISTER, "rbx"),
+      std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
       std::make_shared<Basic::Token>(TType::LIT_INT, 1)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
-      std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
-      std::make_shared<Basic::Token>(TType::LIT_INT, 4)
+      std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
+      std::make_shared<Basic::Token>(TType::LIT_INT, 1)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
-      Operation::SYSCALL,
-      nullptr,
-      std::make_shared<Basic::Token>(TType::LIT_INT, 128)
+      Operation::SYSCALL
     ));
   }
 }

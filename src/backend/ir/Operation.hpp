@@ -45,6 +45,8 @@ enum class Operation {
   OR,
   // miscellaneous
   MOV,     // move to/from register
+  PUSH,    // push value on the stack
+  POP,     // pop value from the stack
   JMP,     // unconditional jump
   BR,      // conditional branch
   CALL,    // function invocation
@@ -72,6 +74,8 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::OR,  "||"},
   // miscellaneous
   {Operation::MOV,     "<-"      },
+  {Operation::PUSH,    "PUSH"    },
+  {Operation::POP,     "POP"     },
   {Operation::JMP,     "jmp"     },
   {Operation::BR,      "br"      },
   {Operation::CALL,    "call"    },
