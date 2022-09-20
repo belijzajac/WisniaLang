@@ -90,8 +90,9 @@ class ByteArray {
   std::string getString() const {
     std::stringstream str{};
     for (size_t i = 0; i < m_byteData.size(); i++) {
-      str << "0x" << m_byteData[i];
-      if (i + 1 < m_byteData.size()) str << ' ';
+      str << (((m_byteData[i] >> 4) == std::byte{0x0}) ? '0' : '\0') << m_byteData[i];
+      if ((i + 1) % 8 == 0) str << '\n';
+      else if (i + 1 < m_byteData.size()) str << ' ';
     }
     return str.str();
   }

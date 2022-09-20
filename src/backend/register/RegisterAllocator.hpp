@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+// Wisnia
+#include "InstructionPrintHelper.hpp"
 
 namespace Wisnia {
 class Instruction;
@@ -59,7 +61,7 @@ class RegisterAllocator {
 
  public:
   const instructions_list &getInstructions() const { return m_instructions; }
-  void printInstructions() const;
+  void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
   void allocateRegisters(instructions_list &&instructions);
 
  private:

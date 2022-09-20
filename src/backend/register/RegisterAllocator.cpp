@@ -31,16 +31,6 @@
 using namespace Wisnia;
 using namespace Basic;
 
-void RegisterAllocator::printInstructions() const {
-  size_t index = 0;
-  fmt::print("{:^34}|{:^9}|{:^34}|{:^34}\n", "Target", "Op", "Arg1", "Arg2");
-  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", 35, "+", 10, "+", 35, "", 34);
-  for (const auto &ir : m_instructions) {
-    ir->print();
-    ++index;
-  }
-}
-
 template<class T>
 struct is_shared_ptr : std::false_type {};
 

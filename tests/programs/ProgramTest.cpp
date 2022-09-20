@@ -132,7 +132,7 @@ TEST_F(ProgramTest, PrintVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
     string str = "ABCDE";
-    print str, "12345";
+    print str, "123", 45;
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE12345");

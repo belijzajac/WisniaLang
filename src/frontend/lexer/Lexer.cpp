@@ -196,6 +196,9 @@ std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
         case '\"':
           m_tokenState.m_buff += '\"';
           break;
+        case '0':
+          m_tokenState.m_buff += '\0';
+          break;
         default:
           m_tokenState.m_buff += ch;
           throw LexerError{

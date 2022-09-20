@@ -29,20 +29,6 @@ using namespace Wisnia;
 using namespace Basic;
 using namespace AST;
 
-void IRGenerator::printInstructions() const {
-  size_t index = 0;
-  fmt::print("{:^34}|{:^9}|{:^34}|{:^34}\n", "Target", "Op", "Arg1", "Arg2");
-  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", 35, "+", 10, "+", 35, "", 34);
-  for (const auto &ir : m_instructions) {
-    ir->print();
-    ++index;
-  }
-}
-
-void IRGenerator::printUpdatedInstructions() const {
-  registerAllocator.printInstructions();
-}
-
 AST::Root *IRGenerator::popNode() {
   assert(!m_stack.empty());
   auto *topNode{m_stack.top()};

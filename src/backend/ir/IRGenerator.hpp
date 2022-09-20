@@ -26,6 +26,7 @@
 #include <stack>
 #include <variant>
 // Wisnia
+#include "InstructionPrintHelper.hpp"
 #include "RegisterAllocator.hpp"
 #include "TType.hpp"
 #include "Visitor.hpp"
@@ -45,7 +46,8 @@ class IRGenerator : public Visitor {
   }
 
  public:
-  explicit IRGenerator(bool allocateRegisters = true) : m_allocateRegisters{allocateRegisters} {}
+  explicit IRGenerator(bool allocateRegisters = true)
+      : m_allocateRegisters{allocateRegisters} {}
 
   const instructions_list &getInstructions() const {
     return m_instructions;
@@ -59,8 +61,13 @@ class IRGenerator : public Visitor {
     return m_tempVars;
   }
 
-  void printInstructions() const;
-  void printUpdatedInstructions() const;
+  void printInstructions() const {
+    InstructionPrintHelper::print(m_instructions);
+  }
+
+  void printUpdatedInstructions() const {
+    InstructionPrintHelper::print(registerAllocator.getInstructions());
+  }
 
  public: // TODO: why are these public???
   void visit(AST::Root *node) override;

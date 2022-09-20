@@ -73,7 +73,7 @@ class Token {
     std::string strResult{};
     std::visit(overloaded {
       [&](const std::string &arg) {
-        if (m_type == TType::LIT_STR || m_type == TType::IDENT_STRING) {
+        if (m_type == TType::LIT_STR) {
           std::string temp{};
           for (const auto ch : arg) {
             switch (ch) {
@@ -83,6 +83,7 @@ class Token {
               case '\v': temp += "\\v"; break;
               case '\n': temp += "\\n"; break;
               case '\"': temp += "\\"; break;
+              case '\0': temp += "\\0"; break;
               default  : temp += ch;
             }
           }

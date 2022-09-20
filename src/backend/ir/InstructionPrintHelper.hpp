@@ -18,26 +18,22 @@
 
 ***/
 
-#include <fmt/format.h>
-// Wisnia
-#include "Instruction.hpp"
-#include "Token.hpp"
+#ifndef WISNIALANG_INSTRUCTION_PRINT_HELPER_HPP
+#define WISNIALANG_INSTRUCTION_PRINT_HELPER_HPP
 
-using namespace Wisnia;
-using namespace Basic;
+#include <memory>
+#include <vector>
 
-void Wisnia::Instruction::print() const {
-  fmt::print("{:^{}} %% {:<15}|{:^9}|{:^{}} %% {:<15}|{:^15} %% {:<15}\n",
-    // target
-    m_target ? m_target->getASTValueStr() : "", sTargetWidth + 2,
-    m_target ? TokenType2Str[m_target->getType()] : "",
-    // operation
-    Operation2Str[m_operation],
-    // arg1
-    m_arg1 ? m_arg1->getASTValueStr() : "", sArgOneWidth + 2,
-    m_arg1 ? TokenType2Str[m_arg1->getType()] : "",
-    // arg2
-    m_arg2 ? m_arg2->getASTValueStr() : "",
-    m_arg2 ? TokenType2Str[m_arg2->getType()] : ""
-  );
-}
+namespace Wisnia {
+class Instruction;
+
+class InstructionPrintHelper {
+  using instructions_list = std::vector<std::shared_ptr<Instruction>>;
+
+ public:
+  static void print(const instructions_list &instructions);
+};
+
+}  // namespace Wisnia
+
+#endif  // WISNIALANG_INSTRUCTION_PRINT_HELPER_HPP

@@ -41,17 +41,16 @@ int main(int argc, char *argv[]) {
     //...
     fmt::print("<~~~ {} ~~~>\n", "token stream");
     lexer->prettyPrint();
-    fmt::print("<~~~ {} ~~~>\n", "ast tree");
-    root->print();
     //...
     NameResolver resolver;
     root->accept(&resolver);
-    fmt::print("<~~~ {} ~~~>\n", "updated ast tree");
+    fmt::print("<~~~ {} ~~~>\n", "ast tree");
     root->print();
     //...
     fmt::print("<~~~ {} ~~~>\n", "ir instructions");
     IRGenerator generator;
     root->accept(&generator);
+    //generator.printInstructions();
     generator.printUpdatedInstructions();
     //...
     auto codeGenerator = std::make_unique<CodeGenerator>();
