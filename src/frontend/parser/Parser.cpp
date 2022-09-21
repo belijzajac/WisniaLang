@@ -500,8 +500,11 @@ std::unique_ptr<BaseExpr> Parser::parseConstExpr() {
     case TType::KW_FALSE:
       return std::make_unique<BoolExpr>(getNextToken());
     // <STRING>
-    case TType::LIT_STR:
-      return std::make_unique<StringExpr>(getNextToken());
+    case TType::LIT_STR: {
+      auto &token = getNextToken();
+      token->setValue(token->getValue<std::string>() + '\0'); // make it null-terminated
+      return std::make_unique<StringExpr>(token);
+    }
     default:
       throw ParserError{"Unknown constant expression"};
   }
