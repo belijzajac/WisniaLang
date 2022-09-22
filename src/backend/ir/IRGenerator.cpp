@@ -347,10 +347,11 @@ void IRGenerator::visit(AST::WriteStmt *node) {
     if (satisfiesLiteralType) {
       // Resolved at "compile-time"
       const auto str = token->getValueStr();
+      const auto length = (type == TType::LIT_STR) ? str.size() - 1 : str.size();
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
         std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
-        std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(str.size()))
+        std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(length))
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,

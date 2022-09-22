@@ -119,7 +119,7 @@ TEST(ParserTest, Loops) {
     auto forLoopIncDecRhs = dynamic_cast<AST::StringExpr *>(&*forLoopIncDecAddExpr->rhs());
     EXPECT_NE(forLoopIncDecRhs, nullptr);
     EXPECT_EQ(forLoopIncDecRhs->getToken()->getType(), TType::LIT_STR);
-    EXPECT_EQ(forLoopIncDecRhs->getToken()->getValue<std::string>(), "1");
+    EXPECT_STREQ(forLoopIncDecRhs->getToken()->getValue<std::string>().c_str(), "1");
     // {}
     auto forLoopStmtBlock = dynamic_cast<AST::StmtBlock *>(&*forLoopStmt->getBody());
     EXPECT_EQ(forLoopStmtBlock->getStatements().size(), 0);

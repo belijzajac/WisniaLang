@@ -117,8 +117,8 @@ TEST_F(NodeCollectorTest, StringExpr) {
   NodeCollector<AST::StringExpr> collector;
   m_root->accept(&collector);
   EXPECT_EQ(collector.getNodes().size(), 2);
-  EXPECT_TRUE(collector.getNodes()[0]->getToken()->getValue<std::string>() == "hello");
-  EXPECT_TRUE(collector.getNodes()[1]->getToken()->getValue<std::string>() == "bye");
+  EXPECT_STREQ(collector.getNodes()[0]->getToken()->getValue<std::string>().c_str(), "hello");
+  EXPECT_STREQ(collector.getNodes()[1]->getToken()->getValue<std::string>().c_str(), "bye");
 }
 
 TEST_F(NodeCollectorTest, IntExpr) {
