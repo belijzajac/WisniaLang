@@ -47,6 +47,14 @@ class CodeGenerator {
   void emitSysCall(const InstructionValue &instruction);
   void emitPush(const InstructionValue &instruction);
   void emitPop(const InstructionValue &instruction);
+  void emitCall(const InstructionValue &instruction);
+  void emitLabel(const InstructionValue &instruction);
+  void emitCmpByteAddr(const InstructionValue &instruction);
+  void emitJmp(const InstructionValue &instruction);
+  void emitJe(const InstructionValue &instruction);
+  void emitInc(const InstructionValue &instruction);
+  void emitRet(const InstructionValue &instruction);
+  void emitNop(const InstructionValue &instruction);
 
  private:
   std::vector<InstructionValue> m_instructions;

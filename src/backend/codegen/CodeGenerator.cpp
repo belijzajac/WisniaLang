@@ -122,6 +122,32 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
       case Operation::POP:
         emitPop(instruction);
         break;
+      case Operation::CALL:
+        emitCall(instruction);
+        break;
+      case Operation::LABEL:
+        emitLabel(instruction);
+        break;
+      case Operation::CMP_BYTE_ADDR:
+        emitCmpByteAddr(instruction);
+        break;
+      case Operation::JMP:
+        emitJmp(instruction);
+        break;
+      case Operation::JE:
+        emitJe(instruction);
+        break;
+      case Operation::INC:
+        emitInc(instruction);
+        break;
+      case Operation::RET:
+        emitRet(instruction);
+        break;
+      case Operation::NOP:
+        emitNop(instruction);
+        break;
+      default:
+        throw CodeGenerationError{"Unknown operation to generate the code for"};
     }
   }
 
@@ -179,7 +205,39 @@ void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction)
 
 void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
   // Pop stack value into a register
-  if (instruction->getTarget()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PopRegisterMachineCode[instruction->getTarget()->getValue<std::string>()]);
+  if (instruction->getArg1()->getType() == TType::REGISTER) {
+    m_textSection.putBytes(PopRegisterMachineCode[instruction->getArg1()->getValue<std::string>()]);
   }
+}
+
+void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitLabel(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitCmpByteAddr(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitJe(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitRet(const CodeGenerator::InstructionValue &instruction) {
+  //...
+}
+
+void CodeGenerator::emitNop(const CodeGenerator::InstructionValue &instruction) {
+  //...
 }

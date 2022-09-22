@@ -62,7 +62,7 @@ class RegisterAllocator {
  public:
   const instructions_list &getInstructions() const { return m_instructions; }
   void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
-  void allocateRegisters(instructions_list &&instructions);
+  void allocateRegisters(instructions_list &&instructions, bool allocateRegisters = true);
 
  private:
   instructions_list m_instructions;

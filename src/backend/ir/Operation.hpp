@@ -27,40 +27,45 @@
 namespace Wisnia {
 
 enum class Operation {
-  // arithmetic (each for int and float)
-  IADD,  FADD,
-  ISUB,  FSUB,
-  IMUL,  FMUL,
-  IDIV,  FDIV,
-  // comparison (each for int and float)
-  IEQ,   FEQ,
-  ILT,   FLT,
-  ILE,   FLE,
-  IGT,   FGT,
-  IGE,   FGE,
-  INE,   FNE,
-  // logical
+  /* arithmetic (each for int and float) */
+  IADD,  FADD,    // add
+  ISUB,  FSUB,    // subtract
+  IMUL,  FMUL,    // multiply
+  IDIV,  FDIV,    // divide
+  INC,            // increment
+  /* comparison (each for int and float) */
+  IEQ,   FEQ,     // equal
+  ILT,   FLT,     // less than
+  ILE,   FLE,     // less equal
+  IGT,   FGT,     // greater than
+  IGE,   FGE,     // greater equal
+  INE,   FNE,     // not equal
+  CMP_BYTE_ADDR,  // compare address to a single-byte memory location
+  /* logical */
   NOT,
   AND,
   OR,
-  // miscellaneous
-  MOV,     // move to/from register
-  PUSH,    // push value on the stack
-  POP,     // pop value from the stack
-  JMP,     // unconditional jump
-  BR,      // conditional branch
-  CALL,    // function invocation
-  SYSCALL, // system call
-  RET,     // function return
-  NOP      // do nothing
+  /* jumps */
+  JMP,            // unconditional jump
+  JE,             // jump equal
+  /* miscellaneous */
+  MOV,            // move to/from register
+  PUSH,           // push value on the stack
+  POP,            // pop value from the stack
+  CALL,           // function invocation
+  SYSCALL,        // system call
+  LABEL,          // label
+  RET,            // function return
+  NOP             // do nothing
 };
 
 static inline std::unordered_map<Operation, std::string> Operation2Str {
   // arithmetic (each for int and float)
-  {Operation::IADD, "+"}, {Operation::FADD, "+"},
-  {Operation::ISUB, "-"}, {Operation::FSUB, "-"},
-  {Operation::IMUL, "*"}, {Operation::FMUL, "*"},
-  {Operation::IDIV, "/"}, {Operation::FDIV, "/"},
+  {Operation::IADD, "+" }, {Operation::FADD, "+"},
+  {Operation::ISUB, "-" }, {Operation::FSUB, "-"},
+  {Operation::IMUL, "*" }, {Operation::FMUL, "*"},
+  {Operation::IDIV, "/" }, {Operation::FDIV, "/"},
+  {Operation::INC,  "++"},
   // comparison (each for int and float)
   {Operation::IEQ, "=="}, {Operation::FEQ, "=="},
   {Operation::ILT, "<" }, {Operation::FLT, "<" },
@@ -68,16 +73,18 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::IGT, ">" }, {Operation::FGT, ">" },
   {Operation::IGE, ">="}, {Operation::FGE, ">="},
   {Operation::INE, "!="}, {Operation::FNE, "!="},
+  {Operation::CMP_BYTE_ADDR, "cmp byte ptr"    },
   // logical
   {Operation::NOT, "!" },
   {Operation::AND, "&&"},
   {Operation::OR,  "||"},
+  // jumps
+  {Operation::JMP, "jmp"},
+  {Operation::JE,  "je" },
   // miscellaneous
   {Operation::MOV,     "<-"      },
-  {Operation::PUSH,    "PUSH"    },
-  {Operation::POP,     "POP"     },
-  {Operation::JMP,     "jmp"     },
-  {Operation::BR,      "br"      },
+  {Operation::PUSH,    "push"    },
+  {Operation::POP,     "pop"     },
   {Operation::CALL,    "call"    },
   {Operation::SYSCALL, "syscall" },
   {Operation::RET,     "ret"     },

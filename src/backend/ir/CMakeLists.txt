@@ -23,5 +23,7 @@ set(WISNIA_SOURCES
   backend/ir/Operation.hpp
   backend/ir/InstructionPrintHelper.hpp
   backend/ir/InstructionPrintHelper.cpp
+  backend/ir/Modules.hpp
+  backend/ir/Modules.cpp
   PARENT_SCOPE
 )

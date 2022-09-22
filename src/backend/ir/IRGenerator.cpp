@@ -21,9 +21,10 @@
 #include <array>
 #include <cassert>
 // Wisnia
+#include "AST.hpp"
 #include "IRGenerator.hpp"
 #include "Instruction.hpp"
-#include "AST.hpp"
+#include "Modules.hpp"
 
 using namespace Wisnia;
 using namespace Basic;
@@ -128,9 +129,12 @@ void IRGenerator::visit(AST::Root *node) {
     }
   }
 
+  auto extraInstructions = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
+  registerAllocator.allocateRegisters(std::move(extraInstructions), false);
+
   /*
     mov rax, 0x3c      ;; exit
-    mov rdi, 0x0       ;; exit code is 0
+    mov rdi, 0x00      ;; exit code is 0
     syscall            ;; make the system call
   */
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -147,7 +151,7 @@ void IRGenerator::visit(AST::Root *node) {
     Operation::SYSCALL
   ));
 
-  // Insert the last two instructions
+  // Insert the last three instructions
   if (m_allocateRegisters) {
     registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 3, m_instructions.size()));
   }
@@ -314,17 +318,33 @@ void IRGenerator::visit(AST::WriteStmt *node) {
 
     if (satisfiesIdentifierType) {
       // Resolved at compiled program's run-time
-      m_instructions.emplace_back(std::make_unique<Instruction>(
-        Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, "rdx"), // todo: push old rdx value on the stack
-        std::make_shared<Basic::Token>(TType::LIT_INT, 5) // print 5 bytes
-      ));
-      m_instructions.emplace_back(std::make_unique<Instruction>(
-        Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
-        std::make_shared<Basic::Token>(type, token->getValue<std::string>())
-      ));
-    } else if (satisfiesLiteralType) {
+      switch (type) {
+        case TType::IDENT_STRING:
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::MOV,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
+            std::make_shared<Basic::Token>(type, token->getValue<std::string>())
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::CALL, // updates the rdx register to contain a string's length
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
+          ));
+          break;
+        case TType::IDENT_INT:
+          assert(0 && "todo");
+          break;
+        case TType::IDENT_BOOL:
+          assert(0 && "todo");
+          break;
+        case TType::IDENT_FLOAT:
+          assert(0 && "todo");
+          break;
+        default:
+          throw InstructionError{"Unknown identifier type"};
+      }
+    }
+
+    if (satisfiesLiteralType) {
       // Resolved at "compile-time"
       const auto str = token->getValueStr();
       m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -337,8 +357,6 @@ void IRGenerator::visit(AST::WriteStmt *node) {
         std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
         std::make_shared<Basic::Token>(TType::LIT_STR, str)
       ));
-    } else {
-      throw std::runtime_error{"fuck"};
     }
 
     m_instructions.emplace_back(std::make_unique<Instruction>(

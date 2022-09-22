@@ -52,7 +52,12 @@ bool checkVariable(const TToken token, const TVariable &variable) {
   return satisfiesType && token->template getValue<VariableType>() == variable;
 }
 
-void RegisterAllocator::allocateRegisters(instructions_list &&instructions) {
+void RegisterAllocator::allocateRegisters(instructions_list &&instructions, bool allocateRegisters) {
+  if (!allocateRegisters) {
+    m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
+    return;
+  }
+
   // List of live intervals
   const auto cmp_1 = [](const auto &a, const auto &b) { return a.m_start < b.m_start; };
   std::set<Live, decltype(cmp_1)> liveIntervals{};
