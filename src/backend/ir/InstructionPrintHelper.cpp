@@ -40,8 +40,8 @@ void InstructionPrintHelper::print(const InstructionPrintHelper::instructions_li
   Instruction::setTargetWidth(maxTargetWidth);
   Instruction::setArgOneWidth(maxArgOneWidth);
 
-  fmt::print("{:^{}}|{:^9}|{:^{}}|{:^34}\n", "Target", maxTargetWidth + 21, "Op", "Arg1", maxArgOneWidth + 21, "Arg2");
-  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", maxTargetWidth + 22, "+", 10, "+", maxArgOneWidth + 22, "", 34);
+  fmt::print("{:^{}}|{:^14}|{:^{}}|{:^34}\n", "Target", maxTargetWidth + 21, "Op", "Arg1", maxArgOneWidth + 21, "Arg2");
+  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", maxTargetWidth + 22, "+", 15, "+", maxArgOneWidth + 22, "", 34);
   for (const auto &ir : instructions) {
     ir->print();
   }
