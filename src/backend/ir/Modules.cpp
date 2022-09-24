@@ -32,27 +32,35 @@ Modules::instructions_list Modules::getModule(Module module) {
   switch (module) {
     case Module::CALCULATE_STRING_LENGTH:
       return moduleCalculateStringLength();
+    case Module::EXIT:
+      return moduleExit();
     default:
       throw InstructionError{"Unknown module"};
   }
 }
 
 /*
+_calculate_string_length_:
   mov rdx, 0x00             ; zero the length
   push rsi                  ; save the string
-len_loop:
+_loop_:
   cmp byte ptr [rsi], 0x00  ; is it null-terminated yet?
-  je len_loop_over          ; if it is, break the loop
+  je _exit_loop_            ; if it is, break the loop
   inc rdx                   ; increment length
   inc rsi                   ; look at the next character
-  jmp len_loop              ; loop again
-len_loop_over:
+  jmp _loop_                ; loop again
+_exit_loop_:
   pop rsi                   ; restore the string
   ret                       ; return
 */
 Modules::instructions_list Modules::moduleCalculateStringLength() {
   instructions_list instructions{};
 
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
+  ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
@@ -66,7 +74,7 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, "len_loop")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, "_loop_")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::CMP_BYTE_ADDR,
@@ -77,7 +85,7 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JE,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, "len_loop_over")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, "_exit_loop_")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::INC,
@@ -92,12 +100,12 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JMP,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, "len_loop")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, "_loop_")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, "len_loop_over")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, "_exit_loop_")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::POP,
@@ -106,6 +114,37 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::RET
+  ));
+
+  return instructions;
+}
+
+/*
+_exit_:
+  mov rax, 0x3c      ;; exit
+  mov rdi, 0x00      ;; exit code is 0
+  syscall            ;; make the system call
+*/
+Modules::instructions_list Modules::moduleExit() {
+  instructions_list instructions{};
+
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 0)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 60)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::SYSCALL
   ));
 
   return instructions;

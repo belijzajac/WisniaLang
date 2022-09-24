@@ -87,6 +87,7 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::POP,     "pop"     },
   {Operation::CALL,    "call"    },
   {Operation::SYSCALL, "syscall" },
+  {Operation::LABEL,   "label"   },
   {Operation::RET,     "ret"     },
   {Operation::NOP,     "nop"     },
 };

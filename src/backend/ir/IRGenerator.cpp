@@ -129,32 +129,21 @@ void IRGenerator::visit(AST::Root *node) {
     }
   }
 
-  auto extraInstructions = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
-  registerAllocator.allocateRegisters(std::move(extraInstructions), false);
-
-  /*
-    mov rax, 0x3c      ;; exit
-    mov rdi, 0x00      ;; exit code is 0
-    syscall            ;; make the system call
-  */
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 0)
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::MOV,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 60)
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::SYSCALL
+    Operation::CALL,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
   ));
 
-  // Insert the last three instructions
+  // Insert the last instruction
   if (m_allocateRegisters) {
-    registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 3, m_instructions.size()));
+    registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 1, m_instructions.size()));
   }
+
+  // Load modules
+  auto moduleCalculateStringLength = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
+  auto moduleExit = Modules::getModule(Module::EXIT);
+  registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
+  registerAllocator.allocateRegisters(std::move(moduleExit), false);
 }
 
 void IRGenerator::visit(AST::PrimitiveType *node) {
@@ -326,7 +315,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
             std::make_shared<Basic::Token>(type, token->getValue<std::string>())
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
-            Operation::CALL, // updates the rdx register to contain a string's length
+            Operation::CALL,
             std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
           ));
           break;
