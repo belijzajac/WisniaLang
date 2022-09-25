@@ -40,7 +40,7 @@ enum class Operation {
   IGT,   FGT,     // greater than
   IGE,   FGE,     // greater equal
   INE,   FNE,     // not equal
-  CMP_BYTE_ADDR,  // compare address to a single-byte memory location
+  CMP_BYTE_PTR,   // compare address of a single-byte memory location
   /* logical */
   NOT,
   AND,
@@ -73,7 +73,7 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::IGT, ">" }, {Operation::FGT, ">" },
   {Operation::IGE, ">="}, {Operation::FGE, ">="},
   {Operation::INE, "!="}, {Operation::FNE, "!="},
-  {Operation::CMP_BYTE_ADDR, "cmp byte ptr"    },
+  {Operation::CMP_BYTE_PTR, "cmp byte ptr"     },
   // logical
   {Operation::NOT, "!" },
   {Operation::AND, "&&"},

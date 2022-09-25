@@ -42,8 +42,22 @@ class ByteArray {
   constexpr auto end() const noexcept { return m_byteData.end(); }
 
  public:
-  ByteArray() = default;
-  ByteArray(std::initializer_list<std::byte> list) : m_byteData(list) {}
+  constexpr ByteArray() = default;
+
+  template <typename T>
+  constexpr explicit ByteArray(T value) {
+    if constexpr (std::is_same<T, uint32_t>()) {
+      putU32(value);
+    } else if constexpr (std::is_same<T, uint64_t>()) {
+      putU64(value);
+    } else if constexpr (std::is_same<T, std::byte>()) {
+      putBytes(value);
+    } else {
+      assert(0 && "No matching type to initialize ByteArray with");
+    }
+  }
+
+  constexpr ByteArray(std::initializer_list<std::byte> list) : m_byteData(list) {}
 
   constexpr size_t size() const { return m_byteData.size(); }
   constexpr const std::byte *data() const { return m_byteData.data(); }

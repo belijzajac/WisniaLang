@@ -31,7 +31,7 @@ using namespace Basic;
 using namespace AST;
 
 AST::Root *IRGenerator::popNode() {
-  assert(!m_stack.empty());
+  assert(!m_stack.empty() && "The stack is empty");
   auto *topNode{m_stack.top()};
   m_stack.pop();
   return topNode;

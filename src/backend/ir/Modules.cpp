@@ -77,7 +77,7 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
     std::make_shared<Basic::Token>(TType::IDENT_VOID, "_loop_")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::CMP_BYTE_ADDR,
+    Operation::CMP_BYTE_PTR,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
     std::make_shared<Basic::Token>(TType::LIT_INT, 0)

@@ -32,8 +32,13 @@ class Instruction;
 class CodeGenerator {
   using InstructionValue = std::shared_ptr<Instruction>;
 
-  struct Patch {
+  struct Data {
     size_t m_start;
+    size_t m_offset;
+  };
+
+  struct Label {
+    std::string m_name;
     size_t m_offset;
   };
 
@@ -49,9 +54,8 @@ class CodeGenerator {
   void emitPop(const InstructionValue &instruction);
   void emitCall(const InstructionValue &instruction);
   void emitLabel(const InstructionValue &instruction);
-  void emitCmpByteAddr(const InstructionValue &instruction);
+  void emitCmpBytePtr(const InstructionValue &instruction);
   void emitJmp(const InstructionValue &instruction);
-  void emitJe(const InstructionValue &instruction);
   void emitInc(const InstructionValue &instruction);
   void emitRet(const InstructionValue &instruction);
   void emitNop(const InstructionValue &instruction);
@@ -61,7 +65,10 @@ class CodeGenerator {
   ByteArray m_textSection;
   ByteArray m_dataSection;
   std::vector<size_t> m_dataOffsets;
-  std::vector<Patch> m_patches;
+  std::vector<Data> m_data;
+  std::vector<Label> m_labels;
+  std::vector<Label> m_calls;
+  std::vector<Label> m_jumps;
 };
 
 }  // namespace Wisnia
