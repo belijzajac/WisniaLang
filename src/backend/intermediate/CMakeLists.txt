@@ -16,14 +16,14 @@
 
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  backend/ir/IRGenerator.hpp
-  backend/ir/IRGenerator.cpp
-  backend/ir/Instruction.hpp
-  backend/ir/Instruction.cpp
-  backend/ir/Operation.hpp
-  backend/ir/InstructionPrintHelper.hpp
-  backend/ir/InstructionPrintHelper.cpp
-  backend/ir/Modules.hpp
-  backend/ir/Modules.cpp
+  backend/intermediate/IRGenerator.hpp
+  backend/intermediate/IRGenerator.cpp
+  backend/intermediate/Instruction.hpp
+  backend/intermediate/Instruction.cpp
+  backend/intermediate/Operation.hpp
+  backend/intermediate/InstructionPrintHelper.hpp
+  backend/intermediate/InstructionPrintHelper.cpp
+  backend/intermediate/Modules.hpp
+  backend/intermediate/Modules.cpp
   PARENT_SCOPE
 )

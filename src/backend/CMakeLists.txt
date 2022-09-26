@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-add_subdirectory(ir)
+add_subdirectory(intermediate)
 add_subdirectory(register)
 add_subdirectory(elf)
 add_subdirectory(codegen)

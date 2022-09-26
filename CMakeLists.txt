@@ -47,7 +47,7 @@ include_directories(
   src/frontend/parser/
   src/frontend/sema/
 # backend
-  src/backend/ir/
+  src/backend/intermediate/
   src/backend/register/
   src/backend/elf/
   src/backend/codegen/
