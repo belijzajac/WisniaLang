@@ -141,8 +141,10 @@ void IRGenerator::visit(AST::Root *node) {
 
   // Load modules
   auto moduleCalculateStringLength = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
+  auto moduleUintToString = Modules::getModule(Module::UINT_TO_STRING);
   auto moduleExit = Modules::getModule(Module::EXIT);
   registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
+  registerAllocator.allocateRegisters(std::move(moduleUintToString), false);
   registerAllocator.allocateRegisters(std::move(moduleExit), false);
 }
 
@@ -320,8 +322,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           break;
         case TType::IDENT_INT:
-          assert(0 && "todo");
-          break;
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::MOV,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
+            std::make_shared<Basic::Token>(type, token->getValue<std::string>())
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::CALL,
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::UINT_TO_STRING])
+          ));
+          continue;
         case TType::IDENT_BOOL:
           assert(0 && "todo");
           break;
