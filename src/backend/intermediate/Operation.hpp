@@ -33,6 +33,7 @@ enum class Operation {
   IMUL,  FMUL,    // multiply
   IDIV,  FDIV,    // divide
   INC,            // increment
+  DEC,            // decrement
   /* comparison (each for int and float) */
   IEQ,   FEQ,     // equal
   ILT,   FLT,     // less than
@@ -45,11 +46,18 @@ enum class Operation {
   NOT,
   AND,
   OR,
+  XOR,
+  TEST,
   /* jumps */
   JMP,            // unconditional jump
   JE,             // jump equal
+  JZ,             // jump zero
+  JNE,            // jump not equal
+  JNZ,            // jump not zero
   /* miscellaneous */
-  MOV,            // move to/from register
+  LEA,
+  MOV,            // copies the value from rhs register to lhs register
+  MOV_MEMORY,     // copies the value from rhs register to memory address contained in lhs
   PUSH,           // push value on the stack
   POP,            // pop value from the stack
   CALL,           // function invocation
@@ -65,7 +73,7 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::ISUB, "-" }, {Operation::FSUB, "-"},
   {Operation::IMUL, "*" }, {Operation::FMUL, "*"},
   {Operation::IDIV, "/" }, {Operation::FDIV, "/"},
-  {Operation::INC,  "++"},
+  {Operation::INC,  "++"}, {Operation::DEC, "--"},
   // comparison (each for int and float)
   {Operation::IEQ, "=="}, {Operation::FEQ, "=="},
   {Operation::ILT, "<" }, {Operation::FLT, "<" },
@@ -75,21 +83,28 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::INE, "!="}, {Operation::FNE, "!="},
   {Operation::CMP_BYTE_PTR, "cmp byte ptr"     },
   // logical
-  {Operation::NOT, "!" },
-  {Operation::AND, "&&"},
-  {Operation::OR,  "||"},
+  {Operation::NOT,  "!"   },
+  {Operation::AND,  "&&"  },
+  {Operation::OR,   "||"  },
+  {Operation::XOR,  "xor" },
+  {Operation::TEST, "test"},
   // jumps
   {Operation::JMP, "jmp"},
   {Operation::JE,  "je" },
+  {Operation::JZ,  "jz" },
+  {Operation::JNE, "jne"},
+  {Operation::JNZ, "jnz"},
   // miscellaneous
-  {Operation::MOV,     "<-"      },
-  {Operation::PUSH,    "push"    },
-  {Operation::POP,     "pop"     },
-  {Operation::CALL,    "call"    },
-  {Operation::SYSCALL, "syscall" },
-  {Operation::LABEL,   "label"   },
-  {Operation::RET,     "ret"     },
-  {Operation::NOP,     "nop"     },
+  {Operation::LEA,        "lea"     },
+  {Operation::MOV,        "<-"      },
+  {Operation::MOV_MEMORY, "[] <-"   },
+  {Operation::PUSH,       "push"    },
+  {Operation::POP,        "pop"     },
+  {Operation::CALL,       "call"    },
+  {Operation::SYSCALL,    "syscall" },
+  {Operation::LABEL,      "label"   },
+  {Operation::RET,        "ret"     },
+  {Operation::NOP,        "nop"     },
 };
 
 }  // namespace Wisnia

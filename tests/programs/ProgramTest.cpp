@@ -64,6 +64,7 @@ class IProgramTestFixture : public testing::Test {
     m_program.m_output = readFile(outFile);
     m_program.m_error  = readFile(errFile);
 
+    // todo: RAII
     std::remove(outFile.c_str());
     std::remove(errFile.c_str());
   }
@@ -136,4 +137,15 @@ TEST_F(ProgramTest, PrintVariables) {
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE12345");
+}
+
+TEST_F(ProgramTest, PrintIntVariables) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int number = 123456789;
+    int another = 333;
+    print number, another;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789333");
 }

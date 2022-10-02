@@ -48,7 +48,9 @@ class CodeGenerator {
   void generateCode(const std::vector<InstructionValue> &instructions);
 
  private:
+  void emitLea(const InstructionValue &instruction);
   void emitMove(const InstructionValue &instruction, bool label = false);
+  void emitMoveMemory(const InstructionValue &instruction);
   void emitSysCall(const InstructionValue &instruction);
   void emitPush(const InstructionValue &instruction);
   void emitPop(const InstructionValue &instruction);
@@ -57,6 +59,13 @@ class CodeGenerator {
   void emitCmpBytePtr(const InstructionValue &instruction);
   void emitJmp(const InstructionValue &instruction);
   void emitInc(const InstructionValue &instruction);
+  void emitDec(const InstructionValue &instruction);
+  void emitAdd(const InstructionValue &instruction);
+  void emitSub(const InstructionValue &instruction);
+  void emitDiv(const InstructionValue &instruction);
+  void emitXor(const InstructionValue &instruction);
+  void emitOr(const InstructionValue &instruction);
+  void emitTest(const InstructionValue &instruction);
   void emitRet(const InstructionValue &instruction);
   void emitNop(const InstructionValue &instruction);
 
