@@ -83,8 +83,10 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
 
   // 16 assigned registers
   for (size_t i = 0; i < kExpectedRegisters.size(); i++) {
+    const auto &op  = instructions[i]->getOperation();
     const auto &var = instructions[i]->getTarget();
     const auto &arg = instructions[i]->getArg1();
+    EXPECT_EQ(op, Operation::MOV);
     EXPECT_EQ(var->getType(), TType::REGISTER);
     EXPECT_STREQ(var->getValue<std::string>().c_str(), kExpectedRegisters[i].data());
     EXPECT_EQ(arg->getType(), TType::LIT_INT);
@@ -92,6 +94,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   }
 
   // 1 spilled register
+  EXPECT_EQ(instructions[16]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[16]->getTarget()->getType(), TType::REGISTER);
   EXPECT_STREQ(instructions[16]->getTarget()->getValue<std::string>().c_str(), "[spill]");
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::LIT_INT);
@@ -99,12 +102,14 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
 
   // then goes the last 3 instructions marking the end of the program
 
-  // mov rbx, 0x0
-  EXPECT_EQ(instructions[instructions.size() - 3]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[instructions.size() - 3]->getTarget()->getValue<std::string>().c_str(), "rdi");
-  EXPECT_EQ(instructions[instructions.size() - 3]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[instructions.size() - 3]->getArg1()->getValue<int>(), 0);
+  // xor rdi, rdi
+  EXPECT_EQ(instructions[instructions.size() - 3]->getOperation(), Operation::XOR);
+  EXPECT_EQ(instructions[instructions.size() - 3]->getArg1()->getType(), TType::REGISTER);
+  EXPECT_STREQ(instructions[instructions.size() - 3]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[instructions.size() - 3]->getArg2()->getType(), TType::REGISTER);
+  EXPECT_STREQ(instructions[instructions.size() - 3]->getArg2()->getValue<std::string>().c_str(), "rdi");
   // mov rax, 0x3c
+  EXPECT_EQ(instructions[instructions.size() - 2]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[instructions.size() - 2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_STREQ(instructions[instructions.size() - 2]->getTarget()->getValue<std::string>().c_str(), "rax");
   EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getType(), TType::LIT_INT);

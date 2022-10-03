@@ -265,8 +265,8 @@ Modules::instructions_list Modules::moduleUintToString() {
 
 /*
 _exit_:
-  mov rax, 0x3c      ;; exit
   xor rdi, rdi       ;; exit code is 0
+  mov rax, 0x3c      ;; exit
   syscall            ;; make the system call
 */
 Modules::instructions_list Modules::moduleExit() {
