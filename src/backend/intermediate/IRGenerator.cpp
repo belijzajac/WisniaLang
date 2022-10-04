@@ -141,10 +141,10 @@ void IRGenerator::visit(AST::Root *node) {
 
   // Load modules
   auto moduleCalculateStringLength = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
-  auto moduleUintToString = Modules::getModule(Module::UINT_TO_STRING);
+  auto modulePrintUintNumber = Modules::getModule(Module::PRINT_UINT_NUMBER);
   auto moduleExit = Modules::getModule(Module::EXIT);
   registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
-  registerAllocator.allocateRegisters(std::move(moduleUintToString), false);
+  registerAllocator.allocateRegisters(std::move(modulePrintUintNumber), false);
   registerAllocator.allocateRegisters(std::move(moduleExit), false);
 }
 
@@ -329,7 +329,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::UINT_TO_STRING])
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_UINT_NUMBER])
           ));
           continue;
         case TType::IDENT_BOOL:

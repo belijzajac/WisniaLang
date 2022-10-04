@@ -32,8 +32,8 @@ Modules::instructions_list Modules::getModule(Module module) {
   switch (module) {
     case Module::CALCULATE_STRING_LENGTH:
       return moduleCalculateStringLength();
-    case Module::UINT_TO_STRING:
-      return moduleUintToString();
+    case Module::PRINT_UINT_NUMBER:
+      return modulePrintUintNumber();
     case Module::EXIT:
       return moduleExit();
     default:
@@ -123,29 +123,41 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
 }
 
 /*
-_uint_to_string_:
-  mov rax, rsi
-  mov rsi, rsp       ;; move buffer on the stack
-  sub rsp, 40        ;; stack allocate space for a string
-  dec rsi
-  mov r8, 10
-.uint_to_string_loop:
-  xor rdx, rdx
-  div r8
-  or dl, 0x30
-  dec rsi
-  mov [rsi], dl
-  test rax, rax
-  jnz .uint_to_string_loop
+_print_uint_number_:
+  push rcx                            ;; save register
+  push rbx                            ;; save register
+  mov rax, rdi                        ;; function argument
+  mov rcx, 0xa                        ;; base 10
+  mov rsi, rsp                        ;; move buffer on the stack
+  sub rsp, 16                         ;; stack allocate space for a string
+.print_uint_number_loop:              ;; do {
+  xor edx, edx
+  div rcx                             ;; eax /= 10, edx %= 10
+  add edx, '0'                        ;; convert to ascii
+  dec rsi                             ;; working backwards from the end of the string
+  mov [rsi], dl                       ;; append character
+  test rax, rax                       ;; } while(x);
+  jnz .print_uint_number_loop
+
+  mov rax, 1                          ;; write
+  mov rdi, 1                          ;; stdout file descriptor
+  lea edx, [rsp + 16]                 ;; length of the string
+  sub edx, esi                        ;; rdx = length = end-start
+  syscall
+
+  add rsp, 16                         ;; undo the buffer reservation
+  pop rbx                             ;; restore register
+  pop rcx                             ;; restore register
+
   ret
 */
-Modules::instructions_list Modules::moduleUintToString() {
+Modules::instructions_list Modules::modulePrintUintNumber() {
   instructions_list instructions{};
 
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::UINT_TO_STRING])
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_UINT_NUMBER])
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
@@ -180,7 +192,7 @@ Modules::instructions_list Modules::moduleUintToString() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".uint_to_string_loop")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_uint_number_loop")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::XOR,
@@ -217,7 +229,7 @@ Modules::instructions_list Modules::moduleUintToString() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JNZ,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".uint_to_string_loop")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_uint_number_loop")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -229,9 +241,10 @@ Modules::instructions_list Modules::moduleUintToString() {
     std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
     std::make_shared<Basic::Token>(TType::LIT_INT, 1)
   ));
-  //lea edx, [rsp + 16]
   instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::LEA
+    Operation::LEA,
+    std::make_shared<Basic::Token>(TType::REGISTER, "edx"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 16)
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::ISUB,
@@ -244,7 +257,7 @@ Modules::instructions_list Modules::moduleUintToString() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::IADD,
     std::make_shared<Basic::Token>(TType::REGISTER, "rsp"),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 24 - 8)
+    std::make_shared<Basic::Token>(TType::LIT_INT, 16)
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::POP,

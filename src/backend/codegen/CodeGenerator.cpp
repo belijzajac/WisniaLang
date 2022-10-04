@@ -31,6 +31,26 @@
 using namespace Wisnia;
 using namespace Basic;
 
+static inline std::unordered_map<std::string, ByteArray> LeaMachineCode {
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x44}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x4c}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x54}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x5c}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x64}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x6c}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x74}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x7c}}},
+  {"r8",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x44}}},
+  {"r9",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x4c}}},
+  {"r10", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x54}}},
+  {"r11", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x5c}}},
+  {"r12", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x64}}},
+  {"r13", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x6c}}},
+  {"r14", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x74}}},
+  {"r15", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x7c}}},
+  {"edx", ByteArray{std::byte{0x8d}, std::byte{0x54}, std::byte{0x24}}},
+};
+
 static inline std::unordered_map<std::string, ByteArray> MovMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc1}}},
@@ -50,7 +70,7 @@ static inline std::unordered_map<std::string, ByteArray> MovMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc7}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> PushRegisterMachineCode {
+static inline std::unordered_map<std::string, ByteArray> PushMachineCode {
   {"rax", ByteArray{std::byte{0x50}}},
   {"rcx", ByteArray{std::byte{0x51}}},
   {"rdx", ByteArray{std::byte{0x52}}},
@@ -69,7 +89,7 @@ static inline std::unordered_map<std::string, ByteArray> PushRegisterMachineCode
   {"r15", ByteArray{std::byte{0x41}, std::byte{0x57}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> PopRegisterMachineCode {
+static inline std::unordered_map<std::string, ByteArray> PopMachineCode {
   {"rax", ByteArray{std::byte{0x58}}},
   {"rcx", ByteArray{std::byte{0x59}}},
   {"rdx", ByteArray{std::byte{0x5a}}},
@@ -88,7 +108,7 @@ static inline std::unordered_map<std::string, ByteArray> PopRegisterMachineCode 
   {"r15", ByteArray{std::byte{0x41}, std::byte{0x5f}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> IncRegisterMachineCode {
+static inline std::unordered_map<std::string, ByteArray> IncMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}}},
@@ -107,7 +127,7 @@ static inline std::unordered_map<std::string, ByteArray> IncRegisterMachineCode 
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> DecRegisterMachineCode {
+static inline std::unordered_map<std::string, ByteArray> DecMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xca}}},
@@ -184,7 +204,7 @@ static inline std::unordered_map<std::string, ByteArray> SubMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xef}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> DivRegisterMachineCode {
+static inline std::unordered_map<std::string, ByteArray> DivMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}}},
@@ -381,23 +401,34 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
 }
 
 void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) {
-  // lea edx, [rsp + 16]
-  m_textSection.putBytes(std::byte{0x8d}, std::byte{0x54}, std::byte{0x24}, std::byte{0x10});
+  const auto &target = instruction->getTarget();
+  const auto &argOne = instruction->getArg1();
+
+  // lea reg, [rsp + number]
+  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
+    m_textSection.putBytes(LeaMachineCode[target->getValue<std::string>()]);
+    m_textSection.putBytes(std::byte(argOne->getValue<int>()));
+    return;
+  }
+
+  assert(0 && "Unknown lea operation");
 }
 
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
-  // Move a number to register
+  // mov reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(MovMachineCode[target->getValue<std::string>()]);
     if (label) {
       m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<int>())});
     }
     m_textSection.putU32(argOne->getValue<int>());
+    return;
   }
-  // Move a string to register
+
+  // mov reg, "string"
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_STR) {
     auto strVal = argOne->getValue<std::string>();
     for (const auto ch : strVal) {
@@ -406,22 +437,31 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     argOne->setType(TType::LIT_INT);
     argOne->setValue(std::abs(static_cast<int>(m_dataSection.size() - strVal.size())));
     emitMove(instruction, true);
+    return;
   }
-  // Move a register to another register
+
+  // mov reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
     m_textSection.putBytes(std::byte{0x48}, std::byte{0x89});
     m_textSection.putBytes(calculateRM(target->getValue<std::string>(), argOne->getValue<std::string>()));
+    return;
   }
+
+  assert(0 && "Unknown move operation");
 }
 
 void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
+
   // mov [rsi], dl
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
       target->getValue<std::string>() == "rsi" && argOne->getValue<std::string>() == "dl") {
     m_textSection.putBytes(std::byte{0x88}, std::byte{0x16});
+    return;
   }
+
+  assert(0 && "Unknown move memory operation");
 }
 
 void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instruction) {
@@ -429,22 +469,29 @@ void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instructi
 }
 
 void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction) {
-  // Push a register on the stack
+  // push reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PushRegisterMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(PushMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown push operation");
 }
 
 void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
-  // Pop stack value into a register
+  // pop reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PopRegisterMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(PopMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown pop operation");
 }
 
 void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction) {
   m_textSection.putBytes(std::byte{0xe8});
 
+  // call label
   const auto &label{instruction->getTarget()->getValue<std::string>()};
   const auto offset{m_textSection.size()};
   m_calls.emplace_back(Label{label, offset});
@@ -462,10 +509,14 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
+  // cmp byte ptr [reg], number
   if (instruction->getArg1()->getType() == TType::REGISTER) {
     m_textSection.putBytes(CmpBytePtrMachineCode[instruction->getArg1()->getValue<std::string>()]);
     m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
+    return;
   }
+
+  assert(0 && "Unknown cmp byte ptr operation");
 }
 
 void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) {
@@ -479,7 +530,7 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
       case Operation::JNE:
       case Operation::JNZ:
         return std::byte{0x75};
-      default: throw InstructionError{"Unknown jump operand"};
+      default: assert(0 && "Unknown jump operation");
     }
   };
 
@@ -494,77 +545,111 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
 }
 
 void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) {
-  // Increment the contents of a register
+  // inc reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(IncRegisterMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(IncMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown inc operation");
 }
 
 void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) {
-  // Decrement the contents of a register
+  // dec reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(DecRegisterMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(DecMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown dec operation");
 }
 
 void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
-  // Add a number with the contents of a register
+
+  // add reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(AddMachineCode[target->getValue<std::string>()]);
     m_textSection.putBytes(std::byte(argOne->getValue<int>()));
+    return;
   }
+
+  assert(0 && "Unknown add operation");
 }
 
 void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
-  // Subtract a number from the contents of a register
+
+  // sub reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(SubMachineCode[target->getValue<std::string>()]);
     m_textSection.putBytes(std::byte(argOne->getValue<int>()));
-  } else if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    m_textSection.putBytes(std::byte{0x29}, std::byte{0xf2});
+    return;
   }
+
+  // sub edx, esi
+  if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
+      target->getValue<std::string>() == "edx" && argOne->getValue<std::string>() == "esi") {
+    m_textSection.putBytes(std::byte{0x29}, std::byte{0xf2});
+    return;
+  }
+
+  assert(0 && "Unknown sub operation");
 }
 
 void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
-  // Divide the contents of a register
+  // div reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(DivRegisterMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(DivMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown div operation");
 }
 
 void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
+
   // xor reg, reg
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER &&
       argOne->getValue<std::string>() == argTwo->getValue<std::string>()) {
     m_textSection.putBytes(XorMachineCode[argOne->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown xor operation");
 }
 
 void CodeGenerator::emitOr(const CodeGenerator::InstructionValue &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
+
   // or dl, 0x30
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::LIT_INT &&
       argOne->getValue<std::string>() == "dl") {
     m_textSection.putBytes(std::byte{0x80}, std::byte{0xca});
     m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
+    return;
   }
+
+  assert(0 && "Unknown or operation");
 }
 
 void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
+
   // test reg, reg
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER &&
       argOne->getValue<std::string>() == argTwo->getValue<std::string>()) {
     m_textSection.putBytes(TestMachineCode[argOne->getValue<std::string>()]);
+    return;
   }
+
+  assert(0 && "Unknown test operation");
 }
 
 void CodeGenerator::emitRet(const CodeGenerator::InstructionValue &instruction) {
