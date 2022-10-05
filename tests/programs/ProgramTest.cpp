@@ -129,7 +129,7 @@ TEST_F(ProgramTest, PrintStrings) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hello world\nhahaha\nlole\n");
 }
 
-TEST_F(ProgramTest, PrintVariables) {
+TEST_F(ProgramTest, PrintStringVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
     string str = "ABCDE";
@@ -142,10 +142,13 @@ TEST_F(ProgramTest, PrintVariables) {
 TEST_F(ProgramTest, PrintIntVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
-    int number = 123456789;
-    int another = 333;
-    print number, another;
+    int num1 = 159;
+    int num2 = 963;
+    int num3 = 147;
+    int num4 = 852;
+    print num1, num2;
+    print num3, num4;
   })";
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789333");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "159963147852");
 }

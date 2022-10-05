@@ -43,8 +43,8 @@ Modules::instructions_list Modules::getModule(Module module) {
 
 /*
 _calculate_string_length_:
-  xor rdx, rdx                                      ; zero the length
   push rsi                                          ; save the string
+  xor rdx, rdx                                      ; zero out the length
 .calculate_string_length_loop:
   cmp byte ptr [rsi], 0x00                          ; is it null-terminated yet?
   je .calculate_string_length_exit_loop             ; if it is, break the loop
@@ -64,15 +64,15 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
     std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
     Operation::XOR,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
     std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
-  ));
-  instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::PUSH,
-    nullptr,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
@@ -124,14 +124,17 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
 
 /*
 _print_uint_number_:
-  push rcx                            ;; save register
-  push rbx                            ;; save register
+  push rax                            ;; save registers
+  push rcx
+  push rsi
+  push rdx
+
   mov rax, rdi                        ;; function argument
   mov rcx, 0xa                        ;; base 10
   mov rsi, rsp                        ;; move buffer on the stack
   sub rsp, 16                         ;; stack allocate space for a string
 .print_uint_number_loop:              ;; do {
-  xor edx, edx
+  xor edx, edx                        ;; zero out the temporary character
   div rcx                             ;; eax /= 10, edx %= 10
   add edx, '0'                        ;; convert to ascii
   dec rsi                             ;; working backwards from the end of the string
@@ -146,8 +149,10 @@ _print_uint_number_:
   syscall
 
   add rsp, 16                         ;; undo the buffer reservation
-  pop rbx                             ;; restore register
-  pop rcx                             ;; restore register
+  pop rdx                             ;; restore registers
+  pop rsi
+  pop rcx
+  pop rax
 
   ret
 */
@@ -162,12 +167,22 @@ Modules::instructions_list Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
     nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
     nullptr,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rbx")
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -262,12 +277,22 @@ Modules::instructions_list Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::POP,
     nullptr,
-    std::make_shared<Basic::Token>(TType::REGISTER, "rbx")
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::POP,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::RET

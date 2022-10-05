@@ -312,6 +312,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
       switch (type) {
         case TType::IDENT_STRING:
           m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::PUSH,
+            nullptr,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::PUSH,
+            nullptr,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::MOV,
             std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
             std::make_shared<Basic::Token>(type, token->getValue<std::string>())
@@ -323,6 +333,11 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           break;
         case TType::IDENT_INT:
           m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::PUSH,
+            nullptr,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::MOV,
             std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
             std::make_shared<Basic::Token>(type, token->getValue<std::string>())
@@ -330,6 +345,11 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
             std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_UINT_NUMBER])
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::POP,
+            nullptr,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
           ));
           continue;
         case TType::IDENT_BOOL:
@@ -348,6 +368,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
       const auto str = token->getValueStr();
       const auto length = (type == TType::LIT_STR) ? str.size() - 1 : str.size();
       m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::PUSH,
+        nullptr,
+        std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
+      ));
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::PUSH,
+        nullptr,
+        std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+      ));
+      m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
         std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
         std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(length))
@@ -360,6 +390,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
     }
 
     m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rax")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
       std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
       std::make_shared<Basic::Token>(TType::LIT_INT, 1)
@@ -371,6 +411,26 @@ void IRGenerator::visit(AST::WriteStmt *node) {
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::SYSCALL
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rax")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
     ));
   }
 }
