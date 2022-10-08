@@ -567,11 +567,56 @@ void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) 
 void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
+  const auto &argTwo = instruction->getArg2();
 
   // add reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(AddMachineCode[target->getValue<std::string>()]);
     m_textSection.putBytes(std::byte(argOne->getValue<int>()));
+    return;
+  }
+
+  // add reg1, reg2
+  if (target->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER) {
+    constexpr std::array<std::string_view, 16> registers {
+      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
+    };
+
+    constexpr auto halfRegisters{registers.size() / 2};
+    auto dst{-1}, src{-1};
+
+    for (auto i = 0; i < registers.size(); i++) {
+      if (registers[i] == target->getValue<std::string>()) dst = i;
+      if (registers[i] == argTwo->getValue<std::string>()) src = i;
+      if (src > -1 && dst > -1) break;
+    }
+
+    assert((dst > -1 && src > -1) && "Failed to look up registers for add operation");
+
+    //  +        rax       ...       r15
+    // rax   <byte_0000>   ...   <byte_0015>
+    // ...       ...       ...       ...
+    // r15   <byte_1500>   ...   <byte_1515>
+    if (dst < halfRegisters && src < halfRegisters) {
+      // top left
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0x01});
+    } else if (dst < halfRegisters && src >= halfRegisters) {
+      // top right
+      m_textSection.putBytes(std::byte{0x4c}, std::byte{0x01});
+    } else if (dst >= halfRegisters && src < halfRegisters) {
+      // bottom left
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0x01});
+    } else if (dst >= halfRegisters && src >= halfRegisters) {
+      // bottom right
+      m_textSection.putBytes(std::byte{0x4d}, std::byte{0x01});
+    } else {
+      assert(0 && "Unknown table entry for add operation");
+    }
+
+    auto result = 0xc0 + (8 * (src % halfRegisters)) + (dst % halfRegisters);
+    assert(result < 255 && "Result value is out of range");
+    m_textSection.putBytes(std::byte(result));
     return;
   }
 

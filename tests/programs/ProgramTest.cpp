@@ -64,7 +64,6 @@ class IProgramTestFixture : public testing::Test {
     m_program.m_output = readFile(outFile);
     m_program.m_error  = readFile(errFile);
 
-    // todo: RAII
     std::remove(outFile.c_str());
     std::remove(errFile.c_str());
   }
@@ -142,13 +141,33 @@ TEST_F(ProgramTest, PrintStringVariables) {
 TEST_F(ProgramTest, PrintIntVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
-    int num1 = 159;
-    int num2 = 963;
-    int num3 = 147;
-    int num4 = 852;
+    int num1 = 123;
+    int num2 = 456;
+    int num3 = 789;
+    int num4 = 101;
     print num1, num2;
     print num3, num4;
   })";
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "159963147852");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+}
+
+TEST_F(ProgramTest, AddVariables) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int num1  = 1;
+    int num2  = 10;
+    int num3  = 100;
+    int num4  = 1000;
+    int num5  = 10000;
+    int num6  = 100000;
+    int num7  = 1000000;
+    int num8  = 10000000;
+    int num9  = 100000000;
+    int num10 = 1000000000;
+    int sum = num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9 + num10;
+    print sum;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
 }
