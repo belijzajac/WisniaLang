@@ -171,3 +171,22 @@ TEST_F(ProgramTest, AddVariables) {
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
 }
+
+TEST_F(ProgramTest, SubtractVariables) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int num1 = 1;
+    int num2 = 10;
+    int num3 = 100;
+    int num4 = 1000;
+    int num5 = 10000;
+    int num6 = 100000;
+    int num7 = 1000000;
+    int num8 = 10000000;
+    int num9 = 23456789;
+    int diff = num9 - num1 - num2 - num3 - num4 - num5 - num6 - num7 - num8;
+    print diff;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
+}

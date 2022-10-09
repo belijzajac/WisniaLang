@@ -112,9 +112,13 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
   // _tx = a <op> b;
   m_instructions.emplace_back(std::make_unique<Instruction>(
     op,              // <op>
+    lhs->getToken(), // a
+    rhs->getToken()  // b
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
     varToken,        // _tx
-    lhs->getToken(), // b
-    rhs->getToken()  // a
+    lhs->getToken()  // a
   ));
 }
 

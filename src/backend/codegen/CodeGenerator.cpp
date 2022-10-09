@@ -262,26 +262,6 @@ static inline std::unordered_map<std::string, ByteArray> TestMachineCode {
   {"r15", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}}},
 };
 
-std::byte calculateRM(std::string_view destination, std::string_view source) {
-  constexpr std::array<std::string_view, 8> registers {
-    "rax", "rcx", "rdx", "rbx",
-    "rsp", "rbp", "rsi", "rdi"
-  };
-
-  auto dst{-1}, src{-1};
-  for (auto i = 0; i < registers.size(); i++) {
-    if (registers[i] == destination) dst = i;
-    if (registers[i] == source) src = i;
-    if (src > -1 && dst > -1) break;
-  }
-
-  assert((dst > -1 && src > -1) && "Failed to look up registers");
-  auto result = 0xc0 + (8 * src) + dst;
-  assert(result < 255 && "Result value is out of range");
-
-  return std::byte(result);
-}
-
 void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionValue> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
@@ -442,8 +422,45 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
 
   // mov reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    m_textSection.putBytes(std::byte{0x48}, std::byte{0x89});
-    m_textSection.putBytes(calculateRM(target->getValue<std::string>(), argOne->getValue<std::string>()));
+    constexpr std::array<std::string_view, 16> registers {
+      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
+    };
+
+    constexpr auto halfRegisters{registers.size() / 2};
+    auto dst{-1}, src{-1};
+
+    for (auto i = 0; i < registers.size(); i++) {
+      if (registers[i] == target->getValue<std::string>()) dst = i;
+      if (registers[i] == argOne->getValue<std::string>()) src = i;
+      if (src > -1 && dst > -1) break;
+    }
+
+    assert((dst > -1 && src > -1) && "Failed to look up registers for mov operation");
+
+    // <-        rax       ...       r15
+    // rax   <byte_0000>   ...   <byte_0015>
+    // ...       ...       ...       ...
+    // r15   <byte_1500>   ...   <byte_1515>
+    if (dst < halfRegisters && src < halfRegisters) {
+      // top left
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0x89});
+    } else if (dst < halfRegisters && src >= halfRegisters) {
+      // top right
+      m_textSection.putBytes(std::byte{0x4c}, std::byte{0x89});
+    } else if (dst >= halfRegisters && src < halfRegisters) {
+      // bottom left
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0x89});
+    } else if (dst >= halfRegisters && src >= halfRegisters) {
+      // bottom right
+      m_textSection.putBytes(std::byte{0x4d}, std::byte{0x89});
+    } else {
+      assert(0 && "Unknown table entry for mov operation");
+    }
+
+    auto result = 0xc0 + (8 * (src % halfRegisters)) + (dst % halfRegisters);
+    assert(result < 255 && "Result value is out of range");
+    m_textSection.putBytes(std::byte(result));
     return;
   }
 
@@ -567,7 +584,6 @@ void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) 
 void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
-  const auto &argTwo = instruction->getArg2();
 
   // add reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
@@ -577,7 +593,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
   }
 
   // add reg1, reg2
-  if (target->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER) {
+  if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
     constexpr std::array<std::string_view, 16> registers {
       "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
       "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
@@ -588,7 +604,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
 
     for (auto i = 0; i < registers.size(); i++) {
       if (registers[i] == target->getValue<std::string>()) dst = i;
-      if (registers[i] == argTwo->getValue<std::string>()) src = i;
+      if (registers[i] == argOne->getValue<std::string>()) src = i;
       if (src > -1 && dst > -1) break;
     }
 
@@ -638,6 +654,50 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
       target->getValue<std::string>() == "edx" && argOne->getValue<std::string>() == "esi") {
     m_textSection.putBytes(std::byte{0x29}, std::byte{0xf2});
+    return;
+  }
+
+  // sub reg1, reg2
+  if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
+    constexpr std::array<std::string_view, 16> registers {
+      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
+    };
+
+    constexpr auto halfRegisters{registers.size() / 2};
+    auto dst{-1}, src{-1};
+
+    for (auto i = 0; i < registers.size(); i++) {
+      if (registers[i] == target->getValue<std::string>()) dst = i;
+      if (registers[i] == argOne->getValue<std::string>()) src = i;
+      if (src > -1 && dst > -1) break;
+    }
+
+    assert((dst > -1 && src > -1) && "Failed to look up registers for sub operation");
+
+    //  -        rax       ...       r15
+    // rax   <byte_0000>   ...   <byte_0015>
+    // ...       ...       ...       ...
+    // r15   <byte_1500>   ...   <byte_1515>
+    if (dst < halfRegisters && src < halfRegisters) {
+      // top left
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0x29});
+    } else if (dst < halfRegisters && src >= halfRegisters) {
+      // top right
+      m_textSection.putBytes(std::byte{0x4c}, std::byte{0x29});
+    } else if (dst >= halfRegisters && src < halfRegisters) {
+      // bottom left
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0x29});
+    } else if (dst >= halfRegisters && src >= halfRegisters) {
+      // bottom right
+      m_textSection.putBytes(std::byte{0x4d}, std::byte{0x29});
+    } else {
+      assert(0 && "Unknown table entry for sub operation");
+    }
+
+    auto result = 0xc0 + (8 * (src % halfRegisters)) + (dst % halfRegisters);
+    assert(result < 255 && "Result value is out of range");
+    m_textSection.putBytes(std::byte(result));
     return;
   }
 
