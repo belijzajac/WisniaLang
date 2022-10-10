@@ -101,6 +101,16 @@ class Token {
     return strResult;
   };
 
+  constexpr bool isIdentifierType() const {
+    return m_type == TType::IDENT_INT    || m_type == TType::IDENT_FLOAT ||
+           m_type == TType::IDENT_STRING || m_type == TType::IDENT_BOOL;
+  }
+
+  constexpr bool isLiteralType() const {
+    return m_type == TType::LIT_INT || m_type == TType::LIT_FLT ||
+           m_type == TType::LIT_STR || m_type == TType::LIT_BOOL;
+  }
+
   TType getType() const { return m_type; }
   void setType(TType type) { m_type = type; }
   void setValue(const TokenValue &value) { m_value = value; }

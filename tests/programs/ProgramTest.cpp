@@ -152,6 +152,26 @@ TEST_F(ProgramTest, PrintIntVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
 }
 
+TEST_F(ProgramTest, PrintSumVariable) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int sum = 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
+    print sum;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
+}
+
+TEST_F(ProgramTest, PrintDiffVariable) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int diff = 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
+    print diff;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
+}
+
 TEST_F(ProgramTest, AddVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {

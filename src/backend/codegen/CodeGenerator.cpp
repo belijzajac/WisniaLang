@@ -32,23 +32,23 @@ using namespace Wisnia;
 using namespace Basic;
 
 static inline std::unordered_map<std::string, ByteArray> LeaMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x44}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x4c}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x54}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x5c}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x64}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x6c}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x74}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x7c}}},
-  {"r8",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x44}}},
-  {"r9",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x4c}}},
-  {"r10", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x54}}},
-  {"r11", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x5c}}},
-  {"r12", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x64}}},
-  {"r13", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x6c}}},
-  {"r14", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x74}}},
-  {"r15", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x7c}}},
-  {"edx", ByteArray{std::byte{0x8d}, std::byte{0x54}, std::byte{0x24}}},
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x84}, std::byte{0x24}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x8c}, std::byte{0x24}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x9c}, std::byte{0x24}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xa4}, std::byte{0x24}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xac}, std::byte{0x24}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xb4}, std::byte{0x24}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xbc}, std::byte{0x24}}},
+  {"r8",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x84}, std::byte{0x24}}},
+  {"r9",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x8c}, std::byte{0x24}}},
+  {"r10", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
+  {"r11", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x9c}, std::byte{0x24}}},
+  {"r12", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xa4}, std::byte{0x24}}},
+  {"r13", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xac}, std::byte{0x24}}},
+  {"r14", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xb4}, std::byte{0x24}}},
+  {"r15", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xbc}, std::byte{0x24}}},
+  {"edx", ByteArray{std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
 };
 
 static inline std::unordered_map<std::string, ByteArray> MovMachineCode {
@@ -166,42 +166,42 @@ static inline std::unordered_map<std::string, ByteArray> CmpBytePtrMachineCode {
 };
 
 static inline std::unordered_map<std::string, ByteArray> AddMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc1}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc3}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc5}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xc7}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc1}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc2}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc3}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc4}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc5}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc6}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xc7}}},
-  {"edx", ByteArray{std::byte{0x83}, std::byte{0xc2}}},
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0x05}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc1}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc2}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc3}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc4}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc5}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc6}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc7}}},
+  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc0}}},
+  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc1}}},
+  {"r10", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc2}}},
+  {"r11", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc3}}},
+  {"r12", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc4}}},
+  {"r13", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc5}}},
+  {"r14", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc6}}},
+  {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc7}}},
+  {"edx", ByteArray{std::byte{0x81}, std::byte{0xc2}}},
 };
 
 static inline std::unordered_map<std::string, ByteArray> SubMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xe8}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xe9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xea}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xeb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xec}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xed}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xee}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x83}, std::byte{0xef}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xe8}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xe9}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xea}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xeb}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xec}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xed}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xee}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0x83}, std::byte{0xef}}},
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0x2d}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xe9}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xea}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xeb}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xec}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xed}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xee}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xef}}},
+  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xe8}}},
+  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xe9}}},
+  {"r10", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xea}}},
+  {"r11", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xeb}}},
+  {"r12", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xec}}},
+  {"r13", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xed}}},
+  {"r14", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xee}}},
+  {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xef}}},
 };
 
 static inline std::unordered_map<std::string, ByteArray> DivMachineCode {
@@ -387,7 +387,7 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) 
   // lea reg, [rsp + number]
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(LeaMachineCode[target->getValue<std::string>()]);
-    m_textSection.putBytes(std::byte(argOne->getValue<int>()));
+    m_textSection.putU32(argOne->getValue<int>());
     return;
   }
 
@@ -588,7 +588,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
   // add reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(AddMachineCode[target->getValue<std::string>()]);
-    m_textSection.putBytes(std::byte(argOne->getValue<int>()));
+    m_textSection.putU32(argOne->getValue<int>());
     return;
   }
 
@@ -646,7 +646,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
   // sub reg, number
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
     m_textSection.putBytes(SubMachineCode[target->getValue<std::string>()]);
-    m_textSection.putBytes(std::byte(argOne->getValue<int>()));
+    m_textSection.putU32(argOne->getValue<int>());
     return;
   }
 

@@ -109,16 +109,18 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
                  rhs->getToken()->getType() == TType::IDENT_FLOAT;
   Operation op = getOperationForBinaryExpr(exprType, isFloat);
 
-  // _tx = a <op> b;
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    op,              // <op>
-    lhs->getToken(), // a
-    rhs->getToken()  // b
-  ));
+  // _tx = a <op> b rewritten as
+  //    _tx = a
+  //    _tx = _tx <op> b
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     varToken,        // _tx
     lhs->getToken()  // a
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    op,              // <op>
+    varToken,        // _tx
+    rhs->getToken()  // b
   ));
 }
 
@@ -302,16 +304,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
     const auto &token = expr->getToken();
     const auto &type  = token->getType();
 
-    const auto satisfiesIdentifierType {
-      type == TType::IDENT_INT    || type == TType::IDENT_FLOAT ||
-      type == TType::IDENT_STRING || type == TType::IDENT_BOOL
-    };
-    const auto satisfiesLiteralType {
-      type == TType::LIT_INT || type == TType::LIT_FLT ||
-      type == TType::LIT_STR || type == TType::LIT_BOOL
-    };
-
-    if (satisfiesIdentifierType) {
+    if (token->isIdentifierType()) {
       // Resolved at compiled program's run-time
       switch (type) {
         case TType::IDENT_STRING:
@@ -367,7 +360,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
       }
     }
 
-    if (satisfiesLiteralType) {
+    if (token->isLiteralType()) {
       // Resolved at "compile-time"
       const auto str = token->getValueStr();
       const auto length = (type == TType::LIT_STR) ? str.size() - 1 : str.size();
