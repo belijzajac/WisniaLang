@@ -547,7 +547,10 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
       case Operation::JNE:
       case Operation::JNZ:
         return std::byte{0x75};
-      default: assert(0 && "Unknown jump operation");
+      default: {
+        assert(0 && "Unknown jump operation");
+        return std::byte{0x00};
+      }
     }
   };
 

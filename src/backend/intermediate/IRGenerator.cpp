@@ -293,16 +293,21 @@ void IRGenerator::visit(AST::ReadStmt *node) {
   syscall            ;; make the system call
 */
 void IRGenerator::visit(AST::WriteStmt *node) {
-  //for (const auto &expr : node->getExprs()) {
-  //  expr->accept(this);
-  //}
-
-  // todo: what do we do about binary expressions that have both lhs and rhs values ???
   for (const auto &expr : node->getExprs()) {
-    //popNode();
+    expr->accept(this);
+  }
 
-    const auto &token = expr->getToken();
-    const auto &type  = token->getType();
+  for (const auto &expr : node->getExprs()) {
+    std::shared_ptr<Basic::Token> token;
+    TType type;
+
+    if (dynamic_cast<AST::BinaryExpr *>(expr.get())) {
+      token = m_tempVars.back()->getToken();
+      type  = m_tempVars.back()->getToken()->getType();
+    } else {
+      token = expr->getToken();
+      type  = token->getType();
+    }
 
     if (token->isIdentifierType()) {
       // Resolved at compiled program's run-time
