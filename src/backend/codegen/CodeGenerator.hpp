@@ -62,6 +62,7 @@ class CodeGenerator {
   void emitDec(const InstructionValue &instruction);
   void emitAdd(const InstructionValue &instruction);
   void emitSub(const InstructionValue &instruction);
+  void emitMul(const InstructionValue &instruction);
   void emitDiv(const InstructionValue &instruction);
   void emitXor(const InstructionValue &instruction);
   void emitOr(const InstructionValue &instruction);

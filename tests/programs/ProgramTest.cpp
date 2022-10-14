@@ -172,6 +172,16 @@ TEST_F(ProgramTest, CalculateDifference) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
 }
 
+TEST_F(ProgramTest, CalculateProduct) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int prod = 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
+    print prod;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
+}
+
 TEST_F(ProgramTest, PrintSum) {
   constexpr std::string_view program = R"(
   fn main () -> void {
@@ -188,6 +198,15 @@ TEST_F(ProgramTest, PrintDifference) {
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
+}
+
+TEST_F(ProgramTest, PrintProduct) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    print 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
 TEST_F(ProgramTest, AddVariables) {
@@ -227,4 +246,24 @@ TEST_F(ProgramTest, SubtractVariables) {
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
+}
+
+TEST_F(ProgramTest, MultiplyVariables) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int num1  = 2;
+    int num2  = 4;
+    int num3  = 6;
+    int num4  = 8;
+    int num5  = 10;
+    int num6  = 12;
+    int num7  = 14;
+    int num8  = 16;
+    int num9  = 18;
+    int num10 = 20;
+    int prod = num1 * num2 * num3 * num4 * num5 * num6 * num7 * num8 * num9 * num10;
+    print prod;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }

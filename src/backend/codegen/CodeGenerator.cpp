@@ -204,6 +204,25 @@ static inline std::unordered_map<std::string, ByteArray> SubMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xef}}},
 };
 
+static inline std::unordered_map<std::string, ByteArray> MulMachineCode {
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xc0}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xc9}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xd2}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xdb}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xe4}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xed}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xf6}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xff}}},
+  {"r8",  ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xc0}}},
+  {"r9",  ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xc9}}},
+  {"r10", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xd2}}},
+  {"r11", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xdb}}},
+  {"r12", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xe4}}},
+  {"r13", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xed}}},
+  {"r14", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xf6}}},
+  {"r15", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xff}}},
+};
+
 static inline std::unordered_map<std::string, ByteArray> DivMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}}},
@@ -310,6 +329,9 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
         break;
       case Operation::ISUB:
         emitSub(instruction);
+        break;
+      case Operation::IMUL:
+        emitMul(instruction);
         break;
       case Operation::IDIV:
         emitDiv(instruction);
@@ -705,6 +727,64 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
   }
 
   assert(0 && "Unknown sub operation");
+}
+
+void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) {
+  const auto &target = instruction->getTarget();
+  const auto &argOne = instruction->getArg1();
+
+  // imul reg, number
+  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
+    m_textSection.putBytes(MulMachineCode[target->getValue<std::string>()]);
+    m_textSection.putU32(argOne->getValue<int>());
+    return;
+  }
+
+  // imul reg1, reg2
+  if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
+    constexpr std::array<std::string_view, 16> registers {
+      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
+    };
+
+    constexpr auto halfRegisters{registers.size() / 2};
+    auto dst{-1}, src{-1};
+
+    for (auto i = 0; i < registers.size(); i++) {
+      if (registers[i] == target->getValue<std::string>()) dst = i;
+      if (registers[i] == argOne->getValue<std::string>()) src = i;
+      if (src > -1 && dst > -1) break;
+    }
+
+    assert((dst > -1 && src > -1) && "Failed to look up registers for mul operation");
+
+    //  *        rax       ...       r15
+    // rax   <byte_0000>   ...   <byte_0015>
+    // ...       ...       ...       ...
+    // r15   <byte_1500>   ...   <byte_1515>
+    if (dst < halfRegisters && src < halfRegisters) {
+      // top left
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0x0f}, std::byte{0xaf});
+    } else if (dst < halfRegisters && src >= halfRegisters) {
+      // top right
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0x0f}, std::byte{0xaf});
+    } else if (dst >= halfRegisters && src < halfRegisters) {
+      // bottom left
+      m_textSection.putBytes(std::byte{0x4c}, std::byte{0x0f}, std::byte{0xaf});
+    } else if (dst >= halfRegisters && src >= halfRegisters) {
+      // bottom right
+      m_textSection.putBytes(std::byte{0x4d}, std::byte{0x0f}, std::byte{0xaf});
+    } else {
+      assert(0 && "Unknown table entry for mul operation");
+    }
+
+    auto result = 0xc0 + (src % halfRegisters) + (8 * (dst % halfRegisters));
+    assert(result < 255 && "Result value is out of range");
+    m_textSection.putBytes(std::byte(result));
+    return;
+  }
+
+  assert(0 && "Unknown mul operation");
 }
 
 void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
