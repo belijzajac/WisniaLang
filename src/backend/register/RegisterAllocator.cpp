@@ -18,11 +18,8 @@
 
 ***/
 
-#include <fmt/format.h>
-
 #include <optional>
 #include <set>
-#include <vector>
 // Wisnia
 #include "RegisterAllocator.hpp"
 #include "Instruction.hpp"
@@ -31,25 +28,11 @@
 using namespace Wisnia;
 using namespace Basic;
 
-template<class T>
-struct is_shared_ptr : std::false_type {};
-
-template<class T>
-struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
-
-template <class T>
-concept TokenPointer = requires(T t) {
-  requires is_shared_ptr<T>::value;
-};
-
-template <TokenPointer TToken, typename TVariable>
-bool checkVariable(const TToken token, const TVariable &variable) {
+template <typename T>
+bool checkVariable(const std::shared_ptr<Basic::Token> &token, const T &variable) {
   using VariableType = std::decay_t<decltype(variable)>;
   if (!token) return false;
-  const auto type = token->getType();
-  const auto satisfiesType{type == TType::IDENT_INT || type == TType::IDENT_FLOAT ||
-                           type == TType::IDENT_STRING || type == TType::IDENT_BOOL};
-  return satisfiesType && token->template getValue<VariableType>() == variable;
+  return token->isIdentifierType() && token->getValue<VariableType>() == variable;
 }
 
 void RegisterAllocator::allocateRegisters(instructions_list &&instructions, bool allocateRegisters) {
@@ -141,14 +124,6 @@ void RegisterAllocator::allocateRegisters(instructions_list &&instructions, bool
       }
     }
   }
-
-#if 0
-  fmt::print("-------\n");
-  fmt::print("{:^10}{:^10}{:^6}{:^6}\n", "var", "reg", "start", "end\n");
-  for (const auto &live : liveIntervals) {
-    fmt::print("{:^10}{:^10}{:^6}{:^6}\n", live.m_variable, live.m_register, live.m_start, live.m_end);
-  }
-#endif
 
   m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
 }
