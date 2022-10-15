@@ -281,6 +281,30 @@ static inline std::unordered_map<std::string, ByteArray> TestMachineCode {
   {"r15", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}}},
 };
 
+constexpr std::array<std::string_view, 16> kRegisters {
+  "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+  "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
+};
+
+constexpr auto kHalfRegisters{kRegisters.size() / 2};
+
+struct Register {
+  int source{-1};
+  int destination{-1};
+};
+
+constexpr Register assignRegisters(std::string_view source, std::string_view destination) {
+  Register assigned{};
+
+  for (auto i = 0; i < kRegisters.size(); i++) {
+    if (kRegisters[i] == source) assigned.source = i;
+    if (kRegisters[i] == destination) assigned.destination = i;
+    if (assigned.source > -1 && assigned.destination > -1) break;
+  }
+
+  return assigned;
+}
+
 void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionValue> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
@@ -444,43 +468,30 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
 
   // mov reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    constexpr std::array<std::string_view, 16> registers {
-      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-    };
-
-    constexpr auto halfRegisters{registers.size() / 2};
-    auto dst{-1}, src{-1};
-
-    for (auto i = 0; i < registers.size(); i++) {
-      if (registers[i] == target->getValue<std::string>()) dst = i;
-      if (registers[i] == argOne->getValue<std::string>()) src = i;
-      if (src > -1 && dst > -1) break;
-    }
-
-    assert((dst > -1 && src > -1) && "Failed to look up registers for mov operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for mov operation");
 
     // <-        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < halfRegisters && src < halfRegisters) {
+    if (dst < kHalfRegisters && src < kHalfRegisters) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x89});
-    } else if (dst < halfRegisters && src >= halfRegisters) {
+    } else if (dst < kHalfRegisters && src >= kHalfRegisters) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x89});
-    } else if (dst >= halfRegisters && src < halfRegisters) {
+    } else if (dst >= kHalfRegisters && src < kHalfRegisters) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x89});
-    } else if (dst >= halfRegisters && src >= halfRegisters) {
+    } else if (dst >= kHalfRegisters && src >= kHalfRegisters) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x89});
     } else {
       assert(0 && "Unknown table entry for mov operation");
     }
 
-    auto result = 0xc0 + (8 * (src % halfRegisters)) + (dst % halfRegisters);
+    auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
     assert(result < 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -619,43 +630,30 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
 
   // add reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    constexpr std::array<std::string_view, 16> registers {
-      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-    };
-
-    constexpr auto halfRegisters{registers.size() / 2};
-    auto dst{-1}, src{-1};
-
-    for (auto i = 0; i < registers.size(); i++) {
-      if (registers[i] == target->getValue<std::string>()) dst = i;
-      if (registers[i] == argOne->getValue<std::string>()) src = i;
-      if (src > -1 && dst > -1) break;
-    }
-
-    assert((dst > -1 && src > -1) && "Failed to look up registers for add operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for add operation");
 
     //  +        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < halfRegisters && src < halfRegisters) {
+    if (dst < kHalfRegisters && src < kHalfRegisters) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x01});
-    } else if (dst < halfRegisters && src >= halfRegisters) {
+    } else if (dst < kHalfRegisters && src >= kHalfRegisters) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x01});
-    } else if (dst >= halfRegisters && src < halfRegisters) {
+    } else if (dst >= kHalfRegisters && src < kHalfRegisters) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x01});
-    } else if (dst >= halfRegisters && src >= halfRegisters) {
+    } else if (dst >= kHalfRegisters && src >= kHalfRegisters) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x01});
     } else {
       assert(0 && "Unknown table entry for add operation");
     }
 
-    auto result = 0xc0 + (8 * (src % halfRegisters)) + (dst % halfRegisters);
+    auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
     assert(result < 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -684,43 +682,30 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
 
   // sub reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    constexpr std::array<std::string_view, 16> registers {
-      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-    };
-
-    constexpr auto halfRegisters{registers.size() / 2};
-    auto dst{-1}, src{-1};
-
-    for (auto i = 0; i < registers.size(); i++) {
-      if (registers[i] == target->getValue<std::string>()) dst = i;
-      if (registers[i] == argOne->getValue<std::string>()) src = i;
-      if (src > -1 && dst > -1) break;
-    }
-
-    assert((dst > -1 && src > -1) && "Failed to look up registers for sub operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for sub operation");
 
     //  -        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < halfRegisters && src < halfRegisters) {
+    if (dst < kHalfRegisters && src < kHalfRegisters) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x29});
-    } else if (dst < halfRegisters && src >= halfRegisters) {
+    } else if (dst < kHalfRegisters && src >= kHalfRegisters) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x29});
-    } else if (dst >= halfRegisters && src < halfRegisters) {
+    } else if (dst >= kHalfRegisters && src < kHalfRegisters) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x29});
-    } else if (dst >= halfRegisters && src >= halfRegisters) {
+    } else if (dst >= kHalfRegisters && src >= kHalfRegisters) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x29});
     } else {
       assert(0 && "Unknown table entry for sub operation");
     }
 
-    auto result = 0xc0 + (8 * (src % halfRegisters)) + (dst % halfRegisters);
+    auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
     assert(result < 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -742,43 +727,30 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
 
   // imul reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    constexpr std::array<std::string_view, 16> registers {
-      "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-      "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-    };
-
-    constexpr auto halfRegisters{registers.size() / 2};
-    auto dst{-1}, src{-1};
-
-    for (auto i = 0; i < registers.size(); i++) {
-      if (registers[i] == target->getValue<std::string>()) dst = i;
-      if (registers[i] == argOne->getValue<std::string>()) src = i;
-      if (src > -1 && dst > -1) break;
-    }
-
-    assert((dst > -1 && src > -1) && "Failed to look up registers for mul operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for mul operation");
 
     //  *        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < halfRegisters && src < halfRegisters) {
+    if (dst < kHalfRegisters && src < kHalfRegisters) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst < halfRegisters && src >= halfRegisters) {
+    } else if (dst < kHalfRegisters && src >= kHalfRegisters) {
       // top right
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst >= halfRegisters && src < halfRegisters) {
+    } else if (dst >= kHalfRegisters && src < kHalfRegisters) {
       // bottom left
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst >= halfRegisters && src >= halfRegisters) {
+    } else if (dst >= kHalfRegisters && src >= kHalfRegisters) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x0f}, std::byte{0xaf});
     } else {
       assert(0 && "Unknown table entry for mul operation");
     }
 
-    auto result = 0xc0 + (src % halfRegisters) + (8 * (dst % halfRegisters));
+    auto result = 0xc0 + (src % kHalfRegisters) + (8 * (dst % kHalfRegisters));
     assert(result < 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
