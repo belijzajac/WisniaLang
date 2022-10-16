@@ -79,7 +79,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     "r9",  "r10", "r11", "r12", "r13", "r14", "r15"
   };
 
-  const auto &instructions = m_generator.getUpdatedInstructions();
+  const auto &instructions = m_generator.getInstructionsAfterRegisterAllocation();
 
   // 16 assigned registers
   for (size_t i = 0; i < kExpectedRegisters.size(); i++) {

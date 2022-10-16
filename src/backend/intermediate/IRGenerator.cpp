@@ -152,6 +152,9 @@ void IRGenerator::visit(AST::Root *node) {
   registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
   registerAllocator.allocateRegisters(std::move(modulePrintUintNumber), false);
   registerAllocator.allocateRegisters(std::move(moduleExit), false);
+
+  // Instruction optimization steps
+  instructionSimplification.simplify(vec_slice(getInstructionsAfterRegisterAllocation(), 0, getInstructionsAfterRegisterAllocation().size()));
 }
 
 void IRGenerator::visit(AST::PrimitiveType *node) {

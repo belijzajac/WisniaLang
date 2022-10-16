@@ -49,6 +49,7 @@ include_directories(
 # backend
   src/backend/intermediate/
   src/backend/register/
+  src/backend/optimize/
   src/backend/elf/
   src/backend/codegen/
 )

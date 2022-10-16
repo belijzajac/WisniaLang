@@ -27,6 +27,7 @@
 #include <variant>
 // Wisnia
 #include "InstructionPrintHelper.hpp"
+#include "InstructionSimplification.hpp"
 #include "RegisterAllocator.hpp"
 #include "TType.hpp"
 #include "Visitor.hpp"
@@ -53,8 +54,12 @@ class IRGenerator : public Visitor {
     return m_instructions;
   }
 
-  const instructions_list &getUpdatedInstructions() const {
+  const instructions_list &getInstructionsAfterRegisterAllocation() const {
     return registerAllocator.getInstructions();
+  }
+
+  const instructions_list &getInstructionsAfterInstructionSimplification() const {
+    return instructionSimplification.getInstructions();
   }
 
   const tmp_variables_list &getTemporaryVars() const {
@@ -65,8 +70,12 @@ class IRGenerator : public Visitor {
     InstructionPrintHelper::print(m_instructions);
   }
 
-  void printUpdatedInstructions() const {
+  void printInstructionsAfterRegisterAllocation() const {
     InstructionPrintHelper::print(registerAllocator.getInstructions());
+  }
+
+  void printInstructionsAfterInstructionSimplification() const {
+    InstructionPrintHelper::print(instructionSimplification.getInstructions());
   }
 
  public: // TODO: why are these public???
@@ -119,6 +128,7 @@ class IRGenerator : public Visitor {
   tmp_variables_list m_tempVars;
   bool m_allocateRegisters; // we want to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
+  InstructionSimplification instructionSimplification{};
 };
 
 }  // namespace Wisnia

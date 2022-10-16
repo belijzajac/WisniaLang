@@ -14,13 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-add_subdirectory(intermediate)
-add_subdirectory(register)
-add_subdirectory(optimize)
-add_subdirectory(elf)
-add_subdirectory(codegen)
-
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
+  backend/optimize/InstructionSimplification.hpp
+  backend/optimize/InstructionSimplification.cpp
   PARENT_SCOPE
 )
