@@ -209,6 +209,15 @@ TEST_F(ProgramTest, PrintProduct) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
+TEST_F(ProgramTest, PrintExpression) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    print ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
+}
+
 TEST_F(ProgramTest, AddVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
