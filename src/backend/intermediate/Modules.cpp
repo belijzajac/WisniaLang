@@ -34,6 +34,8 @@ Modules::instructions_list Modules::getModule(Module module) {
       return moduleCalculateStringLength();
     case Module::PRINT_UINT_NUMBER:
       return modulePrintUintNumber();
+    case Module::PRINT_BOOLEAN:
+      return modulePrintBoolean();
     case Module::EXIT:
       return moduleExit();
     default:
@@ -126,6 +128,7 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
 _print_uint_number_:
   push rax                            ;; save registers
   push rcx
+  push r11
   push rsi
   push rdx
 
@@ -151,6 +154,7 @@ _print_uint_number_:
   add rsp, 16                         ;; undo the buffer reservation
   pop rdx                             ;; restore registers
   pop rsi
+  pop r11
   pop rcx
   pop rax
 
@@ -173,6 +177,11 @@ Modules::instructions_list Modules::modulePrintUintNumber() {
     Operation::PUSH,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "r11")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
@@ -283,6 +292,163 @@ Modules::instructions_list Modules::modulePrintUintNumber() {
     Operation::POP,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "r11")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::RET
+  ));
+
+  return instructions;
+}
+
+/*
+_print_boolean_:
+  push rax                            ;; save registers
+  push rcx
+  push r11
+  push rdx
+  push rsi
+
+  cmp rdi, 0                          ;; false?
+  jz .print_boolean_false             ;; if true (i.e. rdi == 0 -> false), jump to false
+  mov rdx, 4                          ;; else just continue
+  mov rsi, "true"
+  jmp .print_boolean_skip
+.print_boolean_false:
+  mov rdx, 5
+  mov rsi, "false"
+.print_boolean_skip:
+  mov rax, 1                          ;; write
+  mov rdi, 1                          ;; stdout file descriptor
+  syscall
+
+  pop rsi                             ;; restore registers
+  pop rdx
+  pop r11
+  pop rcx
+  pop rax
+  ret
+ */
+Modules::instructions_list Modules::modulePrintBoolean() {
+  instructions_list instructions{};
+
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN])
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "r11")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::CMP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 0)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JZ,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_boolean_false")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 4)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
+    std::make_shared<Basic::Token>(TType::LIT_STR, "true")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JMP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_boolean_skip")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_boolean_false")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 5)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi"),
+    std::make_shared<Basic::Token>(TType::LIT_STR, "false")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_boolean_skip")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rax"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
+    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::SYSCALL
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rsi")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "rdx")
+  ));
+  instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::POP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::REGISTER, "r11")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::POP,

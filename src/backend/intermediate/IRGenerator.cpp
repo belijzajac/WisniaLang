@@ -148,9 +148,11 @@ void IRGenerator::visit(AST::Root *node) {
   // Load modules
   auto moduleCalculateStringLength = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
   auto modulePrintUintNumber = Modules::getModule(Module::PRINT_UINT_NUMBER);
+  auto modulePrintBoolean = Modules::getModule(Module::PRINT_BOOLEAN);
   auto moduleExit = Modules::getModule(Module::EXIT);
   registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
   registerAllocator.allocateRegisters(std::move(modulePrintUintNumber), false);
+  registerAllocator.allocateRegisters(std::move(modulePrintBoolean), false);
   registerAllocator.allocateRegisters(std::move(moduleExit), false);
 
   // Instruction optimization steps
@@ -358,8 +360,26 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           continue;
         case TType::IDENT_BOOL:
-          assert(0 && "todo");
-          break;
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::PUSH,
+            nullptr,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::MOV,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdi"),
+            std::make_shared<Basic::Token>(type, token->getValue<std::string>())
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::CALL,
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN])
+          ));
+          m_instructions.emplace_back(std::make_unique<Instruction>(
+            Operation::POP,
+            nullptr,
+            std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
+          ));
+          continue;
         case TType::IDENT_FLOAT:
           assert(0 && "todo");
           break;
@@ -402,6 +422,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "r11")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
       std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -421,6 +451,16 @@ void IRGenerator::visit(AST::WriteStmt *node) {
       Operation::POP,
       nullptr,
       std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "r11")
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, "rcx")
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,

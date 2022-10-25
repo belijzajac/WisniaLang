@@ -31,12 +31,14 @@ class Instruction;
 enum class Module {
   CALCULATE_STRING_LENGTH,
   PRINT_UINT_NUMBER,
+  PRINT_BOOLEAN,
   EXIT
 };
 
 static inline std::unordered_map<Module, std::string> Module2Str {
   {Module::CALCULATE_STRING_LENGTH, "_calculate_string_length_"},
   {Module::PRINT_UINT_NUMBER, "_print_uint_number_"},
+  {Module::PRINT_BOOLEAN, "_print_boolean_"},
   {Module::EXIT, "_exit_"},
 };
 
@@ -46,6 +48,7 @@ class Modules {
  private:
   static instructions_list moduleCalculateStringLength();
   static instructions_list modulePrintUintNumber();
+  static instructions_list modulePrintBoolean();
   static instructions_list moduleExit();
 
  public:

@@ -152,6 +152,18 @@ TEST_F(ProgramTest, PrintIntVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
 }
 
+TEST_F(ProgramTest, PrintBoolVariables) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    bool aa = true;
+    bool bb = false;
+    print true, false;
+    print aa, bb;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetruefalse");
+}
+
 TEST_F(ProgramTest, CalculateSum) {
   constexpr std::string_view program = R"(
   fn main () -> void {

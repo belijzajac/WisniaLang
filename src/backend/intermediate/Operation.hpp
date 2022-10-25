@@ -41,6 +41,7 @@ enum class Operation {
   IGT,   FGT,     // greater than
   IGE,   FGE,     // greater equal
   INE,   FNE,     // not equal
+  CMP,            // compare register against a number
   CMP_BYTE_PTR,   // compare address of a single-byte memory location
   /* logical */
   NOT,
@@ -75,13 +76,14 @@ static inline std::unordered_map<Operation, std::string> Operation2Str {
   {Operation::IDIV, "/" }, {Operation::FDIV, "/"},
   {Operation::INC,  "++"}, {Operation::DEC, "--"},
   // comparison (each for int and float)
-  {Operation::IEQ, "=="}, {Operation::FEQ, "=="},
-  {Operation::ILT, "<" }, {Operation::FLT, "<" },
-  {Operation::ILE, "<="}, {Operation::FLE, "<="},
-  {Operation::IGT, ">" }, {Operation::FGT, ">" },
-  {Operation::IGE, ">="}, {Operation::FGE, ">="},
-  {Operation::INE, "!="}, {Operation::FNE, "!="},
-  {Operation::CMP_BYTE_PTR, "cmp byte ptr"     },
+  {Operation::IEQ, "==" }, {Operation::FEQ, "=="},
+  {Operation::ILT, "<"  }, {Operation::FLT, "<" },
+  {Operation::ILE, "<=" }, {Operation::FLE, "<="},
+  {Operation::IGT, ">"  }, {Operation::FGT, ">" },
+  {Operation::IGE, ">=" }, {Operation::FGE, ">="},
+  {Operation::INE, "!=" }, {Operation::FNE, "!="},
+  {Operation::CMP, "cmp"},
+  {Operation::CMP_BYTE_PTR, "cmp byte ptr"      },
   // logical
   {Operation::NOT,  "!"   },
   {Operation::AND,  "&&"  },

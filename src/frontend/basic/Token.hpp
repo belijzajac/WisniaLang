@@ -61,7 +61,7 @@ class Token {
       [&](const std::string &arg) { strResult = arg; },
       [&](int arg)                { strResult = std::to_string(arg); },
       [&](float arg)              { strResult = std::to_string(arg); },
-      [&](bool arg)               { strResult = arg ? "1" : "0"; },
+      [&](bool arg)               { strResult = arg ? "true" : "false"; },
       [&](nullptr_t arg)          { strResult = "null"; },
     },
     m_value);
@@ -107,8 +107,9 @@ class Token {
   }
 
   constexpr bool isLiteralType() const {
-    return m_type == TType::LIT_INT || m_type == TType::LIT_FLT ||
-           m_type == TType::LIT_STR || m_type == TType::LIT_BOOL;
+    return m_type == TType::LIT_INT || m_type == TType::LIT_FLT  ||
+           m_type == TType::LIT_STR || m_type == TType::LIT_BOOL ||
+           m_type == TType::KW_TRUE || m_type == TType::KW_FALSE;
   }
 
   TType getType() const { return m_type; }

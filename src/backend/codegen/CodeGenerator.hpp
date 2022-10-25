@@ -56,6 +56,7 @@ class CodeGenerator {
   void emitPop(const InstructionValue &instruction);
   void emitCall(const InstructionValue &instruction);
   void emitLabel(const InstructionValue &instruction);
+  void emitCmp(const InstructionValue &instruction);
   void emitCmpBytePtr(const InstructionValue &instruction);
   void emitJmp(const InstructionValue &instruction);
   void emitInc(const InstructionValue &instruction);

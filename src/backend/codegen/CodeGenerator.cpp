@@ -146,6 +146,25 @@ static inline std::unordered_map<std::string, ByteArray> DecMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}}},
 };
 
+static inline std::unordered_map<std::string, ByteArray> CmpMachineCode {
+  {"rax", ByteArray{std::byte{0x48}, std::byte{0x3d}}},
+  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xf9}}},
+  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfa}}},
+  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfb}}},
+  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfc}}},
+  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfd}}},
+  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfe}}},
+  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xff}}},
+  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xf8}}},
+  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xf9}}},
+  {"r10", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfa}}},
+  {"r11", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfb}}},
+  {"r12", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfc}}},
+  {"r13", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfd}}},
+  {"r14", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfe}}},
+  {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xff}}},
+};
+
 static inline std::unordered_map<std::string, ByteArray> CmpBytePtrMachineCode {
   {"rax", ByteArray{std::byte{0x80}, std::byte{0x38}}},
   {"rcx", ByteArray{std::byte{0x80}, std::byte{0x39}}},
@@ -332,6 +351,9 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
       case Operation::LABEL:
         emitLabel(instruction);
         break;
+      case Operation::CMP:
+        emitCmp(instruction);
+        break;
       case Operation::CMP_BYTE_PTR:
         emitCmpBytePtr(instruction);
         break;
@@ -454,7 +476,14 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     return;
   }
 
-  // mov reg, "string"
+  // mov reg, bool
+  if (target->getType() == TType::REGISTER && (argOne->getType() == TType::KW_TRUE || argOne->getType() == TType::KW_FALSE)) {
+    m_textSection.putBytes(MovMachineCode[target->getValue<std::string>()]);
+    m_textSection.putU32(argOne->getValue<bool>() ? 1 : 0);
+    return;
+  }
+
+  // mov reg, string
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_STR) {
     auto strVal = argOne->getValue<std::string>();
     for (const auto ch : strVal) {
@@ -553,6 +582,20 @@ void CodeGenerator::emitLabel(const CodeGenerator::InstructionValue &instruction
   const auto &label = instruction->getArg1()->getValue<std::string>();
   const auto offset = m_textSection.size();
   m_labels.emplace_back(Label{label, offset});
+}
+
+void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) {
+  const auto &argOne = instruction->getArg1();
+  const auto &argTwo = instruction->getArg2();
+
+  // cmp reg, number
+  if (instruction->getArg1()->getType() == TType::REGISTER) {
+    m_textSection.putBytes(CmpMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putU32(argTwo->getValue<int>());
+    return;
+  }
+
+  assert(0 && "Unknown cmp operation");
 }
 
 void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instruction) {
