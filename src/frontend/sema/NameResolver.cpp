@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #include <fmt/ostream.h>
 #include <iostream>
 // Wisnia
@@ -5,7 +25,6 @@
 #include "AST.hpp"
 
 using namespace Wisnia;
-using namespace Utils;
 using namespace AST;
 
 void NameResolver::visit(AST::Root *node) {
@@ -50,14 +69,23 @@ void NameResolver::visit(AST::AddExpr *node) {
   node->rhs()->accept(this);
 }
 
+void NameResolver::visit(AST::SubExpr *node) {
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
 void NameResolver::visit(AST::MultExpr *node) {
+  node->lhs()->accept(this);
+  node->rhs()->accept(this);
+}
+
+void NameResolver::visit(AST::DivExpr *node) {
   node->lhs()->accept(this);
   node->rhs()->accept(this);
 }
 
 void NameResolver::visit(AST::UnaryExpr *node) {
   node->lhs()->accept(this);
-  node->rhs()->accept(this);
 }
 
 void NameResolver::visit(AST::FnCallExpr *node) {

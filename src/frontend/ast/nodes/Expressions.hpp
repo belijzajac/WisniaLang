@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #ifndef WISNIALANG_AST_EXPRESSIONS_HPP
 #define WISNIALANG_AST_EXPRESSIONS_HPP
 
@@ -58,6 +78,27 @@ class VarExpr : public BaseExpr {
 
   void addType(std::unique_ptr<BaseType> type) {
     m_type = std::move(type);
+    Basic::TType tokenType;
+    switch (m_type->getType()) {
+      case Basic::TType::KW_VOID:
+        tokenType = Basic::TType::IDENT_VOID;
+        break;
+      case Basic::TType::KW_INT:
+        tokenType = Basic::TType::IDENT_INT;
+        break;
+      case Basic::TType::KW_BOOL:
+        tokenType = Basic::TType::IDENT_BOOL;
+        break;
+      case Basic::TType::KW_FLOAT:
+        tokenType = Basic::TType::IDENT_FLOAT;
+        break;
+      case Basic::TType::KW_STRING:
+        tokenType = Basic::TType::IDENT_STRING;
+        break;
+      default:
+        tokenType = m_type->getType();
+    }
+    m_token->setType(tokenType);
   }
 
   const std::unique_ptr<BaseType> &getType() const {
@@ -131,7 +172,7 @@ class BinaryExpr : public BaseExpr {
         case Basic::TType::OP_NE:
           return "!=";
         default:
-          throw Utils::ParserError{"Invalid operand type"};
+          throw ParserError{"Invalid operand type"};
       }
     };
 
@@ -203,6 +244,22 @@ class AddExpr : public BinaryExpr {
   }
 };
 
+class SubExpr : public BinaryExpr {
+ public:
+  explicit SubExpr(const std::shared_ptr<Basic::Token> &tok)
+      : BinaryExpr(tok) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "SubExpr" << " (" << m_strOperand << ")";
+    return ss.str();
+  }
+};
+
 class MultExpr : public BinaryExpr {
  public:
   explicit MultExpr(const std::shared_ptr<Basic::Token> &tok)
@@ -215,6 +272,22 @@ class MultExpr : public BinaryExpr {
   std::string kind() const override {
     std::stringstream ss;
     ss << "MultExpr" << " (" << m_strOperand << ")";
+    return ss.str();
+  }
+};
+
+class DivExpr : public BinaryExpr {
+ public:
+  explicit DivExpr(const std::shared_ptr<Basic::Token> &tok)
+      : BinaryExpr(tok) {}
+
+  void accept(Visitor *v) override {
+    v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "DivExpr" << " (" << m_strOperand << ")";
     return ss.str();
   }
 };
@@ -355,12 +428,6 @@ class ConstExpr : public BaseExpr {
     v->visit(this);
   }
 
-  std::string kind() const override {
-    std::stringstream ss;
-    ss << "ConstExpr" << " (" << m_token->getASTValueStr() << ")";
-    return ss.str();
-  }
-
  protected:
   explicit ConstExpr(const std::shared_ptr<Basic::Token> &tok)
       : BaseExpr(tok) {}
@@ -374,6 +441,12 @@ class IntExpr : public ConstExpr {
   void accept(Visitor *v) override {
     v->visit(this);
   }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "IntExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
+  }
 };
 
 class FloatExpr : public ConstExpr {
@@ -383,6 +456,12 @@ class FloatExpr : public ConstExpr {
 
   void accept(Visitor *v) override {
     v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "FloatExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
   }
 };
 
@@ -394,6 +473,12 @@ class BoolExpr : public ConstExpr {
   void accept(Visitor *v) override {
     v->visit(this);
   }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "BoolExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
+  }
 };
 
 class StringExpr : public ConstExpr {
@@ -403,6 +488,12 @@ class StringExpr : public ConstExpr {
 
   void accept(Visitor *v) override {
     v->visit(this);
+  }
+
+  std::string kind() const override {
+    std::stringstream ss;
+    ss << "StringExpr" << " (" << m_token->getASTValueStr() << ")";
+    return ss.str();
   }
 };
 

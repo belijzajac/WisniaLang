@@ -1,4 +1,25 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #include <algorithm>
+#include <array>
 #include <unordered_map>
 // Wisnia
 #include "Parser.hpp"
@@ -8,7 +29,6 @@
 using namespace Wisnia;
 using namespace AST;
 using namespace Basic;
-using namespace Utils;
 
 Parser::Parser(const Lexer &lexer)
     : m_tokens{lexer.getTokens()} {}
@@ -27,8 +47,10 @@ void Parser::expect(const TType &token) {
     consume();
     return;
   }
-  throw ParserError{"Expected " + TokenType2Str[token] + " but found " +
-                    TokenType2Str[peek()->getType()]};
+  throw ParserError{
+    "Expected " + TokenType2Str[token] +
+    " but found " + TokenType2Str[peek()->getType()]
+  };
 }
 
 std::unique_ptr<Root> Parser::parse() {
@@ -102,10 +124,10 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
 
 // <TYPE> ::= "void" | "int" | "bool" | "float" | "string"
 std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
-  constexpr std::array<TType, 5> kPrimitiveTypes{TType::KW_VOID, TType::KW_INT, TType::KW_BOOL,
-                                                 TType::KW_FLOAT, TType::KW_STRING};
-  if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(),
-                  [&](TType t) { return peek()->getType() == t; })) {
+  constexpr std::array<TType, 5> kPrimitiveTypes {
+    TType::KW_VOID, TType::KW_INT, TType::KW_BOOL, TType::KW_FLOAT, TType::KW_STRING
+  };
+  if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
   }
   throw ParserError{"Function definition doesn't have any of the supported types"};
@@ -146,7 +168,8 @@ std::unique_ptr<BaseStmt> Parser::parseStmt() {
     case TType::KW_BOOL:
     case TType::KW_FLOAT:
     case TType::KW_STRING:
-      if (has2(TType::IDENT)) return parseVarDeclStmt();
+      if (has2(TType::IDENT))
+        return parseVarDeclStmt();
     // <ASSIGNMENT_STMT>
     case TType::IDENT: {         // "a"
       if (has2(TType::OP_ASSN))  // "a="
@@ -193,7 +216,7 @@ std::unique_ptr<BaseExpr> Parser::parseExpr() {
   auto lhs = parseAndExpr();
   while (has(TType::OP_OR)) {  // ... <OR_SYMB> <AND_EXPR>
     const auto &token = peek();
-    expect(token->getType());  // expect "||"
+    consume();                 // eat "||"
     auto rhs = parseAndExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -211,7 +234,7 @@ std::unique_ptr<BaseExpr> Parser::parseAndExpr() {
   auto lhs = parseEqExpr();
   while (has(TType::OP_AND)) {  // ... <AND_SYMB> <EQUAL_EXPR>
     const auto &token = peek();
-    expect(token->getType());   // expect "&&"
+    consume();                  // eat "&&"
     auto rhs = parseEqExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -230,7 +253,7 @@ std::unique_ptr<BaseExpr> Parser::parseEqExpr() {
   // ... <EQUALITY_SYMB> <COMPARE_EXPR>
   while (hasAnyOf(TType::OP_EQ, TType::OP_NE)) {
     const auto &token = peek();
-    expect(token->getType());  // expect either "==" or "!="
+    consume(); // eat either "==" or "!="
     auto rhs = parseCompExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -249,7 +272,7 @@ std::unique_ptr<BaseExpr> Parser::parseCompExpr() {
   // ... <COMPARISON_SYMB> <ADD_EXPR>
   while (hasAnyOf(TType::OP_G, TType::OP_GE, TType::OP_L, TType::OP_LE)) {
     const auto &token = peek();
-    expect(token->getType());  // expect any of ">", ">=", "<", "<="
+    consume(); // eat any of ">", ">=", "<", "<="
     auto rhs = parseAddExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
@@ -268,12 +291,16 @@ std::unique_ptr<BaseExpr> Parser::parseAddExpr() {
   // ... <ADD_OP> <MULT_EXPR>
   while (hasAnyOf(TType::OP_ADD, TType::OP_SUB)) {
     const auto &token = peek();
-    expect(token->getType());  // expect either "+" or "-"
+    consume(); // eat either "+" or "-"
     auto rhs = parseMultExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<AddExpr>(token);
+    if (token->getType() == TType::OP_ADD) {
+      lhs = std::make_unique<AddExpr>(token);
+    } else {
+      lhs = std::make_unique<SubExpr>(token);
+    }
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -287,12 +314,16 @@ std::unique_ptr<BaseExpr> Parser::parseMultExpr() {
   // ... <MULT_OP> <UNARY_EXPR>
   while (hasAnyOf(TType::OP_MUL, TType::OP_DIV)) {
     const auto &token = peek();
-    expect(token->getType());  // expect either "*" or "/"
+    consume(); // eat either "*" or "/"
     auto rhs = parseUnaryExpr();
     // Make a temporary copy of the lhs
     auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
     // Move rhs and tempLhs nodes
-    lhs = std::make_unique<MultExpr>(token);
+    if (token->getType() == TType::OP_MUL) {
+      lhs = std::make_unique<MultExpr>(token);
+    } else {
+      lhs = std::make_unique<DivExpr>(token);
+    }
     lhs->addChild(std::move(tempLhs));
     lhs->addChild(std::move(rhs));
   }
@@ -309,7 +340,7 @@ std::unique_ptr<BaseExpr> Parser::parseUnaryExpr() {
     auto lhs = std::unique_ptr<BaseExpr>();
     while (isAnyOf()) {  // <UNARY_SYM> ...
       const auto &token = peek();
-      expect(token->getType());  // expect either "!" or "++"
+      consume(); // eat either "!" or "++"
       auto rhs = parseUnaryExpr();
       // Append the unary expression we've just found
       lhs = std::make_unique<UnaryExpr>(token);
@@ -386,7 +417,7 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
         tempVar->getToken()->getType(),
         className->getValue<std::string>() + "::" + tempVar->getToken()->getValue<std::string>(),
         tempVar->getToken()->getPosition());
-    return std::make_unique<VarExpr>(methodTok);
+    return std::make_unique<VarExpr>(std::move(methodTok));
   };
 
   auto lhsVar = methodVarExpr();
@@ -420,9 +451,10 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
 std::vector<std::unique_ptr<BaseExpr>> Parser::parseArgsList() {
   // To map possible argsBody types to their selectable closing body types
-  std::unordered_map<TType, TType> expectBodyType = {
-      {TType::OP_PAREN_O, TType::OP_PAREN_C},
-      {TType::OP_BRACE_O, TType::OP_BRACE_C}};
+  std::unordered_map<TType, TType> expectBodyType {
+    {TType::OP_PAREN_O, TType::OP_PAREN_C},
+    {TType::OP_BRACE_O, TType::OP_BRACE_C}
+  };
 
   consume();  // idk why's this required,
               // but it solved the issue with incorrect token types
@@ -458,28 +490,24 @@ std::unique_ptr<BaseExpr> Parser::parseClassInit() {
 std::unique_ptr<BaseExpr> Parser::parseConstExpr() {
   switch (peek()->getType()) {
     // <NUMERIC_CONSTANT> : integer
-    case TType::LIT_INT: {
-      auto intExpr = std::make_unique<IntExpr>(getNextToken());
-      return intExpr;
-    }
+    case TType::LIT_INT:
+      return std::make_unique<IntExpr>(getNextToken());
     // <NUMERIC_CONSTANT> : float
-    case TType::LIT_FLT: {
-      auto fltExpr = std::make_unique<FloatExpr>(getNextToken());
-      return fltExpr;
-    }
+    case TType::LIT_FLT:
+      return std::make_unique<FloatExpr>(getNextToken());
     // <BOOL_CONSTANT>
     case TType::KW_TRUE:
-    case TType::KW_FALSE: {
-      auto boolExpr = std::make_unique<BoolExpr>(getNextToken());
-      return boolExpr;
-    }
+    case TType::KW_FALSE:
+      return std::make_unique<BoolExpr>(getNextToken());
     // <STRING>
     case TType::LIT_STR: {
-      auto strExpr = std::make_unique<StringExpr>(getNextToken());
-      return strExpr;
+      auto &token = getNextToken();
+      token->setValue(token->getValue<std::string>() + '\0'); // make it null-terminated
+      return std::make_unique<StringExpr>(token);
     }
+    default:
+      throw ParserError{"Unknown constant expression"};
   }
-  throw ParserError{"Unknown constant expression"};
 }
 
 // <LOOP_BREAK_STMT> <STMT_END>
@@ -507,7 +535,6 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
   auto varType = parsePrimitiveType();
   varDeclPtr->addVar(parseVar());
-  varDeclPtr->addType(std::move(varType));
   std::unique_ptr<BaseExpr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -523,9 +550,33 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   }
   // <TYPE> <VAR>
   else {
-    expect(TType::OP_SEMICOLON);
-    return varDeclPtr;
+    // add default values
+    switch (varType->getType()) {
+      case TType::KW_INT: {
+        auto intToken = std::make_shared<Token>(TType::LIT_INT, 0, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<IntExpr>(std::move(intToken));
+        break;
+      }
+      case TType::KW_FLOAT: {
+        auto floatToken = std::make_shared<Token>(TType::LIT_FLT, 0.0f, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<FloatExpr>(std::move(floatToken));
+        break;
+      }
+      case TType::KW_STRING: {
+        auto stringToken = std::make_shared<Token>(TType::LIT_STR, "", varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<StringExpr>(std::move(stringToken));
+        break;
+      }
+      case TType::KW_BOOL: {
+        auto boolToken = std::make_shared<Token>(TType::LIT_BOOL, false, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<BoolExpr>(std::move(boolToken));
+        break;
+      }
+      default:
+        throw ParserError{"Failed to assign default value for " + varDeclPtr->getVar()->getToken()->getASTValueStr()};
+    }
   }
+  varDeclPtr->addType(std::move(varType));
   varDeclPtr->addValue(std::move(varValue));
   expect(TType::OP_SEMICOLON);
   return varDeclPtr;
@@ -724,10 +775,11 @@ std::unique_ptr<BaseDef> Parser::parseClassDef() {
   auto classTypeTok = std::make_shared<Token>(
       TType::KW_CLASS,
       var->getToken()->getValue<std::string>(),
-      var->getToken()->getPosition());
+      var->getToken()->getPosition()
+  );
 
   classDef->addVar(std::move(var));
-  classDef->addType(std::make_unique<PrimitiveType>(classTypeTok));
+  classDef->addType(std::make_unique<PrimitiveType>(std::move(classTypeTok)));
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
