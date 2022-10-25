@@ -2,12 +2,31 @@
 
 [![Ubuntu](https://github.com/belijzajac/WisniaLang/actions/workflows/ubuntu.yml/badge.svg?branch=master)](https://github.com/belijzajac/WisniaLang/actions/workflows/ubuntu.yml)
 [![codecov](https://codecov.io/gh/belijzajac/WisniaLang/branch/master/graph/badge.svg?token=SN5094ZY23)](https://codecov.io/gh/belijzajac/WisniaLang)
+[![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-## Reference materials
+## Dependencies
 
-1. https://courses.cs.washington.edu/courses/cse469/18wi/Materials/arm64.pdf
-2. https://class.ece.uw.edu/469/peckol/doc/ARM/Arm_EE382N_4.pdf
-3. https://modexp.wordpress.com/2018/10/30/arm64-assembly/
-4. https://class.ece.uw.edu/469/peckol/doc/ARM/ARM_v8_Instruction_Set_Architecture_(Overview).pdf
-5. https://class.ece.uw.edu/469/peckol/doc/ARM/assemblerDirectives.pdf
-6. https://class.ece.uw.edu/469/peckol/doc/ARM/assyTutorial.pdf
+* C++20 compatible compiler
+* CMake
+
+## Building from source
+
+```bash
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j$(nproc) wisnia
+```
+
+## Debugging binaries
+
+```gdb
+(gdb) set disassembly-flavor intel
+(gdb) layout asm
+(gdb) layout reg
+(gdb) b *0x4000b0
+(gdb) r
+```
+
+## License
+
+This project is available under the [GPLv3 license](LICENSE).

@@ -1,14 +1,30 @@
+# WisniaLang - A Compiler for an Experimental Programming Language
+# Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 cmake_minimum_required(VERSION 3.13)
 project(WisniaLang)
 
-option(UNIT_TESTS "Build all of wisnia's unit tests" OFF)
+option(UNIT_TESTS "Build unit tests" OFF)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   set(UNIT_TESTS ON)
 endif()
 
-# We're using C++17
-set(CMAKE_CXX_STANDARD 17)
+# We're using C++20
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Locate CMake helper modules
@@ -22,26 +38,22 @@ include(Dependencies)
 # In order to have shorter paths to header files
 # Defined here because unit tests need to access them too
 include_directories(
+# utilities
   src/utilities/
+# frontend
   src/frontend/basic/
   src/frontend/ast/
   src/frontend/lexer/
   src/frontend/parser/
   src/frontend/sema/
+# backend
+  src/backend/intermediate/
+  src/backend/register/
+  src/backend/optimize/
+  src/backend/elf/
+  src/backend/codegen/
 )
 
 add_subdirectory(src)
 add_subdirectory(tests)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Coverage" AND CMAKE_COMPILER_IS_GNUCC)
-  include(CodeCoverage)
-  append_coverage_compiler_flags()
-  setup_target_for_coverage_lcov(
-    NAME wisnia-coverage
-    EXECUTABLE wisnia-tests
-    EXCLUDE
-      "/usr/*"
-      "${PROJECT_SOURCE_DIR}/tests/*"
-      "${PROJECT_SOURCE_DIR}/build/_deps/*"
-  )
-endif()
+add_subdirectory(coverage)

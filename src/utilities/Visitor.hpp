@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #ifndef WISNIALANG_VISITOR_HPP
 #define WISNIALANG_VISITOR_HPP
 
@@ -11,7 +31,9 @@ class BooleanExpr;
 class EqExpr;
 class CompExpr;
 class AddExpr;
+class SubExpr;
 class MultExpr;
+class DivExpr;
 class UnaryExpr;
 class FnCallExpr;
 class ClassInitExpr;
@@ -51,7 +73,9 @@ class Visitor {
   virtual void visit(AST::EqExpr *node) = 0;
   virtual void visit(AST::CompExpr *node) = 0;
   virtual void visit(AST::AddExpr *node) = 0;
+  virtual void visit(AST::SubExpr *node) = 0;
   virtual void visit(AST::MultExpr *node) = 0;
+  virtual void visit(AST::DivExpr *node) = 0;
   virtual void visit(AST::UnaryExpr *node) = 0;
   virtual void visit(AST::FnCallExpr *node) = 0;
   virtual void visit(AST::ClassInitExpr *node) = 0;

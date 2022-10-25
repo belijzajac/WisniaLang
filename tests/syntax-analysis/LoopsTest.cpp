@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #include <gtest/gtest.h>
 // Wisnia
 #include "Lexer.hpp"
@@ -8,14 +28,13 @@ using namespace Wisnia;
 using namespace Basic;
 
 TEST(ParserTest, Loops) {
-  std::string program = R"(
+  constexpr std::string_view program = R"(
   fn loops () -> void {
     while (i < 5) {}
     for (int i = 0; six <= 6.59; i = i + "1") {}
     for_each (elem in elems) {}
-  }
-  )";
-  std::istringstream iss{program};
+  })";
+  std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);
   auto parser = std::make_unique<Parser>(*lexer);
@@ -61,7 +80,7 @@ TEST(ParserTest, Loops) {
     auto forLoopInitVar = dynamic_cast<AST::VarExpr *>(&*forLoopInit->getVar());
     EXPECT_EQ(forLoopInitVar->getType()->getType(), TType::KW_INT);
     // i
-    EXPECT_EQ(forLoopInitVar->getToken()->getType(), TType::IDENT);
+    EXPECT_EQ(forLoopInitVar->getToken()->getType(), TType::IDENT_INT);
     EXPECT_STREQ(forLoopInitVar->getToken()->getValue<std::string>().c_str(), "i");
     // 0
     auto forLoopInitConstExpr = dynamic_cast<AST::IntExpr *>(&*forLoopInit->getValue());
@@ -100,7 +119,7 @@ TEST(ParserTest, Loops) {
     auto forLoopIncDecRhs = dynamic_cast<AST::StringExpr *>(&*forLoopIncDecAddExpr->rhs());
     EXPECT_NE(forLoopIncDecRhs, nullptr);
     EXPECT_EQ(forLoopIncDecRhs->getToken()->getType(), TType::LIT_STR);
-    EXPECT_EQ(forLoopIncDecRhs->getToken()->getValue<std::string>(), "1");
+    EXPECT_STREQ(forLoopIncDecRhs->getToken()->getValue<std::string>().c_str(), "1");
     // {}
     auto forLoopStmtBlock = dynamic_cast<AST::StmtBlock *>(&*forLoopStmt->getBody());
     EXPECT_EQ(forLoopStmtBlock->getStatements().size(), 0);

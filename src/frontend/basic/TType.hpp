@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #ifndef WISNIALANG_TTYPE_HPP
 #define WISNIALANG_TTYPE_HPP
 
@@ -6,11 +26,19 @@
 namespace Wisnia::Basic {
 
 enum class TType {
+  // Low level
+  REGISTER,
   // Main types
   LIT_INT,
   LIT_FLT,
   LIT_STR,
+  LIT_BOOL,
   IDENT,
+  IDENT_VOID,
+  IDENT_INT,
+  IDENT_BOOL,
+  IDENT_FLOAT,
+  IDENT_STRING,
   // Keywords
   KW_FN,
   KW_CLASS,
@@ -72,13 +100,19 @@ enum class TType {
   TOK_EOF
 };
 
-// A string representations for TType`s
-static inline std::unordered_map<TType, std::string> TokenType2Str = {
-  // Main types  
+static inline std::unordered_map<TType, std::string> TokenType2Str {
+  // Low level
+  {TType::REGISTER, "REGISTER"},
+  // Main types
   {TType::LIT_INT, "LIT_INT"},
   {TType::LIT_FLT, "LIT_FLT"},
   {TType::LIT_STR, "LIT_STR"},
   {TType::IDENT, "IDENT"},
+  {TType::IDENT_VOID, "IDENT_VOID"},
+  {TType::IDENT_INT, "IDENT_INT"},
+  {TType::IDENT_BOOL, "IDENT_BOOL"},
+  {TType::IDENT_FLOAT, "IDENT_FLOAT"},
+  {TType::IDENT_STRING, "IDENT_STRING"},
   // Keywords
   {TType::KW_FN, "KW_FN"},
   {TType::KW_CLASS, "KW_CLASS"},
@@ -137,38 +171,38 @@ static inline std::unordered_map<TType, std::string> TokenType2Str = {
   {TType::OP_BRACE_C, "OP_BRACE_C"},
   // Other
   {TType::TOK_INVALID, "TOK_INVALID"},
-  {TType::TOK_EOF, "TOK_EOF"}};
+  {TType::TOK_EOF, "TOK_EOF"}
+};
 
-// String to TType of Keyword type
-static inline std::unordered_map<std::string, TType> Str2TokenKw = {
-    {"fn", TType::KW_FN},          {"class", TType::KW_CLASS},
-    {"new", TType::KW_CLASS_INIT}, {"def", TType::KW_CLASS_DEF},
-    {"rem", TType::KW_CLASS_REM},  {"return", TType::KW_RETURN},
-    {"if", TType::KW_IF},          {"elif", TType::KW_ELIF},
-    {"else", TType::KW_ELSE},      {"for", TType::KW_FOR},
-    {"while", TType::KW_WHILE},    {"for_each", TType::KW_FOREACH},
-    {"in", TType::KW_FOREACH_IN},  {"continue", TType::KW_CONTINUE},
-    {"break", TType::KW_BREAK},    {"true", TType::KW_TRUE},
-    {"false", TType::KW_FALSE},    {"read", TType::KW_READ},
-    {"print", TType::KW_PRINT},    {"void", TType::KW_VOID},
-    {"int", TType::KW_INT},        {"bool", TType::KW_BOOL},
-    {"float", TType::KW_FLOAT},    {"string", TType::KW_STRING}};
+static inline std::unordered_map<std::string, TType> Str2TokenKw {
+  {"fn", TType::KW_FN},          {"class", TType::KW_CLASS},
+  {"new", TType::KW_CLASS_INIT}, {"def", TType::KW_CLASS_DEF},
+  {"rem", TType::KW_CLASS_REM},  {"return", TType::KW_RETURN},
+  {"if", TType::KW_IF},          {"elif", TType::KW_ELIF},
+  {"else", TType::KW_ELSE},      {"for", TType::KW_FOR},
+  {"while", TType::KW_WHILE},    {"for_each", TType::KW_FOREACH},
+  {"in", TType::KW_FOREACH_IN},  {"continue", TType::KW_CONTINUE},
+  {"break", TType::KW_BREAK},    {"true", TType::KW_TRUE},
+  {"false", TType::KW_FALSE},    {"read", TType::KW_READ},
+  {"print", TType::KW_PRINT},    {"void", TType::KW_VOID},
+  {"int", TType::KW_INT},        {"bool", TType::KW_BOOL},
+  {"float", TType::KW_FLOAT},    {"string", TType::KW_STRING}
+};
 
-// String to TType of Operator type
-static inline std::unordered_map<std::string, TType> Str2TokenOp = {
-    {"=", TType::OP_ASSN},        {"->", TType::OP_FN_ARROW},
-    {".", TType::OP_METHOD_CALL}, {"+", TType::OP_ADD},
-    {"-", TType::OP_SUB},         {"*", TType::OP_MUL},
-    {"/", TType::OP_DIV},         {"++", TType::OP_UADD},
-    {"!", TType::OP_UNEG},        {"&&", TType::OP_AND},
-    {"||", TType::OP_OR},         {"==", TType::OP_EQ},
-    {"<", TType::OP_L},           {">", TType::OP_G},
-    {"<=", TType::OP_LE},         {">=", TType::OP_GE},
-    {"!=", TType::OP_NE},         {"(", TType::OP_PAREN_O},
-    {")", TType::OP_PAREN_C},     {"{", TType::OP_BRACE_O},
-    {"}", TType::OP_BRACE_C},     {",", TType::OP_COMMA},
-    {":", TType::OP_COL},         {";", TType::OP_SEMICOLON},
-    {"--", TType::OP_USUB},
+static inline std::unordered_map<std::string, TType> Str2TokenOp {
+  {"=", TType::OP_ASSN},        {"->", TType::OP_FN_ARROW},
+  {".", TType::OP_METHOD_CALL}, {"+", TType::OP_ADD},
+  {"-", TType::OP_SUB},         {"*", TType::OP_MUL},
+  {"/", TType::OP_DIV},         {"++", TType::OP_UADD},
+  {"!", TType::OP_UNEG},        {"&&", TType::OP_AND},
+  {"||", TType::OP_OR},         {"==", TType::OP_EQ},
+  {"<", TType::OP_L},           {">", TType::OP_G},
+  {"<=", TType::OP_LE},         {">=", TType::OP_GE},
+  {"!=", TType::OP_NE},         {"(", TType::OP_PAREN_O},
+  {")", TType::OP_PAREN_C},     {"{", TType::OP_BRACE_O},
+  {"}", TType::OP_BRACE_C},     {",", TType::OP_COMMA},
+  {":", TType::OP_COL},         {";", TType::OP_SEMICOLON},
+  {"--", TType::OP_USUB},
 };
 
 }  // namespace Wisnia::Basic

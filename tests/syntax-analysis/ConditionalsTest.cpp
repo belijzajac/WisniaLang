@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #include <gtest/gtest.h>
 // Wisnia
 #include "Lexer.hpp"
@@ -8,7 +28,7 @@ using namespace Wisnia;
 using namespace Basic;
 
 TEST(ParserTest, Conditionals) {
-  std::string program = R"(
+  constexpr std::string_view program = R"(
   fn conditionals () -> void {
     if (true) {
       f(5 - 1, 5);
@@ -22,9 +42,8 @@ TEST(ParserTest, Conditionals) {
     else {
       break;
     }
-  }
-  )";
-  std::istringstream iss{program};
+  })";
+  std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);
   auto parser = std::make_unique<Parser>(*lexer);
@@ -62,7 +81,7 @@ TEST(ParserTest, Conditionals) {
     EXPECT_STREQ(ifFnCall->getToken()->getValue<std::string>().c_str(), "f");
     EXPECT_EQ(ifFnCall->getArgs().size(), 2);
     // (5 - 1,
-    auto ifFnCallSubArg = dynamic_cast<AST::AddExpr *>(&*ifFnCall->getArgs()[0]);
+    auto ifFnCallSubArg = dynamic_cast<AST::SubExpr *>(&*ifFnCall->getArgs()[0]);
     EXPECT_NE(ifFnCallSubArg, nullptr);
     EXPECT_EQ(ifFnCallSubArg->getOperand(), TType::OP_SUB);
     // 5

@@ -1,3 +1,23 @@
+/***
+
+  WisniaLang - A Compiler for an Experimental Programming Language
+  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+***/
+
 #ifndef WISNIALANG_PARSER_HPP
 #define WISNIALANG_PARSER_HPP
 
@@ -88,7 +108,7 @@ class Parser {
   // Parses parameters list, found in function and ctor/dtor definitions
   std::vector<std::unique_ptr<AST::Param>> parseParamsList();
 
-  // Parses function return type
+  // Parses primitive types
   std::unique_ptr<AST::BaseType> parsePrimitiveType();
 
   // Parses statement block
@@ -151,10 +171,10 @@ class Parser {
   // Parses comparison (>, >=, <, <=) expression
   std::unique_ptr<AST::BaseExpr> parseCompExpr();
 
-  // Parses addition (+) expression
+  // Parses addition and subtraction (+, -) expression
   std::unique_ptr<AST::BaseExpr> parseAddExpr();
 
-  // Parses multiplication (*, /) expression
+  // Parses multiplication and division (*, /) expression
   std::unique_ptr<AST::BaseExpr> parseMultExpr();
 
   // Parses unary (!, ++) expression
