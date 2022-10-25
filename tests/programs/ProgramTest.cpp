@@ -128,40 +128,59 @@ TEST_F(ProgramTest, PrintStrings) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hello world\nhahaha\nlole\n");
 }
 
+TEST_F(ProgramTest, PrintNumbers) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    print 12345, 67890, 55555;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789055555");
+}
+
+TEST_F(ProgramTest, PrintBooleans) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    print true, false, true;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
+}
+
 TEST_F(ProgramTest, PrintStringVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
-    string str = "ABCDE";
-    print str, "123", 45;
+    string str1 = "ABCDE";
+    string str2 = "12345";
+    string str3 = "67890";
+    print str1, str2, str3;
   })";
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE12345");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE1234567890");
 }
 
-TEST_F(ProgramTest, PrintIntVariables) {
+TEST_F(ProgramTest, PrintNumberVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
     int num1 = 123;
     int num2 = 456;
     int num3 = 789;
     int num4 = 101;
-    print num1, num2;
-    print num3, num4;
+    print num1, num2, num3, num4;
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
 }
 
-TEST_F(ProgramTest, PrintBoolVariables) {
+TEST_F(ProgramTest, PrintBooleanVariables) {
   constexpr std::string_view program = R"(
   fn main () -> void {
     bool aa = true;
     bool bb = false;
-    print true, false;
-    print aa, bb;
+    bool cc = true;
+    print aa, bb, cc;
   })";
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetruefalse");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
 }
 
 TEST_F(ProgramTest, CalculateSum) {
@@ -192,6 +211,16 @@ TEST_F(ProgramTest, CalculateProduct) {
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
+}
+
+TEST_F(ProgramTest, CalculateExpression) {
+  constexpr std::string_view program = R"(
+  fn main () -> void {
+    int expr = ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
+    print expr;
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
 }
 
 TEST_F(ProgramTest, PrintSum) {
