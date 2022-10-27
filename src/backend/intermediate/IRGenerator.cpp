@@ -139,6 +139,7 @@ void IRGenerator::visit(AST::Root *node) {
     Operation::CALL,
     std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
   ));
+  Modules::markAsUsed(Module::EXIT);
 
   // Insert the last instruction
   if (m_allocateRegisters) {
@@ -146,14 +147,15 @@ void IRGenerator::visit(AST::Root *node) {
   }
 
   // Load modules
-  auto moduleCalculateStringLength = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
-  auto modulePrintUintNumber = Modules::getModule(Module::PRINT_UINT_NUMBER);
-  auto modulePrintBoolean = Modules::getModule(Module::PRINT_BOOLEAN);
-  auto moduleExit = Modules::getModule(Module::EXIT);
-  registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
-  registerAllocator.allocateRegisters(std::move(modulePrintUintNumber), false);
-  registerAllocator.allocateRegisters(std::move(modulePrintBoolean), false);
-  registerAllocator.allocateRegisters(std::move(moduleExit), false);
+  auto [moduleCalculateStringLength, moduleCalculateStringLengthUsed] = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
+  auto [modulePrintNumber, modulePrintNumberUsed] = Modules::getModule(Module::PRINT_NUMBER);
+  auto [modulePrintBoolean, modulePrintBooleanUsed] = Modules::getModule(Module::PRINT_BOOLEAN);
+  auto [moduleExit, moduleExitUsed] = Modules::getModule(Module::EXIT);
+
+  if (moduleCalculateStringLengthUsed) registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
+  if (modulePrintNumberUsed) registerAllocator.allocateRegisters(std::move(modulePrintNumber), false);
+  if (modulePrintBooleanUsed) registerAllocator.allocateRegisters(std::move(modulePrintBoolean), false);
+  if (moduleExitUsed) registerAllocator.allocateRegisters(std::move(moduleExit), false);
 
   // Instruction optimization steps
   instructionSimplification.simplify(vec_slice(getInstructionsAfterRegisterAllocation(), 0, getInstructionsAfterRegisterAllocation().size()));
@@ -337,6 +339,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
             Operation::CALL,
             std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
           ));
+          Modules::markAsUsed(Module::CALCULATE_STRING_LENGTH);
           break;
         case TType::IDENT_INT:
           m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -351,13 +354,14 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_UINT_NUMBER])
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER])
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::POP,
             nullptr,
             std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
           ));
+          Modules::markAsUsed(Module::PRINT_NUMBER);
           continue;
         case TType::IDENT_BOOL:
           m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -379,6 +383,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
             nullptr,
             std::make_shared<Basic::Token>(TType::REGISTER, "rdi")
           ));
+          Modules::markAsUsed(Module::PRINT_BOOLEAN);
           continue;
         case TType::IDENT_FLOAT:
           assert(0 && "todo");

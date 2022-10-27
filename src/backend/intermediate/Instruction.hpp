@@ -33,8 +33,8 @@ class Token;
 class Instruction {
   using token_ptr = std::shared_ptr<Basic::Token>;
 
-  inline static size_t sArgOneWidth{15};
-  inline static size_t sTargetWidth{15};
+  static inline size_t sArgOneWidth{15};
+  static inline size_t sTargetWidth{15};
 
  public:
   explicit Instruction(

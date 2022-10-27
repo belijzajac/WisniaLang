@@ -28,16 +28,16 @@
 using namespace Wisnia;
 using namespace Basic;
 
-Modules::instructions_list Modules::getModule(Module module) {
+std::tuple<Modules::InstructionList, bool> Modules::getModule(Module module) {
   switch (module) {
     case Module::CALCULATE_STRING_LENGTH:
-      return moduleCalculateStringLength();
-    case Module::PRINT_UINT_NUMBER:
-      return modulePrintUintNumber();
+      return {moduleCalculateStringLength(), m_isUsed[CALCULATE_STRING_LENGTH]};
+    case Module::PRINT_NUMBER:
+      return {modulePrintUintNumber(), m_isUsed[PRINT_NUMBER]};
     case Module::PRINT_BOOLEAN:
-      return modulePrintBoolean();
+      return {modulePrintBoolean(), m_isUsed[PRINT_BOOLEAN]};
     case Module::EXIT:
-      return moduleExit();
+      return {moduleExit(), m_isUsed[EXIT]};
     default:
       throw InstructionError{"Unknown module"};
   }
@@ -57,8 +57,8 @@ _calculate_string_length_:
   pop rsi                                           ; restore the string
   ret                                               ; return
 */
-Modules::instructions_list Modules::moduleCalculateStringLength() {
-  instructions_list instructions{};
+Modules::InstructionList Modules::moduleCalculateStringLength() {
+  InstructionList instructions{};
 
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
@@ -125,7 +125,7 @@ Modules::instructions_list Modules::moduleCalculateStringLength() {
 }
 
 /*
-_print_uint_number_:
+_print_number_:
   push rax                            ;; save registers
   push rcx
   push r11
@@ -136,14 +136,14 @@ _print_uint_number_:
   mov rcx, 0xa                        ;; base 10
   mov rsi, rsp                        ;; move buffer on the stack
   sub rsp, 16                         ;; stack allocate space for a string
-.print_uint_number_loop:              ;; do {
+.print_number_loop:                   ;; do {
   xor edx, edx                        ;; zero out the temporary character
   div rcx                             ;; eax /= 10, edx %= 10
   add edx, '0'                        ;; convert to ascii
   dec rsi                             ;; working backwards from the end of the string
   mov [rsi], dl                       ;; append character
   test rax, rax                       ;; } while(x);
-  jnz .print_uint_number_loop
+  jnz .print_number_loop
 
   mov rax, 1                          ;; write
   mov rdi, 1                          ;; stdout file descriptor
@@ -160,13 +160,13 @@ _print_uint_number_:
 
   ret
 */
-Modules::instructions_list Modules::modulePrintUintNumber() {
-  instructions_list instructions{};
+Modules::InstructionList Modules::modulePrintUintNumber() {
+  InstructionList instructions{};
 
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_UINT_NUMBER])
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER])
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
@@ -216,7 +216,7 @@ Modules::instructions_list Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_uint_number_loop")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_number_loop")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::XOR,
@@ -253,7 +253,7 @@ Modules::instructions_list Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JNZ,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_uint_number_loop")
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, ".print_number_loop")
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -343,8 +343,8 @@ _print_boolean_:
   pop rax
   ret
  */
-Modules::instructions_list Modules::modulePrintBoolean() {
-  instructions_list instructions{};
+Modules::InstructionList Modules::modulePrintBoolean() {
+  InstructionList instructions{};
 
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
@@ -473,8 +473,8 @@ _exit_:
   mov rax, 0x3c      ;; exit
   syscall            ;; make the system call
 */
-Modules::instructions_list Modules::moduleExit() {
-  instructions_list instructions{};
+Modules::InstructionList Modules::moduleExit() {
+  InstructionList instructions{};
 
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,

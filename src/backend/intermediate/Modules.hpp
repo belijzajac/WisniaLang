@@ -21,6 +21,7 @@
 #ifndef WISNIALANG_MODULES_HPP
 #define WISNIALANG_MODULES_HPP
 
+#include <array>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -28,31 +29,36 @@
 namespace Wisnia {
 class Instruction;
 
-enum class Module {
+enum Module : uint8_t {
   CALCULATE_STRING_LENGTH,
-  PRINT_UINT_NUMBER,
+  PRINT_NUMBER,
   PRINT_BOOLEAN,
   EXIT
 };
 
 static inline std::unordered_map<Module, std::string> Module2Str {
   {Module::CALCULATE_STRING_LENGTH, "_calculate_string_length_"},
-  {Module::PRINT_UINT_NUMBER, "_print_uint_number_"},
-  {Module::PRINT_BOOLEAN, "_print_boolean_"},
-  {Module::EXIT, "_exit_"},
+  {Module::PRINT_NUMBER,            "_print_number_"           },
+  {Module::PRINT_BOOLEAN,           "_print_boolean_"          },
+  {Module::EXIT,                    "_exit_"                   },
 };
 
 class Modules {
-  using instructions_list = std::vector<std::shared_ptr<Instruction>>;
+  using InstructionList = std::vector<std::shared_ptr<Instruction>>;
+
+  static inline std::array<bool, 4> m_isUsed {
+    false, false, false, false
+  };
 
  private:
-  static instructions_list moduleCalculateStringLength();
-  static instructions_list modulePrintUintNumber();
-  static instructions_list modulePrintBoolean();
-  static instructions_list moduleExit();
+  static InstructionList moduleCalculateStringLength();
+  static InstructionList modulePrintUintNumber();
+  static InstructionList modulePrintBoolean();
+  static InstructionList moduleExit();
 
  public:
-  static instructions_list getModule(Module module);
+  static std::tuple<InstructionList, bool> getModule(Module module);
+  static void markAsUsed(Module module) { m_isUsed[module] = true; }
 };
 
 }  // namespace Wisnia
