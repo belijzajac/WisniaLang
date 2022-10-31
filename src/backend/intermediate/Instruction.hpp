@@ -31,7 +31,7 @@ class Token;
 }  // namespace Basic
 
 class Instruction {
-  using token_ptr = std::shared_ptr<Basic::Token>;
+  using TokenValue = std::shared_ptr<Basic::Token>;
 
   static inline size_t sArgOneWidth{15};
   static inline size_t sTargetWidth{15};
@@ -39,15 +39,15 @@ class Instruction {
  public:
   explicit Instruction(
     Operation op,
-    const token_ptr &target = nullptr,
-    const token_ptr &arg1   = nullptr,
-    const token_ptr &arg2   = nullptr
+    const TokenValue &target = nullptr,
+    const TokenValue &arg1   = nullptr,
+    const TokenValue &arg2   = nullptr
   ) : m_operation{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
 
   const Operation &getOperation() const { return m_operation; }
-  token_ptr &getTarget() { return m_target; }
-  token_ptr &getArg1() { return m_arg1; }
-  token_ptr &getArg2() { return m_arg2; }
+  TokenValue &getTarget() { return m_target; }
+  TokenValue &getArg1() { return m_arg1; }
+  TokenValue &getArg2() { return m_arg2; }
 
   static void setTargetWidth(size_t width) { sTargetWidth = width; }
   static void setArgOneWidth(size_t width) { sArgOneWidth = width; }
@@ -55,9 +55,9 @@ class Instruction {
 
  private:
   Operation m_operation;
-  token_ptr m_target;
-  token_ptr m_arg1;
-  token_ptr m_arg2;
+  TokenValue m_target;
+  TokenValue m_arg1;
+  TokenValue m_arg2;
 };
 
 }  // namespace Wisnia

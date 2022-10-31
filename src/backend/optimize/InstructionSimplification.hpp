@@ -30,15 +30,15 @@ namespace Wisnia {
 class Instruction;
 
 class InstructionSimplification {
-  using instructions_list = std::vector<std::shared_ptr<Instruction>>;
+  using InstructionList = std::vector<std::shared_ptr<Instruction>>;
 
  public:
-  const instructions_list &getInstructions() const { return m_instructions; }
+  const InstructionList &getInstructions() const { return m_instructions; }
   void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
-  void simplify(instructions_list &&instructions);
+  void simplify(InstructionList &&instructions);
 
  private:
-  instructions_list m_instructions;
+  InstructionList m_instructions;
 };
 
 }  // namespace Wisnia

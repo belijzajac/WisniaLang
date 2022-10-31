@@ -26,7 +26,7 @@
 
 using namespace Wisnia;
 
-void InstructionPrintHelper::print(const InstructionPrintHelper::instructions_list& instructions) {
+void InstructionPrintHelper::print(const InstructionPrintHelper::InstructionList &instructions) {
   size_t maxTargetWidth{0}, maxArgOneWidth{0};
   for (const auto &ir : instructions) {
     if (const auto &token = ir->getTarget(); token) {

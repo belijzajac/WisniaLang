@@ -31,7 +31,7 @@ namespace Wisnia {
 class Instruction;
 
 class RegisterAllocator {
-  using instructions_list = std::vector<std::shared_ptr<Instruction>>;
+  using InstructionList = std::vector<std::shared_ptr<Instruction>>;
 
   struct Registers {
     struct register_t {
@@ -59,12 +59,12 @@ class RegisterAllocator {
   };
 
  public:
-  const instructions_list &getInstructions() const { return m_instructions; }
+  const InstructionList &getInstructions() const { return m_instructions; }
   void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
-  void allocateRegisters(instructions_list &&instructions, bool allocateRegisters = true);
+  void allocateRegisters(InstructionList &&instructions, bool allocateRegisters = true);
 
  private:
-  instructions_list m_instructions;
+  InstructionList m_instructions;
 };
 
 }  // namespace Wisnia

@@ -36,8 +36,8 @@ namespace Wisnia {
 class Instruction;
 
 class IRGenerator : public Visitor {
-  using instructions_list  = std::vector<std::shared_ptr<Instruction>>;
-  using tmp_variables_list = std::vector<std::shared_ptr<AST::VarExpr>>;
+  using InstructionList = std::vector<std::shared_ptr<Instruction>>;
+  using TemporaryVariableList = std::vector<std::shared_ptr<AST::VarExpr>>;
 
   template <typename T>
   std::vector<T> vec_slice(const std::vector<T> &vec, size_t start, size_t end) {
@@ -50,19 +50,19 @@ class IRGenerator : public Visitor {
   explicit IRGenerator(bool allocateRegisters = true)
       : m_allocateRegisters{allocateRegisters} {}
 
-  const instructions_list &getInstructions() const {
+  const InstructionList &getInstructions() const {
     return m_instructions;
   }
 
-  const instructions_list &getInstructionsAfterRegisterAllocation() const {
+  const InstructionList &getInstructionsAfterRegisterAllocation() const {
     return registerAllocator.getInstructions();
   }
 
-  const instructions_list &getInstructionsAfterInstructionSimplification() const {
+  const InstructionList &getInstructionsAfterInstructionSimplification() const {
     return instructionSimplification.getInstructions();
   }
 
-  const tmp_variables_list &getTemporaryVars() const {
+  const TemporaryVariableList &getTemporaryVars() const {
     return m_tempVars;
   }
 
@@ -124,8 +124,8 @@ class IRGenerator : public Visitor {
 
  private:
   std::stack<AST::Root *> m_stack;
-  instructions_list m_instructions;
-  tmp_variables_list m_tempVars;
+  InstructionList m_instructions;
+  TemporaryVariableList m_tempVars;
   bool m_allocateRegisters; // we want to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
   InstructionSimplification instructionSimplification{};

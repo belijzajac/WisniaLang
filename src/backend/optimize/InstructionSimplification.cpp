@@ -27,7 +27,7 @@
 using namespace Wisnia;
 using namespace Basic;
 
-void InstructionSimplification::simplify(instructions_list &&instructions) {
+void InstructionSimplification::simplify(InstructionList &&instructions) {
   // Redundant instructions, e.g. mov rax, rax
   instructions.erase(
     std::remove_if(instructions.begin(), instructions.end(),

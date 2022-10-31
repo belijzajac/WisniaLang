@@ -35,15 +35,16 @@ bool checkVariable(const std::shared_ptr<Basic::Token> &token, const T &variable
   return token->isIdentifierType() && token->getValue<VariableType>() == variable;
 }
 
-void RegisterAllocator::allocateRegisters(instructions_list &&instructions, bool allocateRegisters) {
+// Linear Scan algorithm (default for LLVM)
+void RegisterAllocator::allocateRegisters(InstructionList &&instructions, bool allocateRegisters) {
   if (!allocateRegisters) {
     m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
     return;
   }
 
   // List of live intervals
-  const auto cmp_1 = [](const auto &a, const auto &b) { return a.m_start < b.m_start; };
-  std::set<Live, decltype(cmp_1)> liveIntervals{};
+  const auto intervalComparison = [](const auto &a, const auto &b) { return a.m_start < b.m_start; };
+  std::set<Live, decltype(intervalComparison)> liveIntervals{};
 
   // Populate the list with each variable's starting and ending interval points
   for (size_t i = 0; i < instructions.size(); i++) {
@@ -68,8 +69,8 @@ void RegisterAllocator::allocateRegisters(instructions_list &&instructions, bool
   Registers availableRegisters{};
 
   // List of the intervals that have been given a register and overlap with the current interval
-  const auto cmp_2 = [](const auto &a, const auto &b) { return a.m_start > b.m_start; };
-  std::set<Live, decltype(cmp_2)> activeIntervals{};
+  const auto overlapComparison = [](const auto &a, const auto &b) { return a.m_start > b.m_start; };
+  std::set<Live, decltype(overlapComparison)> activeIntervals{};
 
   // Process each interval in the list in order
   for (const auto &interval : liveIntervals) {
@@ -82,7 +83,7 @@ void RegisterAllocator::allocateRegisters(instructions_list &&instructions, bool
       }
       return false;
     });
-    // Search for the unassigned register
+    // Search for an unassigned register
     const auto availableRegister = [&]() -> std::optional<std::string> {
       for (auto &r : availableRegisters.m_registers) {
         if (!r.m_assigned) {

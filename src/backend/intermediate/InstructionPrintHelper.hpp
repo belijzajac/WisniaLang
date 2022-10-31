@@ -28,10 +28,10 @@ namespace Wisnia {
 class Instruction;
 
 class InstructionPrintHelper {
-  using instructions_list = std::vector<std::shared_ptr<Instruction>>;
+  using InstructionList = std::vector<std::shared_ptr<Instruction>>;
 
  public:
-  static void print(const instructions_list &instructions);
+  static void print(const InstructionList &instructions);
 };
 
 }  // namespace Wisnia
