@@ -52,7 +52,7 @@ using RegisterAllocatorTest = RegisterAllocatorTestFixture;
 
 TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int a = 1;
     int b = 2;
     int c = 3;

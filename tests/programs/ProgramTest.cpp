@@ -119,7 +119,7 @@ using ProgramTest = IProgramTestFixture;
 
 TEST_F(ProgramTest, PrintStrings) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print "hello world\n";
     print "hahaha\n";
     print "lole\n";
@@ -130,7 +130,7 @@ TEST_F(ProgramTest, PrintStrings) {
 
 TEST_F(ProgramTest, PrintNumbers) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print 12345, 67890, 55555;
   })";
   SetUp(program);
@@ -139,7 +139,7 @@ TEST_F(ProgramTest, PrintNumbers) {
 
 TEST_F(ProgramTest, PrintBooleans) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print true, false, true;
   })";
   SetUp(program);
@@ -148,7 +148,7 @@ TEST_F(ProgramTest, PrintBooleans) {
 
 TEST_F(ProgramTest, PrintStringVariables) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     string str1 = "ABCDE";
     string str2 = "12345";
     string str3 = "67890";
@@ -160,7 +160,7 @@ TEST_F(ProgramTest, PrintStringVariables) {
 
 TEST_F(ProgramTest, PrintNumberVariables) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int num1 = 123;
     int num2 = 456;
     int num3 = 789;
@@ -173,7 +173,7 @@ TEST_F(ProgramTest, PrintNumberVariables) {
 
 TEST_F(ProgramTest, PrintBooleanVariables) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     bool aa = true;
     bool bb = false;
     bool cc = true;
@@ -185,7 +185,7 @@ TEST_F(ProgramTest, PrintBooleanVariables) {
 
 TEST_F(ProgramTest, CalculateSum) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int sum = 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
     print sum;
   })";
@@ -195,7 +195,7 @@ TEST_F(ProgramTest, CalculateSum) {
 
 TEST_F(ProgramTest, CalculateDifference) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int diff = 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
     print diff;
   })";
@@ -205,7 +205,7 @@ TEST_F(ProgramTest, CalculateDifference) {
 
 TEST_F(ProgramTest, CalculateProduct) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int prod = 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
     print prod;
   })";
@@ -215,7 +215,7 @@ TEST_F(ProgramTest, CalculateProduct) {
 
 TEST_F(ProgramTest, CalculateExpression) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int expr = ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
     print expr;
   })";
@@ -225,7 +225,7 @@ TEST_F(ProgramTest, CalculateExpression) {
 
 TEST_F(ProgramTest, PrintSum) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
   })";
   SetUp(program);
@@ -234,7 +234,7 @@ TEST_F(ProgramTest, PrintSum) {
 
 TEST_F(ProgramTest, PrintDifference) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
   })";
   SetUp(program);
@@ -243,7 +243,7 @@ TEST_F(ProgramTest, PrintDifference) {
 
 TEST_F(ProgramTest, PrintProduct) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
   })";
   SetUp(program);
@@ -252,7 +252,7 @@ TEST_F(ProgramTest, PrintProduct) {
 
 TEST_F(ProgramTest, PrintExpression) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     print ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
   })";
   SetUp(program);
@@ -261,7 +261,7 @@ TEST_F(ProgramTest, PrintExpression) {
 
 TEST_F(ProgramTest, AddVariables) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int num1  = 1;
     int num2  = 10;
     int num3  = 100;
@@ -281,7 +281,7 @@ TEST_F(ProgramTest, AddVariables) {
 
 TEST_F(ProgramTest, SubtractVariables) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int num1 = 1;
     int num2 = 10;
     int num3 = 100;
@@ -300,7 +300,7 @@ TEST_F(ProgramTest, SubtractVariables) {
 
 TEST_F(ProgramTest, MultiplyVariables) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int num1  = 2;
     int num2  = 4;
     int num3  = 6;

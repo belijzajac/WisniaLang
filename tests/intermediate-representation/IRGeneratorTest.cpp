@@ -51,7 +51,7 @@ using IRGeneratorTest = IRGeneratorTestFixture;
 
 TEST_F(IRGeneratorTest, VarDeclStmt) {
   constexpr std::string_view program = R"(
-  fn main () -> void {
+  fn main() -> void {
     int aa = 5 + 2 * 10;
     int ba = 7 - 1;
     bool bb = 6 > 5 && 6 != ba;

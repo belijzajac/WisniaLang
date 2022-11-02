@@ -32,7 +32,7 @@ class SemanticTestFixture : public testing::Test {
     float number = 5.0;
     int digit = 123456;
 
-    fn simple_operations () -> void {
+    fn simple_operations() -> void {
        float a = number + 7.75;
        for (int i = 0; i < 5; i = i + 1) {
          a = a + 1.45;
@@ -49,12 +49,12 @@ class SemanticTestFixture : public testing::Test {
      }
   }
 
-  fn output_hello (do_output : bool) -> string {
+  fn output_hello(do_output: bool) -> string {
     if (do_output) { return "hello"; }
     return "bye";
   }
 
-  fn main (argc : int, argv : string) -> int {
+  fn main(argc: int, argv: string) -> int {
     bool correct = (argc == 5);
     string answer = output_hello(correct);
     void fooPtr = new Foo{};
