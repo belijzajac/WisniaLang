@@ -212,7 +212,7 @@ void IRGenerator::visit(AST::DivExpr *node) {
 
 void IRGenerator::visit(AST::UnaryExpr *node) {
   node->lhs()->accept(this);
-  // TODO: similar to `genBinaryExpr`
+  throw NotImplementedError{"Unary expressions are not supported"};
 }
 
 void IRGenerator::visit(AST::FnCallExpr *node) {
@@ -220,6 +220,7 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
   for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
+  throw NotImplementedError{"Function call expressions are not supported"};
 }
 
 void IRGenerator::visit(AST::ClassInitExpr *node) {
@@ -227,6 +228,7 @@ void IRGenerator::visit(AST::ClassInitExpr *node) {
   for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
+  throw NotImplementedError{"Class initialization expressions are not supported"};
 }
 
 void IRGenerator::visit(AST::IntExpr *node) {
@@ -253,12 +255,15 @@ void IRGenerator::visit(AST::StmtBlock *node) {
 
 void IRGenerator::visit(AST::ReturnStmt *node) {
   node->getReturnValue()->accept(this);
+  throw NotImplementedError{"Return statements are not supported"};
 }
 
 void IRGenerator::visit(AST::BreakStmt *node) {
+  throw NotImplementedError{"Break statements are not supported"};
 }
 
 void IRGenerator::visit(AST::ContinueStmt *node) {
+  throw NotImplementedError{"Continue statements are not supported"};
 }
 
 void IRGenerator::visit(AST::VarDeclStmt *node) {
@@ -280,6 +285,7 @@ void IRGenerator::visit(AST::VarDeclStmt *node) {
 void IRGenerator::visit(AST::VarAssignStmt *node) {
   node->getVar()->accept(this);
   node->getValue()->accept(this);
+  throw NotImplementedError{"Variable assignment is not supported"};
 }
 
 void IRGenerator::visit(AST::ExprStmt *node) {
@@ -290,6 +296,7 @@ void IRGenerator::visit(AST::ReadStmt *node) {
   for (const auto &var : node->getVars()) {
     var->accept(this);
   }
+  throw NotImplementedError{"Read statements are not supported"};
 }
 
 /*
@@ -386,7 +393,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           Modules::markAsUsed(Module::PRINT_BOOLEAN);
           continue;
         case TType::IDENT_FLOAT:
-          assert(0 && "todo");
+          throw InstructionError{"Float type identifiers are not supported"};
           break;
         default:
           throw InstructionError{"Unknown identifier type"};
@@ -487,6 +494,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
 
 void IRGenerator::visit(AST::Param *node) {
   node->getVar()->accept(this);
+  throw NotImplementedError{"Function parameters are not supported"};
 }
 
 void IRGenerator::visit(AST::FnDef *node) {
@@ -516,6 +524,7 @@ void IRGenerator::visit(AST::ClassDef *node) {
 void IRGenerator::visit(AST::WhileLoop *node) {
   node->getCondition()->accept(this);
   node->getBody()->accept(this);
+  throw NotImplementedError{"While loops are not supported"};
 }
 
 void IRGenerator::visit(AST::ForLoop *node) {
@@ -523,12 +532,14 @@ void IRGenerator::visit(AST::ForLoop *node) {
   node->getCondition()->accept(this);
   node->getIncrement()->accept(this);
   node->getBody()->accept(this);
+  throw NotImplementedError{"For loops are not supported"};
 }
 
 void IRGenerator::visit(AST::ForEachLoop *node) {
   node->getElement()->accept(this);
   node->getCollection()->accept(this);
   node->getBody()->accept(this);
+  throw NotImplementedError{"For-each loops are not supported"};
 }
 
 void IRGenerator::visit(AST::IfStmt *node) {
@@ -537,13 +548,16 @@ void IRGenerator::visit(AST::IfStmt *node) {
   for (const auto &elseBl : node->getElseStatements()) {
     elseBl->accept(this);
   }
+  throw NotImplementedError{"If statements are not supported"};
 }
 
 void IRGenerator::visit(AST::ElseStmt *node) {
   node->getBody()->accept(this);
+  throw NotImplementedError{"Else statements are not supported"};
 }
 
 void IRGenerator::visit(AST::ElseIfStmt *node) {
   node->getCondition()->accept(this);
   node->getBody()->accept(this);
+  throw NotImplementedError{"Else-if statements are not supported"};
 }

@@ -459,7 +459,7 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown lea operation");
+  throw CodeGenerationError{"Unknown lea operation"};
 }
 
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
@@ -526,7 +526,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     return;
   }
 
-  assert(0 && "Unknown move operation");
+  throw CodeGenerationError{"Unknown move operation"};
 }
 
 void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instruction) {
@@ -540,7 +540,7 @@ void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instru
     return;
   }
 
-  assert(0 && "Unknown move memory operation");
+  throw CodeGenerationError{"Unknown move memory operation"};
 }
 
 void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instruction) {
@@ -554,7 +554,7 @@ void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction)
     return;
   }
 
-  assert(0 && "Unknown push operation");
+  throw CodeGenerationError{"Unknown push operation"};
 }
 
 void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
@@ -564,7 +564,7 @@ void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown pop operation");
+  throw CodeGenerationError{"Unknown pop operation"};
 }
 
 void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction) {
@@ -595,7 +595,7 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown cmp operation");
+  throw CodeGenerationError{"Unknown cmp operation"};
 }
 
 void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instruction) {
@@ -609,7 +609,7 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
     return;
   }
 
-  assert(0 && "Unknown cmp byte ptr operation");
+  throw CodeGenerationError{"Unknown cmp byte ptr operation"};
 }
 
 void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) {
@@ -647,7 +647,7 @@ void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown inc operation");
+  throw CodeGenerationError{"Unknown inc operation"};
 }
 
 void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) {
@@ -657,7 +657,7 @@ void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown dec operation");
+  throw CodeGenerationError{"Unknown dec operation"};
 }
 
 void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
@@ -702,7 +702,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown add operation");
+  throw CodeGenerationError{"Unknown add operation"};
 }
 
 void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) {
@@ -754,7 +754,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown sub operation");
+  throw CodeGenerationError{"Unknown sub operation"};
 }
 
 void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) {
@@ -799,7 +799,7 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown mul operation");
+  throw CodeGenerationError{"Unknown mul operation"};
 }
 
 void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
@@ -809,7 +809,7 @@ void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown div operation");
+  throw CodeGenerationError{"Unknown div operation"};
 }
 
 void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) {
@@ -823,7 +823,7 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  assert(0 && "Unknown xor operation");
+  throw CodeGenerationError{"Unknown xor operation"};
 }
 
 void CodeGenerator::emitOr(const CodeGenerator::InstructionValue &instruction) {
@@ -838,7 +838,7 @@ void CodeGenerator::emitOr(const CodeGenerator::InstructionValue &instruction) {
     return;
   }
 
-  assert(0 && "Unknown or operation");
+  throw CodeGenerationError{"Unknown or operation"};
 }
 
 void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction) {
@@ -852,7 +852,7 @@ void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction)
     return;
   }
 
-  assert(0 && "Unknown test operation");
+  throw CodeGenerationError{"Unknown test operation"};
 }
 
 void CodeGenerator::emitRet(const CodeGenerator::InstructionValue &instruction) {
