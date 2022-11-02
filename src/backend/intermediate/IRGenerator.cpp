@@ -20,6 +20,7 @@
 
 #include <array>
 #include <cassert>
+#include <ranges>
 // Wisnia
 #include "AST.hpp"
 #include "IRGenerator.hpp"
@@ -126,24 +127,14 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
 
 void IRGenerator::visit(AST::Root *node) {
   size_t last{0};
-  for (const auto &function : node->getGlobalFunctions()) {
+  const auto &functions = node->getGlobalFunctions();
+  for (const auto &function : std::ranges::reverse_view(functions)) {
     function->accept(this);
     const size_t start = last;
     const size_t end   = last = m_instructions.size();
     if (m_allocateRegisters) {
       registerAllocator.allocateRegisters(vec_slice(m_instructions, start, end));
     }
-  }
-
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::CALL,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
-  ));
-  Modules::markAsUsed(Module::EXIT);
-
-  // Insert the last instruction
-  if (m_allocateRegisters) {
-    registerAllocator.allocateRegisters(vec_slice(m_instructions, m_instructions.size() - 1, m_instructions.size()));
   }
 
   // Load modules
@@ -220,7 +211,12 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
   for (const auto &arg : node->getArgs()) {
     arg->accept(this);
   }
-  throw NotImplementedError{"Function call expressions are not supported"};
+
+  auto functionName = popNode();
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::CALL,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getToken()->getValue<std::string>())
+  ));
 }
 
 void IRGenerator::visit(AST::ClassInitExpr *node) {
@@ -499,10 +495,37 @@ void IRGenerator::visit(AST::Param *node) {
 
 void IRGenerator::visit(AST::FnDef *node) {
   node->getVar()->accept(this);
+  auto functionName = popNode();
+  const auto functionNameStr = functionName->getToken()->getValue<std::string>();
+
+  if (functionNameStr != "main") {
+    // the main function doesn't require a label indicating where it begins
+    // because we have already designated address "0x4000b0" as the program's main entry point
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::LABEL,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::IDENT_VOID, functionNameStr)
+    ));
+  }
+
   for (const auto &param : node->getParams()) {
     param->accept(this);
   }
   node->getBody()->accept(this);
+
+  if (functionNameStr == "main") {
+    // the "ret" instruction isn't required in the main function
+    // because we terminate the program immediately in the "_exit_" function
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::CALL,
+      std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
+    ));
+    Modules::markAsUsed(Module::EXIT);
+  } else {
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::RET
+    ));
+  }
 }
 
 void IRGenerator::visit(AST::CtorDef *node) {

@@ -125,7 +125,12 @@ TEST_F(ProgramTest, PrintStrings) {
     print "lole\n";
   })";
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hello world\nhahaha\nlole\n");
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "hello world\n"
+    "hahaha\n"
+    "lole\n"
+  );
 }
 
 TEST_F(ProgramTest, PrintNumbers) {
@@ -316,4 +321,23 @@ TEST_F(ProgramTest, MultiplyVariables) {
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
+}
+
+TEST_F(ProgramTest, EnterFunction) {
+  constexpr std::string_view program = R"(
+  fn enterFunction() -> void {
+    print "inside function\n";
+  }
+  fn main() -> void {
+    print "before function\n";
+    enterFunction();
+    print "after function\n";
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "before function\n"
+    "inside function\n"
+    "after function\n"
+  );
 }
