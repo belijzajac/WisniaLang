@@ -209,7 +209,22 @@ void IRGenerator::visit(AST::UnaryExpr *node) {
 void IRGenerator::visit(AST::FnCallExpr *node) {
   node->getVar()->accept(this);
   for (const auto &arg : node->getArgs()) {
-    arg->accept(this);
+    const auto argToken = arg->getToken();
+    auto varToken = std::make_shared<Basic::Token>(
+      getIdentForLitType(argToken->getType()),
+      "_t" + std::to_string(m_tempVars.size())
+    );
+    m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::MOV,
+      varToken, // _tx
+      argToken  // arg
+    ));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
+      varToken
+    ));
   }
 
   auto functionName = popNode();
@@ -497,6 +512,7 @@ void IRGenerator::visit(AST::FnDef *node) {
   node->getVar()->accept(this);
   auto functionName = popNode();
   const auto functionNameStr = functionName->getToken()->getValue<std::string>();
+  std::shared_ptr<Basic::Token> returnAddressToken;
 
   if (functionNameStr != "main") {
     // the main function doesn't require a label indicating where it begins
@@ -506,11 +522,38 @@ void IRGenerator::visit(AST::FnDef *node) {
       nullptr,
       std::make_shared<Basic::Token>(TType::IDENT_VOID, functionNameStr)
     ));
+    // put the function return address into a variable because we'll be popping out the arguments
+    // passed to the function in the later steps
+    returnAddressToken = std::make_shared<Basic::Token>(
+      TType::IDENT_INT,
+      "_t" + std::to_string(m_tempVars.size())
+    );
+    m_tempVars.emplace_back(std::make_unique<VarExpr>(returnAddressToken));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      returnAddressToken
+    ));
   }
 
-  for (const auto &param : node->getParams()) {
-    param->accept(this);
+  for (const auto &param : std::ranges::reverse_view(node->getParams())) {
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      param->getToken()
+    ));
   }
+
+  if (functionNameStr != "main") {
+    // put the function return address back on the stack
+    // only functions other than "main" must return to the caller
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
+      returnAddressToken
+    ));
+  }
+
   node->getBody()->accept(this);
 
   if (functionNameStr == "main") {

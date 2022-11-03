@@ -323,21 +323,76 @@ TEST_F(ProgramTest, MultiplyVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
-TEST_F(ProgramTest, EnterFunction) {
+TEST_F(ProgramTest, CallFunction) {
   constexpr std::string_view program = R"(
-  fn enterFunction() -> void {
-    print "inside function\n";
+  fn foo() -> void {
+    print "inside foo\n";
   }
   fn main() -> void {
-    print "before function\n";
-    enterFunction();
-    print "after function\n";
+    print "before foo\n";
+    foo();
+    print "after foo\n";
   })";
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
     exec("./a.out"),
-    "before function\n"
-    "inside function\n"
-    "after function\n"
+    "before foo\n"
+    "inside foo\n"
+    "after foo\n"
+  );
+}
+
+TEST_F(ProgramTest, CallFunctionWithArguments) {
+  constexpr std::string_view program = R"(
+  fn foo(value_1: int, value_2: int, value_3: int) -> void {
+    print "inside foo 1\n";
+    print value_1, value_2, value_3;
+    print "inside foo 2\n";
+  }
+  fn main() -> void {
+    print "before foo\n";
+    foo(123, 456, 789);
+    print "after foo\n";
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "before foo\n"
+    "inside foo 1\n"
+    "123456789"
+    "inside foo 2\n"
+    "after foo\n"
+  );
+}
+
+TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
+  constexpr std::string_view program = R"(
+  fn bar(value_1: string) -> void {
+    print "inside bar 1\n";
+    print value_1;
+    print "inside bar 2\n";
+  }
+  fn foo(value_1: int, value_2: int, value_3: int) -> void {
+    print "inside foo 1\n";
+    print value_1, value_2, value_3;
+    bar("bar");
+    print "inside foo 2\n";
+  }
+  fn main() -> void {
+    print "before foo\n";
+    foo(123, 456, 789);
+    print "after foo\n";
+  })";
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "before foo\n"
+    "inside foo 1\n"
+    "123456789"
+    "inside bar 1\n"
+    "bar"
+    "inside bar 2\n"
+    "inside foo 2\n"
+    "after foo\n"
   );
 }

@@ -48,9 +48,24 @@ void RegisterAllocator::allocateRegisters(InstructionList &&instructions, bool a
 
   // Populate the list with each variable's starting and ending interval points
   for (size_t i = 0; i < instructions.size(); i++) {
-    if (!instructions[i]->getTarget()) continue;
+    std::string var{};
+    const auto &target = instructions[i]->getTarget();
+    const auto &argOne = instructions[i]->getArg1();
+    const auto &argTwo = instructions[i]->getArg2();
 
-    const auto var{instructions[i]->getTarget()->getValue<std::string>()};
+    if (target) {
+      if (target->getType() == TType::REGISTER) continue;
+      var = target->getValue<std::string>();
+    } else if (argOne) {
+      if (argOne->getType() == TType::REGISTER) continue;
+      var = argOne->getValue<std::string>();
+    } else if (argTwo) {
+      if (argTwo->getType() == TType::REGISTER) continue;
+      var = argTwo->getValue<std::string>();
+    } else {
+      continue;
+    }
+
     const size_t start = i;
     size_t end = i;
 
