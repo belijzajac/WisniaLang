@@ -68,7 +68,7 @@ enum class Operation {
   NOP             // do nothing
 };
 
-static inline std::unordered_map<Operation, std::string> Operation2Str {
+static inline std::unordered_map<Operation, std::string_view> Operation2Str {
   // arithmetic (each for int and float)
   {Operation::IADD, "+" }, {Operation::FADD, "+"},
   {Operation::ISUB, "-" }, {Operation::FSUB, "-"},

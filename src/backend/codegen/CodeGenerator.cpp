@@ -31,7 +31,7 @@
 using namespace Wisnia;
 using namespace Basic;
 
-static inline std::unordered_map<std::string, ByteArray> LeaMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> LeaMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x84}, std::byte{0x24}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x8c}, std::byte{0x24}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
@@ -51,7 +51,7 @@ static inline std::unordered_map<std::string, ByteArray> LeaMachineCode {
   {"edx", ByteArray{std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> MovMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> MovMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc1}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc2}}},
@@ -70,7 +70,7 @@ static inline std::unordered_map<std::string, ByteArray> MovMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc7}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> PushMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> PushMachineCode {
   {"rax", ByteArray{std::byte{0x50}}},
   {"rcx", ByteArray{std::byte{0x51}}},
   {"rdx", ByteArray{std::byte{0x52}}},
@@ -89,7 +89,7 @@ static inline std::unordered_map<std::string, ByteArray> PushMachineCode {
   {"r15", ByteArray{std::byte{0x41}, std::byte{0x57}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> PopMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> PopMachineCode {
   {"rax", ByteArray{std::byte{0x58}}},
   {"rcx", ByteArray{std::byte{0x59}}},
   {"rdx", ByteArray{std::byte{0x5a}}},
@@ -108,7 +108,7 @@ static inline std::unordered_map<std::string, ByteArray> PopMachineCode {
   {"r15", ByteArray{std::byte{0x41}, std::byte{0x5f}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> IncMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> IncMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}}},
@@ -127,7 +127,7 @@ static inline std::unordered_map<std::string, ByteArray> IncMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> DecMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> DecMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xca}}},
@@ -146,7 +146,7 @@ static inline std::unordered_map<std::string, ByteArray> DecMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> CmpMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> CmpMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x3d}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xf9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfa}}},
@@ -165,7 +165,7 @@ static inline std::unordered_map<std::string, ByteArray> CmpMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xff}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> CmpBytePtrMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> CmpBytePtrMachineCode {
   {"rax", ByteArray{std::byte{0x80}, std::byte{0x38}}},
   {"rcx", ByteArray{std::byte{0x80}, std::byte{0x39}}},
   {"rdx", ByteArray{std::byte{0x80}, std::byte{0x3a}}},
@@ -184,7 +184,7 @@ static inline std::unordered_map<std::string, ByteArray> CmpBytePtrMachineCode {
   {"r15", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x3f}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> AddMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> AddMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x05}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc1}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc2}}},
@@ -204,7 +204,7 @@ static inline std::unordered_map<std::string, ByteArray> AddMachineCode {
   {"edx", ByteArray{std::byte{0x81}, std::byte{0xc2}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> SubMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> SubMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x2d}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xe9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xea}}},
@@ -223,7 +223,7 @@ static inline std::unordered_map<std::string, ByteArray> SubMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xef}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> MulMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> MulMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xc9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xd2}}},
@@ -242,7 +242,7 @@ static inline std::unordered_map<std::string, ByteArray> MulMachineCode {
   {"r15", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xff}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> DivMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> DivMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}}},
@@ -261,7 +261,7 @@ static inline std::unordered_map<std::string, ByteArray> DivMachineCode {
   {"r15", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> XorMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> XorMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xd2}}},
@@ -281,7 +281,7 @@ static inline std::unordered_map<std::string, ByteArray> XorMachineCode {
   {"edx", ByteArray{std::byte{0x31}, std::byte{0xd2}}},
 };
 
-static inline std::unordered_map<std::string, ByteArray> TestMachineCode {
+static inline std::unordered_map<std::string_view, ByteArray> TestMachineCode {
   {"rax", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc0}}},
   {"rcx", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc9}}},
   {"rdx", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xd2}}},

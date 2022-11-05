@@ -30,6 +30,7 @@
 #include "Parser.hpp"
 
 using namespace Wisnia;
+using namespace std::literals;
 
 class IProgramTestFixture : public testing::Test {
   struct Program {
@@ -71,11 +72,11 @@ class IProgramTestFixture : public testing::Test {
  private:
   static std::string randomString(size_t length) {
     const auto randomChar = []() -> char {
-      constexpr char charset[] =
+      constexpr auto charset =
           "0123456789"
           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-          "abcdefghijklmnopqrstuvwxyz";
-      constexpr size_t maxIndex = (sizeof(charset) - 1);
+          "abcdefghijklmnopqrstuvwxyz"sv;
+      constexpr size_t maxIndex = (charset.size() - 1);
       return charset[rand() % maxIndex];
     };
     std::string str(length, 0);
@@ -118,12 +119,12 @@ class IProgramTestFixture : public testing::Test {
 using ProgramTest = IProgramTestFixture;
 
 TEST_F(ProgramTest, PrintStrings) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print "hello world\n";
     print "hahaha\n";
     print "lole\n";
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
     exec("./a.out"),
@@ -134,138 +135,138 @@ TEST_F(ProgramTest, PrintStrings) {
 }
 
 TEST_F(ProgramTest, PrintNumbers) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print 12345, 67890, 55555;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789055555");
 }
 
 TEST_F(ProgramTest, PrintBooleans) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print true, false, true;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
 }
 
 TEST_F(ProgramTest, PrintStringVariables) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     string str1 = "ABCDE";
     string str2 = "12345";
     string str3 = "67890";
     print str1, str2, str3;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE1234567890");
 }
 
 TEST_F(ProgramTest, PrintNumberVariables) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int num1 = 123;
     int num2 = 456;
     int num3 = 789;
     int num4 = 101;
     print num1, num2, num3, num4;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
 }
 
 TEST_F(ProgramTest, PrintBooleanVariables) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     bool aa = true;
     bool bb = false;
     bool cc = true;
     print aa, bb, cc;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
 }
 
 TEST_F(ProgramTest, CalculateSum) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int sum = 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
     print sum;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
 }
 
 TEST_F(ProgramTest, CalculateDifference) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int diff = 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
     print diff;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
 }
 
 TEST_F(ProgramTest, CalculateProduct) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int prod = 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
     print prod;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
 TEST_F(ProgramTest, CalculateExpression) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int expr = ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
     print expr;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
 }
 
 TEST_F(ProgramTest, PrintSum) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
 }
 
 TEST_F(ProgramTest, PrintDifference) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
 }
 
 TEST_F(ProgramTest, PrintProduct) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
 TEST_F(ProgramTest, PrintExpression) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     print ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
 }
 
 TEST_F(ProgramTest, AddVariables) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int num1  = 1;
     int num2  = 10;
@@ -279,13 +280,13 @@ TEST_F(ProgramTest, AddVariables) {
     int num10 = 1000000000;
     int sum = num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9 + num10;
     print sum;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
 }
 
 TEST_F(ProgramTest, SubtractVariables) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int num1 = 1;
     int num2 = 10;
@@ -298,13 +299,13 @@ TEST_F(ProgramTest, SubtractVariables) {
     int num9 = 23456789;
     int diff = num9 - num1 - num2 - num3 - num4 - num5 - num6 - num7 - num8;
     print diff;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
 }
 
 TEST_F(ProgramTest, MultiplyVariables) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int num1  = 2;
     int num2  = 4;
@@ -318,13 +319,13 @@ TEST_F(ProgramTest, MultiplyVariables) {
     int num10 = 20;
     int prod = num1 * num2 * num3 * num4 * num5 * num6 * num7 * num8 * num9 * num10;
     print prod;
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
 TEST_F(ProgramTest, CallFunction) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn foo() -> void {
     print "inside foo\n";
   }
@@ -332,7 +333,7 @@ TEST_F(ProgramTest, CallFunction) {
     print "before foo\n";
     foo();
     print "after foo\n";
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
     exec("./a.out"),
@@ -343,7 +344,7 @@ TEST_F(ProgramTest, CallFunction) {
 }
 
 TEST_F(ProgramTest, CallFunctionWithArguments) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn foo(value_1: int, value_2: int, value_3: int) -> void {
     print "inside foo 1\n";
     print value_1, value_2, value_3;
@@ -353,7 +354,7 @@ TEST_F(ProgramTest, CallFunctionWithArguments) {
     print "before foo\n";
     foo(123, 456, 789);
     print "after foo\n";
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
     exec("./a.out"),
@@ -366,7 +367,7 @@ TEST_F(ProgramTest, CallFunctionWithArguments) {
 }
 
 TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn bar(value_1: string) -> void {
     print "inside bar 1\n";
     print value_1;
@@ -382,7 +383,7 @@ TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
     print "before foo\n";
     foo(123, 456, 789);
     print "after foo\n";
-  })";
+  })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
     exec("./a.out"),

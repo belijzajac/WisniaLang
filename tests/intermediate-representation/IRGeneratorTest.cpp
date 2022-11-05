@@ -28,6 +28,7 @@
 #include "Parser.hpp"
 
 using namespace Wisnia;
+using namespace std::literals;
 
 class IRGeneratorTestFixture : public testing::Test {
  protected:
@@ -50,12 +51,12 @@ class IRGeneratorTestFixture : public testing::Test {
 using IRGeneratorTest = IRGeneratorTestFixture;
 
 TEST_F(IRGeneratorTest, VarDeclStmt) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int aa = 5 + 2 * 10;
     int ba = 7 - 1;
     bool bb = 6 > 5 && 6 != ba;
-  })";
+  })"sv;
   SetUp(program.data());
 
   EXPECT_EQ(m_generator.getTemporaryVars().size(), 6); // from _t0 to _t5

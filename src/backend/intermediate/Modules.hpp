@@ -36,7 +36,7 @@ enum Module : uint8_t {
   EXIT
 };
 
-static inline std::unordered_map<Module, std::string> Module2Str {
+static inline std::unordered_map<Module, std::string_view> Module2Str {
   {Module::CALCULATE_STRING_LENGTH, "_calculate_string_length_"},
   {Module::PRINT_NUMBER,            "_print_number_"           },
   {Module::PRINT_BOOLEAN,           "_print_boolean_"          },

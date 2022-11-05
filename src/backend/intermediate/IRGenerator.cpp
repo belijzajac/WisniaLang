@@ -355,7 +355,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH].data())
           ));
           Modules::markAsUsed(Module::CALCULATE_STRING_LENGTH);
           break;
@@ -372,7 +372,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER])
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER].data())
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::POP,
@@ -394,7 +394,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN])
+            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN].data())
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::POP,
@@ -561,7 +561,7 @@ void IRGenerator::visit(AST::FnDef *node) {
     // because we terminate the program immediately in the "_exit_" function
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::CALL,
-      std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
+      std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT].data())
     ));
     Modules::markAsUsed(Module::EXIT);
   } else {

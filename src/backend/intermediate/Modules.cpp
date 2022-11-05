@@ -63,7 +63,7 @@ Modules::InstructionList Modules::moduleCalculateStringLength() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH])
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH].data())
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
@@ -166,7 +166,7 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER])
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER].data())
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
@@ -349,7 +349,7 @@ Modules::InstructionList Modules::modulePrintBoolean() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN])
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN].data())
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
@@ -479,7 +479,7 @@ Modules::InstructionList Modules::moduleExit() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT])
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT].data())
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::XOR,

@@ -25,9 +25,10 @@
 
 using namespace Wisnia;
 using namespace Basic;
+using namespace std::literals;
 
 TEST(LexerTest, BasicIdentifier) {
-  constexpr std::string_view program = R"(ab + ac;)";
+  constexpr auto program = R"(ab + ac;)"sv;
   std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);

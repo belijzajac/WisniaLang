@@ -24,9 +24,10 @@
 #include <gtest/gtest.h>
 
 namespace Wisnia {
+using namespace std::literals;
 
 class SemanticTestFixture : public testing::Test {
-  static constexpr std::string_view kProgram = R"(
+  static constexpr auto kProgram = R"(
   class Foo {
     bool is_fifteen{false};
     float number = 5.0;
@@ -76,7 +77,7 @@ class SemanticTestFixture : public testing::Test {
     }
 
     return 5;
-  })";
+  })"sv;
 
  public:
   SemanticTestFixture() {

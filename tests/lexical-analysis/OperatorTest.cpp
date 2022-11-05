@@ -25,13 +25,14 @@
 
 using namespace Wisnia;
 using namespace Basic;
+using namespace std::literals;
 
 TEST(LexerTest, Operators) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
     = == >==< <== -->- <---
     +++ /**/ ++ ++++ ; . , :
     ><=><<=> =!= () {} ||
-  )";
+  )"sv;
   std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);

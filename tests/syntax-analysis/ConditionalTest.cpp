@@ -26,9 +26,10 @@
 
 using namespace Wisnia;
 using namespace Basic;
+using namespace std::literals;
 
 TEST(ParserTest, Conditionals) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn conditionals() -> void {
     if (true) {
       f(5 - 1, 5);
@@ -42,7 +43,7 @@ TEST(ParserTest, Conditionals) {
     else {
       break;
     }
-  })";
+  })"sv;
   std::istringstream iss{program.data()};
 
   auto lexer = std::make_unique<Lexer>(iss);

@@ -174,7 +174,7 @@ static inline std::unordered_map<TType, std::string> TokenType2Str {
   {TType::TOK_EOF, "TOK_EOF"}
 };
 
-static inline std::unordered_map<std::string, TType> Str2TokenKw {
+static inline std::unordered_map<std::string_view, TType> Str2TokenKw {
   {"fn", TType::KW_FN},          {"class", TType::KW_CLASS},
   {"new", TType::KW_CLASS_INIT}, {"def", TType::KW_CLASS_DEF},
   {"rem", TType::KW_CLASS_REM},  {"return", TType::KW_RETURN},
@@ -189,7 +189,7 @@ static inline std::unordered_map<std::string, TType> Str2TokenKw {
   {"float", TType::KW_FLOAT},    {"string", TType::KW_STRING}
 };
 
-static inline std::unordered_map<std::string, TType> Str2TokenOp {
+static inline std::unordered_map<std::string_view, TType> Str2TokenOp {
   {"=", TType::OP_ASSN},        {"->", TType::OP_FN_ARROW},
   {".", TType::OP_METHOD_CALL}, {"+", TType::OP_ADD},
   {"-", TType::OP_SUB},         {"*", TType::OP_MUL},

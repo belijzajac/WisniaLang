@@ -86,11 +86,11 @@ class Lexer {
   void tokenizeInput();
 
   // Preps up tokenization
-  void tokenize(const std::string &filename);
+  void tokenize(std::string_view filename);
   void tokenize(std::istringstream &sstream);
 
  public:
-  explicit Lexer(const std::string &filename);
+  explicit Lexer(std::string_view filename);
   explicit Lexer(std::istringstream &sstream);
 
   // Returns tokens

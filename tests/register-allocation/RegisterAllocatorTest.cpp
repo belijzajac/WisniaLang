@@ -29,11 +29,12 @@
 
 using namespace Wisnia;
 using namespace Basic;
+using namespace std::literals;
 
 class RegisterAllocatorTestFixture : public testing::Test {
  protected:
-  void SetUp(const std::string &program) {
-    std::istringstream iss{program};
+  void SetUp(std::string_view program) {
+    std::istringstream iss{program.data()};
     auto lexer = std::make_unique<Lexer>(iss);
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
@@ -51,7 +52,7 @@ class RegisterAllocatorTestFixture : public testing::Test {
 using RegisterAllocatorTest = RegisterAllocatorTestFixture;
 
 TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
-  constexpr std::string_view program = R"(
+  constexpr auto program = R"(
   fn main() -> void {
     int a = 1;
     int b = 2;
@@ -71,7 +72,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     int p = 16;
     int r = 17; # expected to be spilled
     int sum = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + r;
-  })";
+  })"sv;
   SetUp(program.data());
 
   constexpr std::array<std::string_view, 15> kExpectedRegisters {

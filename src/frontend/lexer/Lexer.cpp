@@ -335,9 +335,9 @@ std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
   }
 }
 
-void Lexer::tokenize(const std::string &filename) {
+void Lexer::tokenize(std::string_view filename) {
   // Opens the `input` file and copies its content into `data`
-  std::ifstream sourceFile{filename};
+  std::ifstream sourceFile{filename.data()};
   m_tokenState.m_data = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
   m_tokenState.m_fileName = filename;
   tokenizeInput();
@@ -392,5 +392,5 @@ void Lexer::prettyPrint() const {
   }
 }
 
-Lexer::Lexer(const std::string &filename) { tokenize(filename); }
+Lexer::Lexer(std::string_view filename) { tokenize(filename); }
 Lexer::Lexer(std::istringstream &sstream) { tokenize(sstream); }
