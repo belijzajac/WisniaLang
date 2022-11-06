@@ -397,3 +397,30 @@ TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
     "after foo\n"
   );
 }
+
+TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
+  constexpr auto program = R"(
+  fn foo(value_1: int, value_2: int, value_3: int) -> void {
+    int a = 1;
+    int b = 2;
+    int c = 3;
+    print a + b + c + value_1 + value_2 + value_3;
+    value_1 = 2;
+    value_2 = 20;
+    value_3 = 200;
+  }
+  fn main() -> void {
+    int a = 1;
+    int b = 2;
+    int c = 3;
+    int d = 4;
+    foo(a, b, c);
+    print a + b + c + d;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "12"
+    "10"
+  );
+}

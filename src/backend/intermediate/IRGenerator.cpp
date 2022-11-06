@@ -208,6 +208,17 @@ void IRGenerator::visit(AST::UnaryExpr *node) {
 
 void IRGenerator::visit(AST::FnCallExpr *node) {
   node->getVar()->accept(this);
+  constexpr auto registers = RegisterAllocator::getAllRegisters();
+
+  // suboptimal approach to avoid overriding registers inside the called function
+  for (const auto &reg : registers) {
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::PUSH,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, reg.data())
+    ));
+  }
+
   for (const auto &arg : node->getArgs()) {
     const auto argToken = arg->getToken();
     auto varToken = std::make_shared<Basic::Token>(
@@ -232,6 +243,15 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
     Operation::CALL,
     std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getToken()->getValue<std::string>())
   ));
+
+  // following the function call, restore old register values
+  for (const auto &reg : std::ranges::reverse_view(registers)) {
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::POP,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::REGISTER, reg.data())
+    ));
+  }
 }
 
 void IRGenerator::visit(AST::ClassInitExpr *node) {
@@ -294,9 +314,11 @@ void IRGenerator::visit(AST::VarDeclStmt *node) {
 }
 
 void IRGenerator::visit(AST::VarAssignStmt *node) {
-  node->getVar()->accept(this);
-  node->getValue()->accept(this);
-  throw NotImplementedError{"Variable assignment is not supported"};
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::MOV,
+    node->getVar()->getToken(),
+    node->getValue()->getToken()
+  ));
 }
 
 void IRGenerator::visit(AST::ExprStmt *node) {

@@ -63,6 +63,11 @@ class RegisterAllocator {
   void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
   void allocateRegisters(InstructionList &&instructions, bool allocateRegisters = true);
 
+  static constexpr std::array<std::string_view, 15> getAllRegisters() {
+    return {"rax", "rcx", "rdx", "rbx", "rbp", "rsi", "rdi", "r8",
+            "r9",  "r10", "r11", "r12", "r13", "r14", "r15"};
+  };
+
  private:
   InstructionList m_instructions;
 };

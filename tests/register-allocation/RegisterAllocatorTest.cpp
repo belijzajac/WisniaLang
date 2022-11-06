@@ -75,21 +75,17 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   })"sv;
   SetUp(program.data());
 
-  constexpr std::array<std::string_view, 15> kExpectedRegisters {
-    "rax", "rcx", "rdx", "rbx", "rbp", "rsi", "rdi", "r8",
-    "r9",  "r10", "r11", "r12", "r13", "r14", "r15"
-  };
-
+  constexpr auto registers = RegisterAllocator::getAllRegisters();
   const auto &instructions = m_generator.getInstructionsAfterRegisterAllocation();
 
   // 16 assigned registers
-  for (size_t i = 0; i < kExpectedRegisters.size(); i++) {
+  for (size_t i = 0; i < registers.size(); i++) {
     const auto &op  = instructions[i]->getOperation();
     const auto &var = instructions[i]->getTarget();
     const auto &arg = instructions[i]->getArg1();
     EXPECT_EQ(op, Operation::MOV);
     EXPECT_EQ(var->getType(), TType::REGISTER);
-    EXPECT_STREQ(var->getValue<std::string>().c_str(), kExpectedRegisters[i].data());
+    EXPECT_STREQ(var->getValue<std::string>().c_str(), registers[i].data());
     EXPECT_EQ(arg->getType(), TType::LIT_INT);
     EXPECT_EQ(arg->getValue<int>(), i + 1);
   }
