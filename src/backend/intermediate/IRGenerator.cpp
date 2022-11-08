@@ -89,7 +89,9 @@ constexpr TType getIdentForLitType(TType type) {
     case TType::LIT_INT:  return TType::IDENT_INT;
     case TType::LIT_FLT:  return TType::IDENT_FLOAT;
     case TType::LIT_STR:  return TType::IDENT_STRING;
-    case TType::LIT_BOOL: return TType::IDENT_BOOL;
+    case TType::LIT_BOOL:
+    case TType::KW_TRUE:
+    case TType::KW_FALSE: return TType::IDENT_BOOL;
     default: return type;
   }
 }
@@ -123,6 +125,61 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
     varToken,        // _tx
     rhs->getToken()  // b
   ));
+}
+
+std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(AST::Root *node) {
+  assert(node != nullptr);
+
+  std::shared_ptr<Basic::Token> token;
+  TType type;
+
+  if (dynamic_cast<AST::BinaryExpr *>(node)) {
+    token = m_tempVars.back()->getToken();
+    type  = m_tempVars.back()->getToken()->getType();
+  } else if (dynamic_cast<AST::FnCallExpr *>(node)) {
+    type  = node->getToken()->getType();
+    token = std::make_shared<Basic::Token>(
+      getIdentForLitType(type),
+      "_t" + std::to_string(m_tempVars.size())
+    );
+    m_tempVars.emplace_back(std::make_unique<VarExpr>(token));
+    if (type != TType::IDENT_VOID) {
+      // we expect a non-void function to return a value that is kept in the most distant register because:
+      //   1. we push all registers (rax, ..., r15)
+      //   2. we generate IRs for function call
+      //   3. we pop all registers (r15, ..., rax) <-- thus return value is stored in r15
+      auto functionReturn = std::make_shared<Basic::Token>(
+        TType::REGISTER,
+        "r15"
+      );
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::MOV,
+        token,
+        functionReturn
+      ));
+    }
+  } else if (node->getToken()->isIdentifierType()) {
+    token = node->getToken();
+    type  = token->getType();
+  } else if (node->getToken()->isLiteralType()) {
+    const auto &litToken = node->getToken();
+    auto varToken = std::make_shared<Basic::Token>(
+      getIdentForLitType(litToken->getType()),
+      "_t" + std::to_string(m_tempVars.size())
+    );
+    m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::MOV,
+      varToken, // _tx
+      litToken  // literal
+    ));
+    token = m_tempVars.back()->getToken();
+    type  = m_tempVars.back()->getToken()->getType();
+  } else {
+    assert(0 && "Unknown expression");
+  }
+
+  return {token, type};
 }
 
 void IRGenerator::visit(AST::Root *node) {
@@ -286,7 +343,12 @@ void IRGenerator::visit(AST::StmtBlock *node) {
 
 void IRGenerator::visit(AST::ReturnStmt *node) {
   node->getReturnValue()->accept(this);
-  throw NotImplementedError{"Return statements are not supported"};
+  const auto &[token, _] = getExpression(node->getReturnValue().get());
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::PUSH,
+    nullptr,
+    token
+  ));
 }
 
 void IRGenerator::visit(AST::BreakStmt *node) {
@@ -298,26 +360,25 @@ void IRGenerator::visit(AST::ContinueStmt *node) {
 }
 
 void IRGenerator::visit(AST::VarDeclStmt *node) {
-  node->getVar()->accept(this);
   node->getValue()->accept(this);
-
-  auto rhs = popNode(); // _tx
-  // int a = _tx
+  const auto &[token, _] = getExpression(node->getValue().get());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    std::make_shared<Basic::Token>(
-      node->getVar()->getToken()->getType(),
-      node->getVar()->getToken()->getValue<std::string>()
-    ), // int a
-    rhs->getToken()
+    node->getVar()->getToken(), // int a
+    token                       // _tx
   ));
 }
 
 void IRGenerator::visit(AST::VarAssignStmt *node) {
+  node->getVar()->accept(this);
+  node->getValue()->accept(this);
+
+  const auto &[token, _] = getExpression(node->getValue().get());
+
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     node->getVar()->getToken(),
-    node->getValue()->getToken()
+    token
   ));
 }
 
@@ -345,16 +406,7 @@ void IRGenerator::visit(AST::WriteStmt *node) {
   }
 
   for (const auto &expr : node->getExprs()) {
-    std::shared_ptr<Basic::Token> token;
-    TType type;
-
-    if (dynamic_cast<AST::BinaryExpr *>(expr.get())) {
-      token = m_tempVars.back()->getToken();
-      type  = m_tempVars.back()->getToken()->getType();
-    } else {
-      token = expr->getToken();
-      type  = token->getType();
-    }
+    const auto &[token, type] = getExpression(expr.get());
 
     if (token->isIdentifierType()) {
       // Resolved at compiled program's run-time
@@ -566,6 +618,8 @@ void IRGenerator::visit(AST::FnDef *node) {
     ));
   }
 
+  node->getBody()->accept(this);
+
   if (functionNameStr != "main") {
     // put the function return address back on the stack
     // only functions other than "main" must return to the caller
@@ -575,8 +629,6 @@ void IRGenerator::visit(AST::FnDef *node) {
       returnAddressToken
     ));
   }
-
-  node->getBody()->accept(this);
 
   if (functionNameStr == "main") {
     // the "ret" instruction isn't required in the main function

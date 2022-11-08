@@ -121,6 +121,7 @@ class IRGenerator : public Visitor {
  private:
   AST::Root *popNode();
   void genBinaryExpr(Basic::TType exprType);
+  std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> getExpression(AST::Root *node);
 
  private:
   std::stack<AST::Root *> m_stack;

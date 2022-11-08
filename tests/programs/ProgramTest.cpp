@@ -324,6 +324,19 @@ TEST_F(ProgramTest, MultiplyVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
+TEST_F(ProgramTest, AssignVariables) {
+  constexpr auto program = R"(
+  fn main() -> void {
+    int num1 = 1;
+    num1 = 2 * num1;
+    int num2 = 3;
+    num2 = num1 * num2 + 2 * num1;
+    print num2;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "10");
+}
+
 TEST_F(ProgramTest, CallFunction) {
   constexpr auto program = R"(
   fn foo() -> void {
@@ -423,4 +436,133 @@ TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
     "12"
     "10"
   );
+}
+
+TEST_F(ProgramTest, FunctionReturnNumber) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    return 5;
+  }
+  fn main() -> void {
+    int result = foo();
+    print result;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
+}
+
+TEST_F(ProgramTest, FunctionReturnBoolean) {
+  constexpr auto program = R"(
+  fn foo() -> bool {
+    return true;
+  }
+  fn main() -> void {
+    bool result = foo();
+    print result;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, FunctionReturnVariable) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    int var = 5;
+    return var;
+  }
+  fn main() -> void {
+    int result = foo();
+    print result;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
+}
+
+TEST_F(ProgramTest, FunctionReturnNumberExpression) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    return 10 - 2 * 3;
+  }
+  fn main() -> void {
+    int result = foo();
+    print result;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
+}
+
+TEST_F(ProgramTest, FunctionReturnVariableExpression) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    int var = 5;
+    return var + 10;
+  }
+  fn main() -> void {
+    int result = foo();
+    print result;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "15");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnNumber) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    return 5;
+  }
+  fn main() -> void {
+    print foo();
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnBoolean) {
+  constexpr auto program = R"(
+  fn foo() -> bool {
+    return true;
+  }
+  fn main() -> void {
+    print foo();
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnVariable) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    int var = 5;
+    return var;
+  }
+  fn main() -> void {
+    print foo();
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnNumberExpression) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    return 10 - 2 * 3;
+  }
+  fn main() -> void {
+    print foo();
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnVariableExpression) {
+  constexpr auto program = R"(
+  fn foo() -> int {
+    int var = 5;
+    return var + 10;
+  }
+  fn main() -> void {
+    print foo();
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "15");
 }
