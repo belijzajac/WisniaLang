@@ -118,7 +118,7 @@ void RegisterAllocator::allocateRegisters(InstructionList &&instructions, bool a
     } else {
       // We ran out of registers - spill it
       auto node = liveIntervals.extract(interval);
-      node.value().m_register = "[spill]"; // todo: push/pop
+      node.value().m_register = "[spill]";
       liveIntervals.insert(std::move(node));
     }
   }

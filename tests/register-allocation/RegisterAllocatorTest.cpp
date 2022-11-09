@@ -69,14 +69,14 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     int m = 13;
     int n = 14;
     int o = 15;
-    int p = 16;
+    int p = 16; # expected to be spilled
     int r = 17; # expected to be spilled
     int sum = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + r;
   })"sv;
   SetUp(program.data());
 
   constexpr auto registers = RegisterAllocator::getAllRegisters();
-  const auto &instructions = m_generator.getInstructionsAfterRegisterAllocation();
+  const auto &instructions = m_generator.getInstructionsAfterInstructionSimplification();
 
   // 16 assigned registers
   for (size_t i = 0; i < registers.size(); i++) {
@@ -90,7 +90,14 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     EXPECT_EQ(arg->getValue<int>(), i + 1);
   }
 
-  // 1 spilled register
+  // 2 spilled registers
+
+  EXPECT_EQ(instructions[15]->getOperation(), Operation::MOV);
+  EXPECT_EQ(instructions[15]->getTarget()->getType(), TType::REGISTER);
+  EXPECT_STREQ(instructions[15]->getTarget()->getValue<std::string>().c_str(), "[spill]");
+  EXPECT_EQ(instructions[15]->getArg1()->getType(), TType::LIT_INT);
+  EXPECT_EQ(instructions[15]->getArg1()->getValue<int>(), 16);
+
   EXPECT_EQ(instructions[16]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[16]->getTarget()->getType(), TType::REGISTER);
   EXPECT_STREQ(instructions[16]->getTarget()->getValue<std::string>().c_str(), "[spill]");
