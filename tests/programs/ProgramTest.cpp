@@ -505,6 +505,20 @@ TEST_F(ProgramTest, FunctionReturnVariableExpression) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "15");
 }
 
+TEST_F(ProgramTest, FunctionReturnVariableWithArgumentExpression) {
+  constexpr auto program = R"(
+  fn foo(value_1: int, value_2: int) -> int {
+    return value_1 + value_2;
+  }
+  fn main() -> void {
+    int var = 6;
+    int result = foo(var + 6, 6);
+    print result;
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
+}
+
 TEST_F(ProgramTest, PrintFunctionReturnNumber) {
   constexpr auto program = R"(
   fn foo() -> int {
@@ -565,4 +579,17 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableExpression) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "15");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
+  constexpr auto program = R"(
+  fn foo(value_1: int, value_2: int) -> int {
+    return value_1 + value_2;
+  }
+  fn main() -> void {
+    int var = 6;
+    print foo(var + 6, 6);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
 }

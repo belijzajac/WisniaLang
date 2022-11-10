@@ -277,7 +277,8 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
   }
 
   for (const auto &arg : node->getArgs()) {
-    const auto argToken = arg->getToken();
+    arg->accept(this);
+    const auto &[argToken, _] = getExpression(arg.get());
     auto varToken = std::make_shared<Basic::Token>(
       getIdentForLitType(argToken->getType()),
       "_t" + std::to_string(m_tempVars.size())
@@ -295,10 +296,10 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
     ));
   }
 
-  auto functionName = popNode();
+  const auto &functionName = node->getFnName();
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::CALL,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getToken()->getValue<std::string>())
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getValue<std::string>())
   ));
 
   // following the function call, restore old register values
