@@ -375,7 +375,6 @@ void IRGenerator::visit(AST::VarAssignStmt *node) {
   node->getValue()->accept(this);
 
   const auto &[token, _] = getExpression(node->getValue().get());
-
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     node->getVar()->getToken(),
@@ -685,16 +684,59 @@ void IRGenerator::visit(AST::ForEachLoop *node) {
 
 void IRGenerator::visit(AST::IfStmt *node) {
   node->getCondition()->accept(this);
-  node->getBody()->accept(this);
+
+  const auto &[token, _] = getExpression(node->getCondition().get());
+  const std::array<std::string_view, 3> labels {
+    ".L" + std::to_string(m_labelCount) + "_true",
+    ".L" + std::to_string(m_labelCount) + "_false",
+    ".L" + std::to_string(m_labelCount) + "_end",
+  };
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::TEST,
+    nullptr,
+    token,
+    token
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JNZ,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0].data())
+  ));
+
   for (const auto &elseBl : node->getElseStatements()) {
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::LABEL,
+      nullptr,
+      std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1].data())
+    ));
     elseBl->accept(this);
   }
-  throw NotImplementedError{"If statements are not supported"};
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JMP,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[2].data())
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0].data())
+  ));
+
+  node->getBody()->accept(this);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[2].data())
+  ));
+
+  m_labelCount++;
 }
 
 void IRGenerator::visit(AST::ElseStmt *node) {
   node->getBody()->accept(this);
-  throw NotImplementedError{"Else statements are not supported"};
 }
 
 void IRGenerator::visit(AST::ElseIfStmt *node) {

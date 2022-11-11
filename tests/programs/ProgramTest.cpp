@@ -593,3 +593,47 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
 }
+
+TEST_F(ProgramTest, ConditionalNumberTrue) {
+  constexpr auto program = R"(
+  fn main() -> void {
+    int value = 5;
+    if (value) {
+      print "true";
+    } else {
+      print "false";
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalNumberFalse) {
+  constexpr auto program = R"(
+  fn main() -> void {
+    int value = 0;
+    if (value) {
+      print "true";
+    } else {
+      print "false";
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalInsideFunctionNumber) {
+  constexpr auto program = R"(
+  fn foo(base: int, number: int) -> void {
+    if (number) {
+      print base * number, " ";
+      foo(base, number - 1);
+    }
+  }
+  fn main() -> void {
+    foo(3, 4);
+    print "1\n";
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12 9 6 3 1\n");
+}

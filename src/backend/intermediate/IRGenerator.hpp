@@ -130,6 +130,7 @@ class IRGenerator : public Visitor {
   bool m_allocateRegisters; // we want to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
   InstructionSimplification instructionSimplification{};
+  size_t m_labelCount{0};
 };
 
 }  // namespace Wisnia
