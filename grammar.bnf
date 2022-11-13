@@ -107,8 +107,8 @@
 
 <IO_STMT>     ::= <INPUT_STMT> | <OUTPUT_STMT>
 
-<INPUT_STMT>  ::= "read" <INPUT_SEQ>
-<OUTPUT_STMT> ::= "print" <OUTPUT_SEQ>
+<INPUT_STMT>  ::= "read" "(" <INPUT_SEQ> ")"
+<OUTPUT_STMT> ::= "print" "(" <OUTPUT_SEQ> ")"
 
 <INPUT_SEQ>   ::= <VAR> | <INPUT_SEQ> "," <VAR>
 <OUTPUT_SEQ>  ::= <EXPRESSION> | <OUTPUT_SEQ> "," <EXPRESSION>

@@ -608,40 +608,40 @@ std::unique_ptr<BaseStmt> Parser::parseIOStmt() {
   return parseWriteIOStmt();
 }
 
-// <INPUT_STMT> ::= "read" <INPUT_SEQ>
+// <INPUT_STMT> ::= "read" "(" <INPUT_SEQ> ")"
 // <INPUT_SEQ>  ::= <VAR> | <INPUT_SEQ> "," <VAR>
 std::unique_ptr<BaseStmt> Parser::parseReadIOStmt() {
-  expect(TType::KW_READ);  // expect "read"
+  expect(TType::KW_READ);           // expect "read"
   auto readIO = std::make_unique<ReadStmt>();
-
+  expect(TType::OP_PAREN_O);        // expect "("
   // <INPUT_SEQ>
-  while (hasNext()) {  // a, b, c
+  while (hasNext()) {               // a, b, c
     readIO->addVar(parseVar());
     if (has(TType::OP_COMMA))
-      consume();       // eat ","
+      consume();                    // eat ","
     else
       break;
   }
-
+  expect(TType::OP_PAREN_C);        // expect ")"
   expect(TType::OP_SEMICOLON);
   return readIO;
 }
 
-// <OUTPUT_STMT> ::= "print" <OUTPUT_SEQ>
+// <OUTPUT_STMT> ::= "print" "(" <OUTPUT_SEQ> ")"
 // <OUTPUT_SEQ>  ::= <EXPRESSION> | <OUTPUT_SEQ> "," <EXPRESSION>
 std::unique_ptr<BaseStmt> Parser::parseWriteIOStmt() {
-  expect(TType::KW_PRINT);  // expect "print"
+  expect(TType::KW_PRINT);          // expect "print"
   auto writeIO = std::make_unique<WriteStmt>();
-
+  expect(TType::OP_PAREN_O);        // expect "("
   // <OUTPUT_SEQ>
-  while (hasNext()) {  // a, b, c
+  while (hasNext()) {               // a, b, c
     writeIO->addExpr(parseExpr());
     if (has(TType::OP_COMMA))
-      consume();       // eat ","
+      consume();                    // eat ","
     else
       break;
   }
-
+  expect(TType::OP_PAREN_C);        // expect ")"
   expect(TType::OP_SEMICOLON);
   return writeIO;
 }

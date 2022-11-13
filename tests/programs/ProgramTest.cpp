@@ -121,9 +121,9 @@ using ProgramTest = IProgramTestFixture;
 TEST_F(ProgramTest, PrintStrings) {
   constexpr auto program = R"(
   fn main() -> void {
-    print "hello world\n";
-    print "hahaha\n";
-    print "lole\n";
+    print("hello world\n");
+    print("hahaha\n");
+    print("lole\n");
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
@@ -137,7 +137,7 @@ TEST_F(ProgramTest, PrintStrings) {
 TEST_F(ProgramTest, PrintNumbers) {
   constexpr auto program = R"(
   fn main() -> void {
-    print 12345, 67890, 55555;
+    print(12345, 67890, 55555);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789055555");
@@ -146,7 +146,7 @@ TEST_F(ProgramTest, PrintNumbers) {
 TEST_F(ProgramTest, PrintBooleans) {
   constexpr auto program = R"(
   fn main() -> void {
-    print true, false, true;
+    print(true, false, true);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
@@ -158,7 +158,7 @@ TEST_F(ProgramTest, PrintStringVariables) {
     string str1 = "ABCDE";
     string str2 = "12345";
     string str3 = "67890";
-    print str1, str2, str3;
+    print(str1, str2, str3);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE1234567890");
@@ -171,7 +171,7 @@ TEST_F(ProgramTest, PrintNumberVariables) {
     int num2 = 456;
     int num3 = 789;
     int num4 = 101;
-    print num1, num2, num3, num4;
+    print(num1, num2, num3, num4);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
@@ -183,7 +183,7 @@ TEST_F(ProgramTest, PrintBooleanVariables) {
     bool aa = true;
     bool bb = false;
     bool cc = true;
-    print aa, bb, cc;
+    print(aa, bb, cc);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
@@ -193,7 +193,7 @@ TEST_F(ProgramTest, CalculateSum) {
   constexpr auto program = R"(
   fn main() -> void {
     int sum = 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
-    print sum;
+    print(sum);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
@@ -203,7 +203,7 @@ TEST_F(ProgramTest, CalculateDifference) {
   constexpr auto program = R"(
   fn main() -> void {
     int diff = 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
-    print diff;
+    print(diff);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
@@ -213,7 +213,7 @@ TEST_F(ProgramTest, CalculateProduct) {
   constexpr auto program = R"(
   fn main() -> void {
     int prod = 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
-    print prod;
+    print(prod);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
@@ -223,7 +223,7 @@ TEST_F(ProgramTest, CalculateExpression) {
   constexpr auto program = R"(
   fn main() -> void {
     int expr = ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
-    print expr;
+    print(expr);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
@@ -232,7 +232,7 @@ TEST_F(ProgramTest, CalculateExpression) {
 TEST_F(ProgramTest, PrintSum) {
   constexpr auto program = R"(
   fn main() -> void {
-    print 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
+    print(1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
@@ -241,7 +241,7 @@ TEST_F(ProgramTest, PrintSum) {
 TEST_F(ProgramTest, PrintDifference) {
   constexpr auto program = R"(
   fn main() -> void {
-    print 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
+    print(23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
@@ -250,7 +250,7 @@ TEST_F(ProgramTest, PrintDifference) {
 TEST_F(ProgramTest, PrintProduct) {
   constexpr auto program = R"(
   fn main() -> void {
-    print 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
+    print(2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
@@ -259,7 +259,7 @@ TEST_F(ProgramTest, PrintProduct) {
 TEST_F(ProgramTest, PrintExpression) {
   constexpr auto program = R"(
   fn main() -> void {
-    print ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
+    print(((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
@@ -279,7 +279,7 @@ TEST_F(ProgramTest, AddVariables) {
     int num9  = 100000000;
     int num10 = 1000000000;
     int sum = num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9 + num10;
-    print sum;
+    print(sum);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1111111111");
@@ -298,7 +298,7 @@ TEST_F(ProgramTest, SubtractVariables) {
     int num8 = 10000000;
     int num9 = 23456789;
     int diff = num9 - num1 - num2 - num3 - num4 - num5 - num6 - num7 - num8;
-    print diff;
+    print(diff);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12345678");
@@ -318,7 +318,7 @@ TEST_F(ProgramTest, MultiplyVariables) {
     int num9  = 18;
     int num10 = 20;
     int prod = num1 * num2 * num3 * num4 * num5 * num6 * num7 * num8 * num9 * num10;
-    print prod;
+    print(prod);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
@@ -331,7 +331,7 @@ TEST_F(ProgramTest, AssignVariables) {
     num1 = 2 * num1;
     int num2 = 3;
     num2 = num1 * num2 + 2 * num1;
-    print num2;
+    print(num2);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "10");
@@ -340,12 +340,12 @@ TEST_F(ProgramTest, AssignVariables) {
 TEST_F(ProgramTest, CallFunction) {
   constexpr auto program = R"(
   fn foo() -> void {
-    print "inside foo\n";
+    print("inside foo\n");
   }
   fn main() -> void {
-    print "before foo\n";
+    print("before foo\n");
     foo();
-    print "after foo\n";
+    print("after foo\n");
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
@@ -359,14 +359,14 @@ TEST_F(ProgramTest, CallFunction) {
 TEST_F(ProgramTest, CallFunctionWithArguments) {
   constexpr auto program = R"(
   fn foo(value_1: int, value_2: int, value_3: int) -> void {
-    print "inside foo 1\n";
-    print value_1, value_2, value_3;
-    print "inside foo 2\n";
+    print("inside foo 1\n");
+    print(value_1, value_2, value_3);
+    print("inside foo 2\n");
   }
   fn main() -> void {
-    print "before foo\n";
+    print("before foo\n");
     foo(123, 456, 789);
-    print "after foo\n";
+    print("after foo\n");
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
@@ -382,20 +382,20 @@ TEST_F(ProgramTest, CallFunctionWithArguments) {
 TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
   constexpr auto program = R"(
   fn bar(value_1: string) -> void {
-    print "inside bar 1\n";
-    print value_1;
-    print "inside bar 2\n";
+    print("inside bar 1\n");
+    print(value_1);
+    print("inside bar 2\n");
   }
   fn foo(value_1: int, value_2: int, value_3: int) -> void {
-    print "inside foo 1\n";
-    print value_1, value_2, value_3;
+    print("inside foo 1\n");
+    print(value_1, value_2, value_3);
     bar("bar");
-    print "inside foo 2\n";
+    print("inside foo 2\n");
   }
   fn main() -> void {
-    print "before foo\n";
+    print("before foo\n");
     foo(123, 456, 789);
-    print "after foo\n";
+    print("after foo\n");
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
@@ -417,7 +417,7 @@ TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
     int a = 1;
     int b = 2;
     int c = 3;
-    print a + b + c + value_1 + value_2 + value_3;
+    print(a + b + c + value_1 + value_2 + value_3);
     value_1 = 2;
     value_2 = 20;
     value_3 = 200;
@@ -428,7 +428,7 @@ TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
     int c = 3;
     int d = 4;
     foo(a, b, c);
-    print a + b + c + d;
+    print(a + b + c + d);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(
@@ -445,7 +445,7 @@ TEST_F(ProgramTest, FunctionReturnNumber) {
   }
   fn main() -> void {
     int result = foo();
-    print result;
+    print(result);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
@@ -458,7 +458,7 @@ TEST_F(ProgramTest, FunctionReturnBoolean) {
   }
   fn main() -> void {
     bool result = foo();
-    print result;
+    print(result);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
@@ -472,7 +472,7 @@ TEST_F(ProgramTest, FunctionReturnVariable) {
   }
   fn main() -> void {
     int result = foo();
-    print result;
+    print(result);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
@@ -485,7 +485,7 @@ TEST_F(ProgramTest, FunctionReturnNumberExpression) {
   }
   fn main() -> void {
     int result = foo();
-    print result;
+    print(result);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
@@ -499,7 +499,7 @@ TEST_F(ProgramTest, FunctionReturnVariableExpression) {
   }
   fn main() -> void {
     int result = foo();
-    print result;
+    print(result);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "15");
@@ -513,7 +513,7 @@ TEST_F(ProgramTest, FunctionReturnVariableWithArgumentExpression) {
   fn main() -> void {
     int var = 6;
     int result = foo(var + 6, 6);
-    print result;
+    print(result);
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
@@ -525,7 +525,7 @@ TEST_F(ProgramTest, PrintFunctionReturnNumber) {
     return 5;
   }
   fn main() -> void {
-    print foo();
+    print(foo());
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
@@ -537,7 +537,7 @@ TEST_F(ProgramTest, PrintFunctionReturnBoolean) {
     return true;
   }
   fn main() -> void {
-    print foo();
+    print(foo());
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
@@ -550,7 +550,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariable) {
     return var;
   }
   fn main() -> void {
-    print foo();
+    print(foo());
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
@@ -562,7 +562,7 @@ TEST_F(ProgramTest, PrintFunctionReturnNumberExpression) {
     return 10 - 2 * 3;
   }
   fn main() -> void {
-    print foo();
+    print(foo());
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
@@ -575,7 +575,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableExpression) {
     return var + 10;
   }
   fn main() -> void {
-    print foo();
+    print(foo());
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "15");
@@ -588,7 +588,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
   }
   fn main() -> void {
     int var = 6;
-    print foo(var + 6, 6);
+    print(foo(var + 6, 6));
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
@@ -599,9 +599,9 @@ TEST_F(ProgramTest, ConditionalNumberTrue) {
   fn main() -> void {
     int value = 5;
     if (value) {
-      print "true";
+      print("true");
     } else {
-      print "false";
+      print("false");
     }
   })"sv;
   SetUp(program);
@@ -613,9 +613,9 @@ TEST_F(ProgramTest, ConditionalNumberFalse) {
   fn main() -> void {
     int value = 0;
     if (value) {
-      print "true";
+      print("true");
     } else {
-      print "false";
+      print("false");
     }
   })"sv;
   SetUp(program);
@@ -626,13 +626,13 @@ TEST_F(ProgramTest, ConditionalInsideFunctionNumber) {
   constexpr auto program = R"(
   fn foo(base: int, number: int) -> void {
     if (number) {
-      print base * number, " ";
+      print(base * number, " ");
       foo(base, number - 1);
     }
   }
   fn main() -> void {
     foo(3, 4);
-    print "1\n";
+    print("1\n");
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12 9 6 3 1\n");

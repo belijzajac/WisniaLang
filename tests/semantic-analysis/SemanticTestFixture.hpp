@@ -45,7 +45,7 @@ class SemanticTestFixture : public testing::Test {
        while (digit < 150000) {
          a = a - 1.33;
          digit = digit * 2;
-         print a; print digit;
+         print(a, digit);
        }
      }
   }

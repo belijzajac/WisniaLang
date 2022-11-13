@@ -158,7 +158,7 @@ TEST_F(NodeCollectorTest, ReturnStmt) {
 TEST_F(NodeCollectorTest, WriteStmt) {
   NodeCollector<AST::WriteStmt> collector;
   m_root->accept(&collector);
-  EXPECT_EQ(collector.getNodes().size(), 2);
+  EXPECT_EQ(collector.getNodes().size(), 1);
 }
 
 TEST_F(NodeCollectorTest, ForLoop) {
