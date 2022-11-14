@@ -32,4 +32,5 @@ add_executable(${WISNIA_TARGET}
 target_link_libraries(${WISNIA_TARGET}
   PRIVATE
   fmt::fmt
+  lyra
 )

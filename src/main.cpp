@@ -19,6 +19,7 @@
 ***/
 
 #include <iostream>
+#include <lyra/lyra.hpp>
 // Wisnia
 #include "AST.hpp"
 #include "CodeGenerator.hpp"
@@ -30,35 +31,68 @@
 #include "Parser.hpp"
 
 using namespace Wisnia;
+using namespace lyra;
 
 int main(int argc, char *argv[]) {
-  try {
-    if (argc < 2) throw WisniaError{"No arguments provided"};
+  bool show_help{false};
+  struct Config {
+    std::string file;
+    std::string dump;
+  } config;
 
-    auto lexer = std::make_unique<Lexer>(argv[1]);
+  auto cli = help(show_help).description("")
+        | arg(config.file, "file name")("File to compile.").required();
+  cli.add_argument(
+      opt(config.dump, "tokens|ast|ir|code")
+          .name("-d")
+          .name("--dump")
+          .help("Dump information.")
+          .choices("tokens", "ast", "ir", "code"));
+
+  const auto result = cli.parse({ argc, argv });
+
+  if (!result) {
+    std::cerr << result.message() << "\n\n";
+  }
+  if (show_help || !result) {
+    std::cout << cli << "\n";
+    return 0;
+  }
+  if (!config.file.ends_with(".wsn")) {
+    std::cout << "Expected: <file name> ending with .wsn extension\n\n";
+    std::cout << cli << "\n";
+    return 0;
+  }
+
+  try {
+    auto lexer = std::make_unique<Lexer>(config.file);
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
-    //...
-    fmt::print("<~~~ {} ~~~>\n", "token stream");
-    lexer->prettyPrint();
-    //...
+    if (config.dump == "tokens") {
+      lexer->prettyPrint();
+    }
     NameResolver resolver;
     root->accept(&resolver);
-    fmt::print("<~~~ {} ~~~>\n", "ast tree");
-    root->print();
-    //...
-    fmt::print("<~~~ {} ~~~>\n", "ir instructions");
+    if (config.dump == "ast") {
+      root->print();
+    }
     IRGenerator generator;
     root->accept(&generator);
-    //generator.printInstructions();
-    //generator.printInstructionsAfterRegisterAllocation();
-    generator.printInstructionsAfterInstructionSimplification();
-    //...
+    if (config.dump == "ir") {
+      generator.printInstructionsAfterInstructionSimplification();
+    }
     auto codeGenerator = std::make_unique<CodeGenerator>();
     codeGenerator->generateCode(generator.getInstructionsAfterInstructionSimplification());
-    if (const auto &data = codeGenerator->getDataSection(); data.size() > 0) std::cout << "<~~~ data section ~~~>\n" << data.getString() << "\n";
-    if (const auto &text = codeGenerator->getTextSection(); text.size() > 0) std::cout << "<~~~ text section ~~~>\n" << text.getString() << "\n";
-    //...
+    if (config.dump == "code") {
+      if (const auto &data = codeGenerator->getDataSection(); data.size() > 0) {
+        std::cout << "Data section:\n";
+        std::cout << data.getString() << "\n\n";
+      }
+      if (const auto &text = codeGenerator->getTextSection(); text.size() > 0) {
+        std::cout << "Text section:\n";
+        std::cout << text.getString() << "\n";
+      }
+    }
     auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
     elf->compile();
   } catch (const WisniaError &ex) {

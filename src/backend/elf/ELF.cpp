@@ -79,7 +79,7 @@ ByteArray ELF::assembleELF() {
       std::byte{0x00}, std::byte{0x00}  // Index of section header table entry
   );
 
-  // Build Program Header. Text Segment
+  // Build program header: text segment
   elf.putBytes(
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // PT_LOAD
       std::byte{0x07}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}  // Flags
@@ -92,7 +92,7 @@ ByteArray ELF::assembleELF() {
   elf.putU64(textSize);             // Number of bytes in memory image of segment
   elf.putU64(kAlignment);           // Alignment
 
-  // Build Program Header. Data Segment
+  // Build program header: data segment
   elf.putBytes(
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // PT_LOAD
       std::byte{0x07}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}  // Flags

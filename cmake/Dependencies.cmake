@@ -29,3 +29,9 @@ FetchContent_Declare(fmt
   GIT_TAG        8.0.1
 )
 FetchContent_MakeAvailable(fmt)
+
+FetchContent_Declare(lyra
+  GIT_REPOSITORY https://github.com/belijzajac/Lyra
+  GIT_TAG        fd29db312f4c9c3e97876a4bb183826ef613ddfb
+)
+FetchContent_MakeAvailable(lyra)
