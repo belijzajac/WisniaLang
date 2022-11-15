@@ -30,7 +30,7 @@ using namespace std::literals;
 
 TEST(ParserTest, Functions) {
   constexpr auto program = R"(
-  fn empty() -> void {}
+  fn empty() {}
   fn main(argc: int, argv: string) -> int { return 5; }
   )"sv;
   std::istringstream iss{program.data()};
@@ -40,7 +40,7 @@ TEST(ParserTest, Functions) {
   auto root = parser->parse();
 
   EXPECT_EQ(root->getGlobalFunctions().size(), 2);
-  // fn empty() -> void {}
+  // fn empty() {}
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0])) {
     EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "empty");
     EXPECT_EQ(fn->getParams().size(), 0);

@@ -30,7 +30,7 @@ using namespace std::literals;
 
 TEST(ParserTest, Conditionals) {
   constexpr auto program = R"(
-  fn conditionals() -> void {
+  fn conditionals() {
     if (true) {
       f(5 - 1, 5);
     }
@@ -51,7 +51,7 @@ TEST(ParserTest, Conditionals) {
   auto root = parser->parse();
 
   EXPECT_EQ(root->getGlobalFunctions().size(), 1);
-  // fn empty() -> void {}
+  // fn conditionals()
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0])) {
     EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "conditionals");
     EXPECT_EQ(fn->getParams().size(), 0);

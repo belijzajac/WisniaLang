@@ -80,15 +80,25 @@ std::unique_ptr<BaseExpr> Parser::parseVar() {
   throw ParserError{"Not a variable name"};
 }
 
-// <FN_DECL> ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
+// <FN_DECL>           ::= <FN_PREAMBLE> "->" <TYPE> <STMT_BLOCK>
+//                       | <FN_PREAMBLE> <STMT_BLOCK>
+//
+// <FN_PREAMBLE>       ::= "fn" <IDENT> <PARAMS>
 std::unique_ptr<BaseDef> Parser::parseFnDef() {
   expect(TType::KW_FN);                 // expect "fn"
   auto var = parseVar();
   auto fnDef = std::make_unique<FnDef>(var->getToken());
   fnDef->addVar(std::move(var));
   fnDef->addParams(parseParamsList());  // parse <PARAMS>
-  expect(TType::OP_FN_ARROW);           // expect "->"
-  fnDef->addType(parsePrimitiveType()); // <TYPE>
+
+  if (has(TType::OP_FN_ARROW)) {
+    consume();                            // eat "->"
+    fnDef->addType(parsePrimitiveType()); // <TYPE>
+  } else {
+    auto voidFunctionToken = std::make_shared<Token>(TType::KW_VOID, "void");
+    fnDef->addType(std::make_unique<PrimitiveType>(std::move(voidFunctionToken)));
+  }
+
   fnDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return fnDef;
 }

@@ -33,7 +33,7 @@ class SemanticTestFixture : public testing::Test {
     float number = 5.0;
     int digit = 123456;
 
-    fn simple_operations() -> void {
+    fn simple_operations() {
        float a = number + 7.75;
        for (int i = 0; i < 5; i = i + 1) {
          a = a + 1.45;

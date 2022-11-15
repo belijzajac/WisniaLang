@@ -40,13 +40,16 @@
 // Functions
 //----------------------------------------------------------------------
 
-<FN_DECL>        ::= "fn" <IDENT> <PARAMS> "->" <TYPE> <STMT_BLOCK>
+<FN_DECL>         ::= <FN_PREAMBLE> "->" <TYPE> <STMT_BLOCK>
+                    | <FN_PREAMBLE> <STMT_BLOCK>
 
-<PARAMS>         ::= "(" ")" | "(" <PARAMS_SEQ> ")"
-<PARAMS_SEQ>     ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
-<PARAM>          ::= <IDENT> ":" <TYPE>
+<FN_PREAMBLE>     ::= "fn" <IDENT> <PARAMS>
 
-<FN_CALL>        ::= <IDENT> <ARGUMENTS>
+<PARAMS>          ::= "(" ")" | "(" <PARAMS_SEQ> ")"
+<PARAMS_SEQ>      ::= <PARAM> | <PARAMS_SEQ> "," <PARAM>
+<PARAM>           ::= <IDENT> ":" <TYPE>
+
+<FN_CALL>         ::= <IDENT> <ARGUMENTS>
 
 //----------------------------------------------------------------------
 // Statements

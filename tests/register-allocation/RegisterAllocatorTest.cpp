@@ -53,7 +53,7 @@ using RegisterAllocatorTest = RegisterAllocatorTestFixture;
 
 TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int a = 1;
     int b = 2;
     int c = 3;

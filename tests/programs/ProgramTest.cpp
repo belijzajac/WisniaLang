@@ -120,7 +120,7 @@ using ProgramTest = IProgramTestFixture;
 
 TEST_F(ProgramTest, PrintStrings) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print("hello world\n");
     print("hahaha\n");
     print("lole\n");
@@ -136,7 +136,7 @@ TEST_F(ProgramTest, PrintStrings) {
 
 TEST_F(ProgramTest, PrintNumbers) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print(12345, 67890, 55555);
   })"sv;
   SetUp(program);
@@ -145,7 +145,7 @@ TEST_F(ProgramTest, PrintNumbers) {
 
 TEST_F(ProgramTest, PrintBooleans) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print(true, false, true);
   })"sv;
   SetUp(program);
@@ -154,7 +154,7 @@ TEST_F(ProgramTest, PrintBooleans) {
 
 TEST_F(ProgramTest, PrintStringVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     string str1 = "ABCDE";
     string str2 = "12345";
     string str3 = "67890";
@@ -166,7 +166,7 @@ TEST_F(ProgramTest, PrintStringVariables) {
 
 TEST_F(ProgramTest, PrintNumberVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int num1 = 123;
     int num2 = 456;
     int num3 = 789;
@@ -179,7 +179,7 @@ TEST_F(ProgramTest, PrintNumberVariables) {
 
 TEST_F(ProgramTest, PrintBooleanVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     bool aa = true;
     bool bb = false;
     bool cc = true;
@@ -191,7 +191,7 @@ TEST_F(ProgramTest, PrintBooleanVariables) {
 
 TEST_F(ProgramTest, CalculateSum) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int sum = 1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000;
     print(sum);
   })"sv;
@@ -201,7 +201,7 @@ TEST_F(ProgramTest, CalculateSum) {
 
 TEST_F(ProgramTest, CalculateDifference) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int diff = 23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000;
     print(diff);
   })"sv;
@@ -211,7 +211,7 @@ TEST_F(ProgramTest, CalculateDifference) {
 
 TEST_F(ProgramTest, CalculateProduct) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int prod = 2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20;
     print(prod);
   })"sv;
@@ -221,7 +221,7 @@ TEST_F(ProgramTest, CalculateProduct) {
 
 TEST_F(ProgramTest, CalculateExpression) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int expr = ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
     print(expr);
   })"sv;
@@ -231,7 +231,7 @@ TEST_F(ProgramTest, CalculateExpression) {
 
 TEST_F(ProgramTest, PrintSum) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print(1 + 10 + 100 + 1000 + 10000 + 100000 + 1000000 + 10000000 + 100000000 + 1000000000);
   })"sv;
   SetUp(program);
@@ -240,7 +240,7 @@ TEST_F(ProgramTest, PrintSum) {
 
 TEST_F(ProgramTest, PrintDifference) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print(23456789 - 1 - 10 - 100 - 1000 - 10000 - 100000 - 1000000 - 10000000);
   })"sv;
   SetUp(program);
@@ -249,7 +249,7 @@ TEST_F(ProgramTest, PrintDifference) {
 
 TEST_F(ProgramTest, PrintProduct) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print(2 * 4 * 6 * 8 * 10 * 12 * 14 * 16 * 18 * 20);
   })"sv;
   SetUp(program);
@@ -258,7 +258,7 @@ TEST_F(ProgramTest, PrintProduct) {
 
 TEST_F(ProgramTest, PrintExpression) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     print(((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13);
   })"sv;
   SetUp(program);
@@ -267,7 +267,7 @@ TEST_F(ProgramTest, PrintExpression) {
 
 TEST_F(ProgramTest, AddVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int num1  = 1;
     int num2  = 10;
     int num3  = 100;
@@ -287,7 +287,7 @@ TEST_F(ProgramTest, AddVariables) {
 
 TEST_F(ProgramTest, SubtractVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int num1 = 1;
     int num2 = 10;
     int num3 = 100;
@@ -306,7 +306,7 @@ TEST_F(ProgramTest, SubtractVariables) {
 
 TEST_F(ProgramTest, MultiplyVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int num1  = 2;
     int num2  = 4;
     int num3  = 6;
@@ -326,7 +326,7 @@ TEST_F(ProgramTest, MultiplyVariables) {
 
 TEST_F(ProgramTest, AssignVariables) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int num1 = 1;
     num1 = 2 * num1;
     int num2 = 3;
@@ -339,10 +339,10 @@ TEST_F(ProgramTest, AssignVariables) {
 
 TEST_F(ProgramTest, CallFunction) {
   constexpr auto program = R"(
-  fn foo() -> void {
+  fn foo() {
     print("inside foo\n");
   }
-  fn main() -> void {
+  fn main() {
     print("before foo\n");
     foo();
     print("after foo\n");
@@ -358,12 +358,12 @@ TEST_F(ProgramTest, CallFunction) {
 
 TEST_F(ProgramTest, CallFunctionWithArguments) {
   constexpr auto program = R"(
-  fn foo(value_1: int, value_2: int, value_3: int) -> void {
+  fn foo(value_1: int, value_2: int, value_3: int) {
     print("inside foo 1\n");
     print(value_1, value_2, value_3);
     print("inside foo 2\n");
   }
-  fn main() -> void {
+  fn main() {
     print("before foo\n");
     foo(123, 456, 789);
     print("after foo\n");
@@ -381,18 +381,18 @@ TEST_F(ProgramTest, CallFunctionWithArguments) {
 
 TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
   constexpr auto program = R"(
-  fn bar(value_1: string) -> void {
+  fn bar(value_1: string) {
     print("inside bar 1\n");
     print(value_1);
     print("inside bar 2\n");
   }
-  fn foo(value_1: int, value_2: int, value_3: int) -> void {
+  fn foo(value_1: int, value_2: int, value_3: int) {
     print("inside foo 1\n");
     print(value_1, value_2, value_3);
     bar("bar");
     print("inside foo 2\n");
   }
-  fn main() -> void {
+  fn main() {
     print("before foo\n");
     foo(123, 456, 789);
     print("after foo\n");
@@ -413,7 +413,7 @@ TEST_F(ProgramTest, CallFunctionInsideAnotherWithArguments) {
 
 TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
   constexpr auto program = R"(
-  fn foo(value_1: int, value_2: int, value_3: int) -> void {
+  fn foo(value_1: int, value_2: int, value_3: int) {
     int a = 1;
     int b = 2;
     int c = 3;
@@ -422,7 +422,7 @@ TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
     value_2 = 20;
     value_3 = 200;
   }
-  fn main() -> void {
+  fn main() {
     int a = 1;
     int b = 2;
     int c = 3;
@@ -443,7 +443,7 @@ TEST_F(ProgramTest, FunctionReturnNumber) {
   fn foo() -> int {
     return 5;
   }
-  fn main() -> void {
+  fn main() {
     int result = foo();
     print(result);
   })"sv;
@@ -456,7 +456,7 @@ TEST_F(ProgramTest, FunctionReturnBoolean) {
   fn foo() -> bool {
     return true;
   }
-  fn main() -> void {
+  fn main() {
     bool result = foo();
     print(result);
   })"sv;
@@ -470,7 +470,7 @@ TEST_F(ProgramTest, FunctionReturnVariable) {
     int var = 5;
     return var;
   }
-  fn main() -> void {
+  fn main() {
     int result = foo();
     print(result);
   })"sv;
@@ -483,7 +483,7 @@ TEST_F(ProgramTest, FunctionReturnNumberExpression) {
   fn foo() -> int {
     return 10 - 2 * 3;
   }
-  fn main() -> void {
+  fn main() {
     int result = foo();
     print(result);
   })"sv;
@@ -497,7 +497,7 @@ TEST_F(ProgramTest, FunctionReturnVariableExpression) {
     int var = 5;
     return var + 10;
   }
-  fn main() -> void {
+  fn main() {
     int result = foo();
     print(result);
   })"sv;
@@ -510,7 +510,7 @@ TEST_F(ProgramTest, FunctionReturnVariableWithArgumentExpression) {
   fn foo(value_1: int, value_2: int) -> int {
     return value_1 + value_2;
   }
-  fn main() -> void {
+  fn main() {
     int var = 6;
     int result = foo(var + 6, 6);
     print(result);
@@ -524,7 +524,7 @@ TEST_F(ProgramTest, PrintFunctionReturnNumber) {
   fn foo() -> int {
     return 5;
   }
-  fn main() -> void {
+  fn main() {
     print(foo());
   })"sv;
   SetUp(program);
@@ -536,7 +536,7 @@ TEST_F(ProgramTest, PrintFunctionReturnBoolean) {
   fn foo() -> bool {
     return true;
   }
-  fn main() -> void {
+  fn main() {
     print(foo());
   })"sv;
   SetUp(program);
@@ -549,7 +549,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariable) {
     int var = 5;
     return var;
   }
-  fn main() -> void {
+  fn main() {
     print(foo());
   })"sv;
   SetUp(program);
@@ -561,7 +561,7 @@ TEST_F(ProgramTest, PrintFunctionReturnNumberExpression) {
   fn foo() -> int {
     return 10 - 2 * 3;
   }
-  fn main() -> void {
+  fn main() {
     print(foo());
   })"sv;
   SetUp(program);
@@ -574,7 +574,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableExpression) {
     int var = 5;
     return var + 10;
   }
-  fn main() -> void {
+  fn main() {
     print(foo());
   })"sv;
   SetUp(program);
@@ -586,7 +586,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
   fn foo(value_1: int, value_2: int) -> int {
     return value_1 + value_2;
   }
-  fn main() -> void {
+  fn main() {
     int var = 6;
     print(foo(var + 6, 6));
   })"sv;
@@ -596,7 +596,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
 
 TEST_F(ProgramTest, ConditionalNumberTrue) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int value = 5;
     if (value) {
       print("true");
@@ -610,7 +610,7 @@ TEST_F(ProgramTest, ConditionalNumberTrue) {
 
 TEST_F(ProgramTest, ConditionalNumberFalse) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int value = 0;
     if (value) {
       print("true");
@@ -624,13 +624,13 @@ TEST_F(ProgramTest, ConditionalNumberFalse) {
 
 TEST_F(ProgramTest, ConditionalInsideFunctionNumber) {
   constexpr auto program = R"(
-  fn foo(base: int, number: int) -> void {
+  fn foo(base: int, number: int) {
     if (number) {
       print(base * number, " ");
       foo(base, number - 1);
     }
   }
-  fn main() -> void {
+  fn main() {
     foo(3, 4);
     print("1\n");
   })"sv;

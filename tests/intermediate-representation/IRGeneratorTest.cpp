@@ -52,7 +52,7 @@ using IRGeneratorTest = IRGeneratorTestFixture;
 
 TEST_F(IRGeneratorTest, VarDeclStmt) {
   constexpr auto program = R"(
-  fn main() -> void {
+  fn main() {
     int aa = 5 + 2 * 10;
     int ba = 7 - 1;
     bool bb = 6 > 5 && 6 != ba;

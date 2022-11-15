@@ -30,7 +30,7 @@ using namespace std::literals;
 
 TEST(ParserTest, Loops) {
   constexpr auto program = R"(
-  fn loops() -> void {
+  fn loops() {
     while (i < 5) {}
     for (int i = 0; six <= 6.59; i = i + "1") {}
     for_each (elem in elems) {}
@@ -42,7 +42,7 @@ TEST(ParserTest, Loops) {
   auto root = parser->parse();
 
   EXPECT_EQ(root->getGlobalFunctions().size(), 1);
-  // fn loops() -> void
+  // fn loops()
   if (auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0])) {
     EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "loops");
     EXPECT_EQ(fn->getParams().size(), 0);
