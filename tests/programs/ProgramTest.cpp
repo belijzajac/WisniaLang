@@ -134,6 +134,36 @@ TEST_F(ProgramTest, PrintStrings) {
   );
 }
 
+TEST_F(ProgramTest, DefaultNumberValue) {
+  constexpr auto program = R"(
+  fn main() {
+    int var;
+    print(var);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
+}
+
+TEST_F(ProgramTest, DefaultStringValue) {
+  constexpr auto program = R"(
+  fn main() {
+    string var;
+    print(var);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "");
+}
+
+TEST_F(ProgramTest, DefaultBooleanValue) {
+  constexpr auto program = R"(
+  fn main() {
+    bool var;
+    print(var);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
 TEST_F(ProgramTest, PrintNumbers) {
   constexpr auto program = R"(
   fn main() {

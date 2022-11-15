@@ -467,12 +467,14 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
   const auto &argOne = instruction->getArg1();
 
   // mov reg, number
-  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
+  if (target->getType() == TType::REGISTER && (argOne->getType() == TType::LIT_INT || argOne->getType() == TType::LIT_BOOL)) {
     m_textSection.putBytes(MovMachineCode[target->getValue<std::string>()]);
     if (label) {
       m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<int>())});
     }
-    m_textSection.putU32(argOne->getValue<int>());
+    const auto value = (argOne->getType() == TType::LIT_INT) ? argOne->getValue<int>()
+                                                             : (argOne->getValue<bool>() ? 1 : 0);
+    m_textSection.putU32(value);
     return;
   }
 
