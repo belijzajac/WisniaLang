@@ -22,6 +22,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage" AND CMAKE_COMPILER_IS_GNUCC)
     EXECUTABLE wisnia-tests
     EXCLUDE
       "/usr/*"
+      "${PROJECT_SOURCE_DIR}/src/main.cpp"
       "${PROJECT_SOURCE_DIR}/tests/*"
       "${PROJECT_SOURCE_DIR}/build/_deps/*"
   )
