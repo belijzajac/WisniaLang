@@ -69,7 +69,6 @@ class CodeGenerator {
   void emitOr(const InstructionValue &instruction);
   void emitTest(const InstructionValue &instruction);
   void emitRet(const InstructionValue &instruction);
-  void emitNop(const InstructionValue &instruction);
 
  private:
   std::vector<InstructionValue> m_instructions;

@@ -394,9 +394,6 @@ void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionVal
       case Operation::RET:
         emitRet(instruction);
         break;
-      case Operation::NOP:
-        emitNop(instruction);
-        break;
       default:
         throw CodeGenerationError{"Unknown operation to generate the code for"};
     }
@@ -859,8 +856,4 @@ void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction)
 
 void CodeGenerator::emitRet(const CodeGenerator::InstructionValue &instruction) {
   m_textSection.putBytes(std::byte{0xc3});
-}
-
-void CodeGenerator::emitNop(const CodeGenerator::InstructionValue &instruction) {
-  m_textSection.putBytes(std::byte{0x90});
 }
