@@ -36,8 +36,8 @@ class BaseIf : public BaseStmt {
  public:
   void accept(Visitor *v) override = 0;
 
-  void print(size_t level) const override {
-    BaseStmt::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level);
   }
 
   void addBody(std::unique_ptr<BaseStmt> body) {
@@ -69,13 +69,14 @@ class IfStmt : public BaseIf {
     return "IfStmt";
   }
 
-  void print(size_t level) const override {
-    BaseIf::print(level++);
-    m_condition->print(level);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseIf::print(output, level++);
+    m_condition->print(output, level);
+    m_body->print(output, level);
     level--; // reset for else statements
-    for (const auto &stmt : m_elseStmts)
-      stmt->print(level);
+    for (const auto &stmt : m_elseStmts) {
+      stmt->print(output, level);
+    }
   }
 
   void addCondition(std::unique_ptr<BaseExpr> expr) {
@@ -112,9 +113,9 @@ class ElseStmt : public BaseIf {
     return "ElseStmt";
   }
 
-  void print(size_t level) const override {
-    BaseIf::print(level++);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseIf::print(output, level++);
+    m_body->print(output, level);
   }
 };
 
@@ -131,10 +132,10 @@ class ElseIfStmt : public BaseIf {
     return "ElseIfStmt";
   }
 
-  void print(size_t level) const override {
-    BaseIf::print(level++);
-    m_condition->print(level);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseIf::print(output, level++);
+    m_condition->print(output, level);
+    m_body->print(output, level);
   }
 
   void addCondition(std::unique_ptr<BaseExpr> expr) {

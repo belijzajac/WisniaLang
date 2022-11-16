@@ -23,7 +23,6 @@
 
 #include <memory>
 #include <vector>
-#include <fmt/format.h>
 // Wisnia
 #include "Visitor.hpp"
 
@@ -52,12 +51,14 @@ class Root : public IVisitable {
     return "Root";
   }
 
-  virtual void print(size_t level = 0) const {
-    fmt::print("{:>{}}{}\n", "", level * 2, kind()); level++;
-    for (const auto &klass : m_globalClasses)
-      klass->print(level);
-    for (const auto &function : m_globalFunctions)
-      function->print(level);
+  virtual void print(std::ostream &output, size_t level = 0) const {
+    output << std::string(level * 2, ' ') << kind() << "\n"; level++;
+    for (const auto &klass : m_globalClasses) {
+      klass->print(output, level);
+    }
+    for (const auto &function : m_globalFunctions) {
+      function->print(output, level);
+    }
   }
 
   void addGlobalClassDef(std::unique_ptr<Root> classDef) {

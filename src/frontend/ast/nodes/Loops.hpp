@@ -36,8 +36,8 @@ class BaseLoop : public BaseStmt {
  public:
   void accept(Visitor *v) override = 0;
 
-  void print(size_t level) const override {
-    BaseStmt::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level);
   }
 
   void addBody(std::unique_ptr<BaseStmt> body) {
@@ -69,10 +69,10 @@ class WhileLoop : public BaseLoop {
     return "WhileLoop";
   }
 
-  void print(size_t level) const override {
-    BaseLoop::print(level++);
-    m_cond->print(level);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseLoop::print(output, level++);
+    m_cond->print(output, level);
+    m_body->print(output, level);
   }
 
   void addCond(std::unique_ptr<BaseExpr> expr) {
@@ -100,12 +100,12 @@ class ForLoop : public BaseLoop {
     return "ForLoop";
   }
 
-  void print(size_t level) const override {
-    BaseLoop::print(level++);
-    m_initial->print(level);
-    m_condition->print(level);
-    m_increment->print(level);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseLoop::print(output, level++);
+    m_initial->print(output, level);
+    m_condition->print(output, level);
+    m_increment->print(output, level);
+    m_body->print(output, level);
   }
 
   void addInitial(std::unique_ptr<BaseStmt> expr) {
@@ -151,11 +151,11 @@ class ForEachLoop : public BaseLoop {
     return "ForEachLoop";
   }
 
-  void print(size_t level) const override {
-    BaseLoop::print(level++);
-    m_element->print(level);
-    m_collection->print(level);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseLoop::print(output, level++);
+    m_element->print(output, level);
+    m_collection->print(output, level);
+    m_body->print(output, level);
   }
 
   void addElement(std::unique_ptr<BaseExpr> expr) {

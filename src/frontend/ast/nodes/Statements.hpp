@@ -39,8 +39,8 @@ class BaseStmt : public Root {
 
   void accept(Visitor *v) override = 0;
 
-  void print(size_t level) const override {
-    Root::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level);
   }
 
  protected:
@@ -63,10 +63,11 @@ class StmtBlock : public BaseStmt {
     return "StmtBlock";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    for (const auto &stmt : m_statements)
-      stmt->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    for (const auto &stmt : m_statements) {
+      stmt->print(output, level);
+    }
   }
 
   void addStmt(std::unique_ptr<BaseStmt> stmt) {
@@ -96,9 +97,9 @@ class ReturnStmt : public BaseStmt {
     return "ReturnStmt";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    m_returnValue->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    m_returnValue->print(output, level);
   }
 
   void addReturnValue(std::unique_ptr<BaseExpr> returnVal) {
@@ -156,10 +157,10 @@ class VarDeclStmt : public BaseStmt {
     return "VarDeclStmt";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    m_var->print(level);
-    m_value->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    m_var->print(output, level);
+    m_value->print(output, level);
   }
 
   void addType(std::unique_ptr<BaseType> type) const {
@@ -204,10 +205,10 @@ class VarAssignStmt : public BaseStmt {
     return "VarAssignStmt";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    m_var->print(level);
-    m_val->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    m_var->print(output, level);
+    m_val->print(output, level);
   }
 
   void addType(std::unique_ptr<BaseType> type) const {
@@ -252,9 +253,9 @@ class ExprStmt : public BaseStmt {
     return "ExprStmt";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    m_expr->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    m_expr->print(output, level);
   }
 
   void addExpr(std::unique_ptr<BaseExpr> expr) {
@@ -284,10 +285,11 @@ class ReadStmt : public BaseStmt {
     return "ReadStmt";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    for (const auto &var : m_vars)
-      var->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    for (const auto &var : m_vars) {
+      var->print(output, level);
+    }
   }
 
   void addVar(std::unique_ptr<BaseExpr> var) {
@@ -317,10 +319,11 @@ class WriteStmt : public BaseStmt {
     return "WriteStmt";
   }
 
-  void print(size_t level) const override {
-    BaseStmt::print(level++);
-    for (const auto &expr : m_exprs)
-      expr->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseStmt::print(output, level++);
+    for (const auto &expr : m_exprs) {
+      expr->print(output, level);
+    }
   }
 
   void addExpr(std::unique_ptr<BaseExpr> expr) {

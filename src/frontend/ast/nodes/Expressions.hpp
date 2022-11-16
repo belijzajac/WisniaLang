@@ -21,10 +21,11 @@
 #ifndef WISNIALANG_AST_EXPRESSIONS_HPP
 #define WISNIALANG_AST_EXPRESSIONS_HPP
 
+#include "fmt/format.h"
 // Wisnia
 #include "Root.hpp"
-#include "Types.hpp"
 #include "TType.hpp"
+#include "Types.hpp"
 
 namespace Wisnia {
 namespace Basic {
@@ -37,8 +38,8 @@ class BaseExpr : public Root {
  public:
   BaseExpr() = default;
 
-  void print(size_t level) const override {
-    Root::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level);
   }
 
   void accept(Visitor *v) override = 0;
@@ -72,13 +73,14 @@ class VarExpr : public BaseExpr {
                        m_type ? m_type->getStrType() : "null");
   }
 
-  void print(size_t level) const override {
-    BaseExpr::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseExpr::print(output, level);
   }
 
   void addType(std::unique_ptr<BaseType> type) {
     m_type = std::move(type);
     Basic::TType tokenType;
+
     switch (m_type->getType()) {
       case Basic::TType::KW_VOID:
         tokenType = Basic::TType::IDENT_VOID;
@@ -118,10 +120,10 @@ class BinaryExpr : public BaseExpr {
     v->visit(this);
   }
 
-  void print(size_t level) const override {
-    BaseExpr::print(level++);
-    lhs()->print(level);
-    rhs()->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseExpr::print(output, level++);
+    lhs()->print(output, level);
+    rhs()->print(output, level);
   }
 
   Basic::TType getOperand() const {
@@ -307,9 +309,9 @@ class UnaryExpr : public BinaryExpr {
     return ss.str();
   }
 
-  void print(size_t level) const override {
-    Root::print(level++);
-    lhs()->print(level); // holds only the lhs value, that is m_children[0]
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level++);
+    lhs()->print(output, level); // holds only the lhs value, that is m_children[0]
   }
 };
 
@@ -328,11 +330,12 @@ class FnCallExpr : public BaseExpr {
     return "FnCallExpr";
   }
 
-  void print(size_t level) const override {
-    BaseExpr::print(level++);
-    m_var->print(level);
-    for (const auto &arg : m_args)
-      arg->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseExpr::print(output, level++);
+    m_var->print(output, level);
+    for (const auto &arg : m_args) {
+      arg->print(output, level);
+    }
   }
 
   void addClassName(const std::shared_ptr<Basic::Token> &className) {
@@ -388,11 +391,12 @@ class ClassInitExpr : public BaseExpr {
     return "ClassInitExpr";
   }
 
-  void print(size_t level) const override {
-    BaseExpr::print(level++);
-    m_var->print(level);
-    for (const auto &arg : m_args)
-      arg->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseExpr::print(output, level++);
+    m_var->print(output, level);
+    for (const auto &arg : m_args) {
+      arg->print(output, level);
+    }
   }
 
   void addArgs(std::vector<std::unique_ptr<BaseExpr>> args) {

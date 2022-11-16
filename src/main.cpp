@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     NameResolver resolver;
     root->accept(&resolver);
     if (config.dump == "ast") {
-      root->print();
+      root->print(std::cout);
     }
     IRGenerator generator;
     root->accept(&generator);

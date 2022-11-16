@@ -38,8 +38,8 @@ class BaseType : public Root {
 
   void accept(Visitor *v) override = 0;
 
-  void print(size_t level) const override {
-    Root::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level);
   }
 
   Basic::TType getType() const {
@@ -90,8 +90,8 @@ class PrimitiveType : public BaseType {
     return ss.str();
   }
 
-  void print(size_t level) const override {
-    BaseType::print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseType::print(output, level);
   }
 };
 

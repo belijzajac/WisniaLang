@@ -44,9 +44,9 @@ class Param : public Root {
     return "Param";
   }
 
-  void print(size_t level) const override {
-    Root::print(level++);
-    m_var->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level++);
+    m_var->print(output, level);
   }
 
   void addType(std::unique_ptr<BaseType> type) const {
@@ -74,9 +74,9 @@ class BaseDef : public Root {
 
   void accept(Visitor *v) override = 0;
 
-  void print(size_t level) const override {
-    Root::print(level++);
-    m_var->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level++);
+    m_var->print(output, level);
   }
 
   void addType(std::unique_ptr<BaseType> type) const {
@@ -104,10 +104,11 @@ class MethodDef : public BaseDef {
 
   void accept(Visitor *v) override = 0;
 
-  void print(size_t level) const override {
-    BaseDef::print(level++);
-    for (const auto &param : m_params)
-      param->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseDef::print(output, level++);
+    for (const auto &param : m_params) {
+      param->print(output, level);
+    }
   }
 
   void addRetType(std::unique_ptr<BaseType> type) {
@@ -152,9 +153,9 @@ class FnDef : public MethodDef {
     return "FnDef";
   }
 
-  void print(size_t level) const override {
-    MethodDef::print(level++);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    MethodDef::print(output, level++);
+    m_body->print(output, level);
   }
 };
 
@@ -171,9 +172,9 @@ class CtorDef : public MethodDef {
     return "CtorDef";
   }
 
-  void print(size_t level) const override {
-    MethodDef::print(level++);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    MethodDef::print(output, level++);
+    m_body->print(output, level);
   }
 };
 
@@ -190,9 +191,9 @@ class DtorDef : public MethodDef {
     return "DtorDef";
   }
 
-  void print(size_t level) const override {
-    MethodDef::print(level++);
-    m_body->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    MethodDef::print(output, level++);
+    m_body->print(output, level);
   }
 };
 
@@ -211,9 +212,9 @@ class Field : public Root {
     return "Field";
   }
 
-  void print(size_t level) const override {
-    Root::print(level++);
-    m_var->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    Root::print(output, level++);
+    m_var->print(output, level);
   }
 
   void addType(std::unique_ptr<BaseType> varType) const {
@@ -256,14 +257,16 @@ class ClassDef : public BaseDef {
     return "ClassDef";
   }
 
-  void print(size_t level) const override {
-    BaseDef::print(level++);
-    if (m_ctor) m_ctor->print(level);
-    if (m_dtor) m_dtor->print(level);
-    for (const auto &method : m_methods)
-      method->print(level);
-    for (const auto &field : m_fields)
-      field->print(level);
+  void print(std::ostream &output, size_t level) const override {
+    BaseDef::print(output, level++);
+    if (m_ctor) m_ctor->print(output, level);
+    if (m_dtor) m_dtor->print(output, level);
+    for (const auto &method : m_methods) {
+      method->print(output, level);
+    }
+    for (const auto &field : m_fields) {
+      field->print(output, level);
+    }
   }
 
   void addCtor(std::unique_ptr<BaseDef> ctor) {
