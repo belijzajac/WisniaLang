@@ -27,6 +27,24 @@ using namespace Wisnia;
 using namespace Basic;
 using namespace std::literals;
 
+TEST(LexerTest, Identifiers) {
+  constexpr auto program = R"(ab + ac;)"sv;
+  std::istringstream iss{program.data()};
+
+  auto lexer = std::make_unique<Lexer>(iss);
+  auto tokens = lexer->getTokens();
+
+  EXPECT_GT(tokens.size(), 0);
+  EXPECT_EQ(tokens.size(), 5);
+  EXPECT_EQ(tokens[0]->getType(), TType::IDENT);
+  EXPECT_EQ(tokens[0]->getValue<std::string>(), "ab");
+  EXPECT_EQ(tokens[1]->getType(), TType::OP_ADD);
+  EXPECT_EQ(tokens[2]->getType(), TType::IDENT);
+  EXPECT_EQ(tokens[2]->getValue<std::string>(), "ac");
+  EXPECT_EQ(tokens[3]->getType(), TType::OP_SEMICOLON);
+  EXPECT_EQ(tokens[4]->getType(), TType::TOK_EOF);
+}
+
 TEST(LexerTest, Operators) {
   constexpr auto program = R"(
     = == >==< <== -->- <---
