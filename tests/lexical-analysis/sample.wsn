@@ -1,0 +1,4 @@
+fn main() {
+  int var = 555;
+  print(var);
+}

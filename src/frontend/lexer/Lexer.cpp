@@ -349,8 +349,7 @@ void Lexer::tokenize(std::istringstream &sstream) {
   tokenizeInput();
 }
 
-void Lexer::tokenizeInput()
-{
+void Lexer::tokenizeInput() {
   assert(!m_tokenState.m_data.empty() && !m_tokenState.m_fileName.empty() &&
          "the provided input was either empty or Lexer::tokenize wasn't called");
 
