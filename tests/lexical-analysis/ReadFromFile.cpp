@@ -27,9 +27,9 @@
 using namespace Wisnia;
 using namespace Basic;
 
-TEST(LexerTest, ReadFromFile) {
-  namespace fs = std::filesystem;
+namespace fs = std::filesystem;
 
+TEST(LexerTest, ReadFromFile) {
   const std::array<std::string_view, 2> filePaths {
     "../../tests/lexical-analysis/sample.wsn", // CLion
     "../tests/lexical-analysis/sample.wsn"     // build instructions from repo
@@ -68,4 +68,13 @@ TEST(LexerTest, ReadFromFile) {
   // }
   EXPECT_EQ(tokens[15]->getType(), TType::OP_BRACE_C);
   EXPECT_EQ(tokens[16]->getType(), TType::TOK_EOF);
+}
+
+TEST(LexerTest, ReadFromNonExistentFileShouldFail) {
+  EXPECT_DEATH(
+      {
+        auto lexer = std::make_unique<Lexer>("aaa.wsn");
+        auto tokens = lexer->getTokens();
+      },
+      "the provided input was either empty or Lexer::tokenize wasn't called");
 }
