@@ -131,7 +131,7 @@ std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
       else {
         throw LexerError{
           m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-          ": Unrecognized char"
+          ": Unrecognized character"
         };
       }
       return {};
@@ -197,7 +197,6 @@ std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
           m_tokenState.m_buff += '\"';
           break;
         default:
-          m_tokenState.m_buff += ch;
           throw LexerError{
             m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
             ": Unknown escape symbol"
@@ -343,8 +342,8 @@ void Lexer::tokenize(std::string_view filename) {
   tokenizeInput();
 }
 
-void Lexer::tokenize(std::istringstream &sstream) {
-  m_tokenState.m_data = {std::istreambuf_iterator<char>(sstream), std::istreambuf_iterator<char>()};
+void Lexer::tokenize(std::istringstream &stream) {
+  m_tokenState.m_data = {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
   m_tokenState.m_fileName = "string stream";
   tokenizeInput();
 }
@@ -379,14 +378,18 @@ void Lexer::tokenizeInput() {
   m_tokens.emplace_back(std::make_shared<Token>(TType::TOK_EOF, "[EOF]", std::move(pif)));
 }
 
-void Lexer::prettyPrint() const {
+void Lexer::print(std::ostream &output) const {
   size_t index = 0;
-  fmt::print("{:^6}|{:^6}|{:^17}|{:^17}\n", "ID", "LN", "TYPE", "VALUE");
-  fmt::print("------+------+-----------------+-----------------\n");
+  output << fmt::format("{:^6}|{:^6}|{:^17}|{:^17}\n", "ID", "LN", "TYPE", "VALUE");
+  output << fmt::format("------+------+-----------------+-----------------\n");
   for (const auto &token : m_tokens) {
-    fmt::print("{:^6}|{:^6}|{:^17}|{:^17}\n",
-               index, token->getPosition().getLineNo(),
-               token->getName(), token->getASTValueStr());
+    output << fmt::format(
+      "{:^6}|{:^6}|{:^17}|{:^17}\n",
+      index,
+      token->getPosition().getLineNo(),
+      token->getName(),
+      token->getASTValueStr()
+    );
     ++index;
   }
 }

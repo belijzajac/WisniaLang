@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     auto parser = std::make_unique<Parser>(*lexer);
     auto root = parser->parse();
     if (config.dump == "tokens") {
-      lexer->prettyPrint();
+      lexer->print(std::cout);
     }
     NameResolver resolver;
     root->accept(&resolver);

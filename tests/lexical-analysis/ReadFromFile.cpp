@@ -74,7 +74,6 @@ TEST(LexerTest, ReadFromNonExistentFileShouldFail) {
   EXPECT_DEATH(
       {
         auto lexer = std::make_unique<Lexer>("aaa.wsn");
-        auto tokens = lexer->getTokens();
       },
       "the provided input was either empty or Lexer::tokenize wasn't called");
 }

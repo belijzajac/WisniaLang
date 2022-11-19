@@ -87,7 +87,7 @@ class Lexer {
 
   // Preps up tokenization
   void tokenize(std::string_view filename);
-  void tokenize(std::istringstream &sstream);
+  void tokenize(std::istringstream &stream);
 
  public:
   explicit Lexer(std::string_view filename);
@@ -97,7 +97,7 @@ class Lexer {
   const std::vector<std::shared_ptr<Basic::Token>> &getTokens() const { return m_tokens; }
 
   // Prints out tokens in a pretty table
-  void prettyPrint() const;
+  void print(std::ostream &output) const;
 
  private:
   std::vector<std::shared_ptr<Basic::Token>> m_tokens;
