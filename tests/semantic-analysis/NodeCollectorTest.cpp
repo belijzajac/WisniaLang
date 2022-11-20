@@ -49,14 +49,14 @@ TEST_F(NodeCollectorTest, Param) {
 TEST_F(NodeCollectorTest, VarExpr) {
   NodeCollector<AST::VarExpr> collector;
   m_root->accept(&collector);
-  auto collectedNodes = collector.getNodes();
+  const auto &collectedNodes = collector.getNodes();
   EXPECT_EQ(collector.getNodes().size(), 44);
   constexpr std::array<const char *, 44> kExpectedValues{
-      "Foo", "is_fifteen", "number", "digit", "simple_operations", "a", "number", "i", "i", "i",
-      "i", "a", "a", "a", "is_fifteen", "digit", "a", "a", "digit", "digit", "a", "digit",
-      "output_hello", "do_output", "do_output", "main", "argc", "argv", "correct", "argc", "answer",
-      "output_hello", "correct", "fooPtr", "Foo", "correct", "yes", "answer", "output_hello", "yes",
-      "argc", "answer", "output_hello", "argc"};
+    "Foo", "is_fifteen", "number", "digit", "simple_operations", "a", "number", "i", "i", "i",
+    "i", "a", "a", "a", "is_fifteen", "digit", "a", "a", "digit", "digit", "a", "digit",
+    "output_hello", "do_output", "do_output", "main", "argc", "argv", "correct", "argc", "answer",
+    "output_hello", "correct", "fooPtr", "Foo", "correct", "yes", "answer", "output_hello", "yes",
+    "argc", "answer", "output_hello", "argc"};
   for (size_t i = 0; i < 44; i++) {
     EXPECT_TRUE(collectedNodes[i]->getToken()->getValue<std::string>() == kExpectedValues[i]);
   }
@@ -71,7 +71,7 @@ TEST_F(NodeCollectorTest, VarAssignStmt) {
 TEST_F(NodeCollectorTest, CompExpr) {
   NodeCollector<AST::CompExpr> collector;
   m_root->accept(&collector);
-  auto collectedNodes = collector.getNodes();
+  const auto &collectedNodes = collector.getNodes();
   EXPECT_EQ(collector.getNodes().size(), 4);
   constexpr std::array<char, 4> kExpectedValues{'<', '<', '<', '>'};
   for (size_t i = 0; i < 4; i++) {
@@ -82,7 +82,7 @@ TEST_F(NodeCollectorTest, CompExpr) {
 TEST_F(NodeCollectorTest, AddExpr) {
   NodeCollector<AST::AddExpr> collector;
   m_root->accept(&collector);
-  auto collectedNodes = collector.getNodes();
+  const auto &collectedNodes = collector.getNodes();
   EXPECT_EQ(collector.getNodes().size(), 3);
   constexpr std::array<char, 3> kExpectedValues{'+', '+', '+'};
   for (size_t i = 0; i < 3; i++) {
@@ -105,7 +105,7 @@ TEST_F(NodeCollectorTest, EqExpr) {
 TEST_F(NodeCollectorTest, BoolExpr) {
   NodeCollector<AST::BoolExpr> collector;
   m_root->accept(&collector);
-  auto collectedNodes = collector.getNodes();
+  const auto &collectedNodes = collector.getNodes();
   EXPECT_EQ(collector.getNodes().size(), 5);
   constexpr std::array<bool, 5> kExpectedValues{false, true, true, false, false};
   for (size_t i = 0; i < 5; i++) {
@@ -124,7 +124,7 @@ TEST_F(NodeCollectorTest, StringExpr) {
 TEST_F(NodeCollectorTest, IntExpr) {
   NodeCollector<AST::IntExpr> collector;
   m_root->accept(&collector);
-  auto collectedNodes = collector.getNodes();
+  const auto &collectedNodes = collector.getNodes();
   EXPECT_EQ(collector.getNodes().size(), 10);
   constexpr std::array<int, 10> kExpectedValues{123456, 0, 5, 1, 150000, 2, 5, 5, 7, 5};
   for (size_t i = 0; i < 10; i++) {
@@ -135,7 +135,7 @@ TEST_F(NodeCollectorTest, IntExpr) {
 TEST_F(NodeCollectorTest, FloatExpr) {
   NodeCollector<AST::FloatExpr> collector;
   m_root->accept(&collector);
-  auto collectedNodes = collector.getNodes();
+  const auto &collectedNodes = collector.getNodes();
   EXPECT_EQ(collector.getNodes().size(), 5);
   constexpr std::array<float, 5> kExpectedValues{5.0, 7.75, 1.45, 15.0, 1.33};
   for (size_t i = 0; i < 5; i++) {

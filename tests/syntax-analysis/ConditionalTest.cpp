@@ -45,10 +45,9 @@ TEST(ParserTest, Conditionals) {
     }
   })"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto parser = std::make_unique<Parser>(*lexer);
-  auto root = parser->parse();
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
 
   EXPECT_EQ(root->getGlobalFunctions().size(), 1);
   // fn conditionals()

@@ -82,14 +82,12 @@ class SemanticTestFixture : public testing::Test {
  public:
   SemanticTestFixture() {
     std::istringstream iss{kProgram.data()};
-    m_lexer = std::make_unique<Lexer>(iss);
-    m_parser = std::make_unique<Parser>(*m_lexer);
-    m_root = m_parser->parse();
+    Lexer lexer{iss};
+    Parser parser{lexer};
+    m_root = parser.parse();
   }
 
  protected:
-  std::unique_ptr<Lexer> m_lexer;
-  std::unique_ptr<Parser> m_parser;
   std::unique_ptr<AST::Root> m_root;
 };
 

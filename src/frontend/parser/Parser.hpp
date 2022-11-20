@@ -70,19 +70,22 @@ class Parser {
   void expect(const Basic::TType &token);
 
   // Returns an instance of the current token
-  const std::shared_ptr<Basic::Token> &curr() const { return m_tokens[m_pos]; }
+  const std::shared_ptr<Basic::Token> &curr() const {
+    assert(m_pos < m_tokens.size());
+    return m_tokens[m_pos];
+  }
 
   // Consumes and returns current token
   // Used for obtaining tokens that represent names
   const std::shared_ptr<Basic::Token> &getNextToken() {
-    assert(m_pos + 1 < m_tokens.size());
+    assert(hasNext());
     consume();
     return m_tokens[m_pos];
   }
 
   // Returns an instance of the following token (peeks)
   const std::shared_ptr<Basic::Token> &peek() const {
-    assert(m_pos + 1 < m_tokens.size());
+    assert(hasNext());
     return m_tokens[m_pos + 1];
   }
 

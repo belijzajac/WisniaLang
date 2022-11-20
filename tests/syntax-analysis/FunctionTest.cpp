@@ -34,10 +34,9 @@ TEST(ParserTest, Functions) {
   fn main(argc: int, argv: string) -> int { return 5; }
   )"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto parser = std::make_unique<Parser>(*lexer);
-  auto root = parser->parse();
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
 
   EXPECT_EQ(root->getGlobalFunctions().size(), 2);
   // fn empty() {}

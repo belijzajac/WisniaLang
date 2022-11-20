@@ -42,15 +42,15 @@ class IProgramTestFixture : public testing::Test {
  protected:
   void SetUp(std::string_view program) {
     std::istringstream iss{program.data()};
-    auto lexer = std::make_unique<Lexer>(iss);
-    auto parser = std::make_unique<Parser>(*lexer);
-    auto root = parser->parse();
+    Lexer lexer{iss};
+    Parser parser{lexer};
+    const auto &root = parser.parse();
     root->accept(&m_resolver);
     root->accept(&m_generator);
-    auto codeGenerator = std::make_unique<CodeGenerator>();
-    codeGenerator->generateCode(m_generator.getInstructionsAfterInstructionSimplification());
-    auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
-    elf->compile();
+    CodeGenerator codeGenerator{};
+    codeGenerator.generateCode(m_generator.getInstructionsAfterInstructionSimplification());
+    ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
+    elf.compile();
   }
 
   void exec(std::string_view cmd) {

@@ -43,8 +43,8 @@ TEST(LexerTest, ReadFromFile) {
     throw std::runtime_error{"sample.wsn wasn't found"};
   }
 
-  auto lexer = std::make_unique<Lexer>(*filePath);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{*filePath};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 17);
   // fn main() {
@@ -73,7 +73,7 @@ TEST(LexerTest, ReadFromFile) {
 TEST(LexerTest, ReadFromNonExistentFileShouldFail) {
   EXPECT_DEATH(
       {
-        auto lexer = std::make_unique<Lexer>("aaa.wsn");
+        Lexer lexer{"aaa.wsn"};
       },
       "the provided input was either empty or Lexer::tokenize wasn't called");
 }

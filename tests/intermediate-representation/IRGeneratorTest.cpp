@@ -34,9 +34,9 @@ class IRGeneratorTestFixture : public testing::Test {
  protected:
   void SetUp(const std::string &program) {
     std::istringstream iss{program};
-    auto lexer = std::make_unique<Lexer>(iss);
-    auto parser = std::make_unique<Parser>(*lexer);
-    auto root = parser->parse();
+    Lexer lexer{iss};
+    Parser parser{lexer};
+    const auto &root = parser.parse();
     root->accept(&m_resolver);
     root->accept(&m_generator);
   }
@@ -58,9 +58,10 @@ TEST_F(IRGeneratorTest, VarDeclStmt) {
     bool bb = 6 > 5 && 6 != ba;
   })"sv;
   SetUp(program.data());
-
-  EXPECT_EQ(m_generator.getTemporaryVars().size(), 6); // from _t0 to _t5
+  const auto &temporaries = m_generator.getTemporaryVars();
   const auto &instructions = m_generator.getInstructions();
+
+  EXPECT_EQ(temporaries.size(), 6); // from _t0 to _t5
 
   // _tx = a <op> b rewritten as
   //    _tx = a

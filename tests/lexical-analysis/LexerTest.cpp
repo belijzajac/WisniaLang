@@ -30,9 +30,8 @@ using namespace std::literals;
 TEST(LexerTest, Identifiers) {
   constexpr auto program = R"(ab + ac;)"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 5);
   EXPECT_EQ(tokens[0]->getType(), TType::IDENT);
@@ -51,9 +50,8 @@ TEST(LexerTest, Operators) {
     ><=><<=> =!= () {} || /
   )"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 37);
   // = == >==< <== -->- <---
@@ -108,9 +106,8 @@ TEST(LexerTest, StringsWithEscapeSymbols) {
     "hello \"world\""
   )"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 7);
   EXPECT_EQ(tokens[0]->getType(), TType::LIT_STR);
@@ -133,7 +130,7 @@ TEST(LexerTest, StringWithUnknownEscapeSymbol) {
       {
         constexpr auto program = R"("hello\xworld")"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -143,7 +140,7 @@ TEST(LexerTest, IllegalCharacters) {
       {
         constexpr auto program = R"(「ロリ」)"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -151,9 +148,8 @@ TEST(LexerTest, IllegalCharacters) {
 TEST(LexerTest, Numbers) {
   constexpr auto program = R"(12345 123.45)"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 3);
   EXPECT_EQ(tokens[0]->getType(), TType::LIT_INT);
@@ -168,7 +164,7 @@ TEST(LexerTest, IllegalInteger) {
       {
         constexpr auto program = R"(123a45)"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -178,7 +174,7 @@ TEST(LexerTest, IllegalFloatWithExtraLetter) {
       {
         constexpr auto program = R"(123.45aa)"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -188,7 +184,7 @@ TEST(LexerTest, IllegalFloatWithExtraDot) {
       {
         constexpr auto program = R"(123.45.67)"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -199,9 +195,8 @@ TEST(LexerTest, LogicOperations) {
     hello || world
   )"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 7);
   EXPECT_EQ(tokens[0]->getType(), TType::IDENT);
@@ -218,7 +213,7 @@ TEST(LexerTest, IllegalLogicOperationAmpersand) {
       {
         constexpr auto program = R"(hello &&& world)"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -228,7 +223,7 @@ TEST(LexerTest, IllegalLogicOperationTilde) {
       {
         constexpr auto program = R"(hello ||| world)"sv;
         std::istringstream iss{program.data()};
-        auto lexer = std::make_unique<Lexer>(iss);
+        Lexer lexer{iss};
       },
       LexerError);
 }
@@ -239,9 +234,8 @@ TEST(LexerTest, CommentsSingleLine) {
     var = 6; /* comment */
   )"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 10);
   // int var = 5;
@@ -268,9 +262,8 @@ TEST(LexerTest, CommentsMultiLine) {
     var = 6;
   )"sv;
   std::istringstream iss{program.data()};
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  auto tokens = lexer->getTokens();
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
 
   EXPECT_EQ(tokens.size(), 10);
   // int var = 5;
@@ -295,9 +288,8 @@ TEST(LexerTest, PrettyPrinter) {
   )"sv;
   std::istringstream iss{program.data()};
   std::stringstream ss;
-
-  auto lexer = std::make_unique<Lexer>(iss);
-  lexer->print(ss);
+  Lexer lexer{iss};
+  lexer.print(ss);
 
   EXPECT_STREQ(ss.str().c_str(),
     "  ID  |  LN  |      TYPE       |      VALUE      \n"

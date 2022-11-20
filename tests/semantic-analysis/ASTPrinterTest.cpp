@@ -31,7 +31,6 @@ using ASTPrinterTest = SemanticTestFixture;
 TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
   NameResolver resolver;
   std::stringstream ss;
-
   m_root->accept(&resolver);
   m_root->print(ss);
 

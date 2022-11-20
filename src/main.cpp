@@ -65,11 +65,11 @@ int main(int argc, char *argv[]) {
   }
 
   try {
-    auto lexer = std::make_unique<Lexer>(config.file);
-    auto parser = std::make_unique<Parser>(*lexer);
-    auto root = parser->parse();
+    Lexer lexer{config.file};
+    Parser parser{lexer};
+    const auto &root = parser.parse();
     if (config.dump == "tokens") {
-      lexer->print(std::cout);
+      lexer.print(std::cout);
     }
     NameResolver resolver;
     root->accept(&resolver);
@@ -81,20 +81,20 @@ int main(int argc, char *argv[]) {
     if (config.dump == "ir") {
       generator.printInstructionsAfterInstructionSimplification();
     }
-    auto codeGenerator = std::make_unique<CodeGenerator>();
-    codeGenerator->generateCode(generator.getInstructionsAfterInstructionSimplification());
+    CodeGenerator codeGenerator{};
+    codeGenerator.generateCode(generator.getInstructionsAfterInstructionSimplification());
     if (config.dump == "code") {
-      if (const auto &data = codeGenerator->getDataSection(); data.size() > 0) {
+      if (const auto &data = codeGenerator.getDataSection(); data.size() > 0) {
         std::cout << "Data section:\n";
         std::cout << data.getString() << "\n\n";
       }
-      if (const auto &text = codeGenerator->getTextSection(); text.size() > 0) {
+      if (const auto &text = codeGenerator.getTextSection(); text.size() > 0) {
         std::cout << "Text section:\n";
         std::cout << text.getString() << "\n";
       }
     }
-    auto elf = std::make_unique<ELF>(codeGenerator->getTextSection(), codeGenerator->getDataSection());
-    elf->compile();
+    ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
+    elf.compile();
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;

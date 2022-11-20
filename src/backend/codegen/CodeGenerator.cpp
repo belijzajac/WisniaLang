@@ -314,13 +314,11 @@ struct Register {
 
 constexpr Register assignRegisters(std::string_view source, std::string_view destination) {
   Register assigned{};
-
   for (auto i = 0; i < kRegisters.size(); i++) {
     if (kRegisters[i] == source) assigned.source = i;
     if (kRegisters[i] == destination) assigned.destination = i;
     if (assigned.source > -1 && assigned.destination > -1) break;
   }
-
   return assigned;
 }
 

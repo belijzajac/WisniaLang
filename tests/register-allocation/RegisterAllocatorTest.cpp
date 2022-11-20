@@ -35,9 +35,9 @@ class RegisterAllocatorTestFixture : public testing::Test {
  protected:
   void SetUp(std::string_view program) {
     std::istringstream iss{program.data()};
-    auto lexer = std::make_unique<Lexer>(iss);
-    auto parser = std::make_unique<Parser>(*lexer);
-    auto root = parser->parse();
+    Lexer lexer{iss};
+    Parser parser{lexer};
+    const auto &root = parser.parse();
     root->accept(&m_resolver);
     root->accept(&m_generator);
   }
@@ -74,7 +74,6 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     int sum = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + r;
   })"sv;
   SetUp(program.data());
-
   constexpr auto registers = RegisterAllocator::getAllRegisters();
   const auto &instructions = m_generator.getInstructionsAfterInstructionSimplification();
 
