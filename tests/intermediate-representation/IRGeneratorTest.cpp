@@ -32,8 +32,8 @@ using namespace std::literals;
 
 class IRGeneratorTestFixture : public testing::Test {
  protected:
-  void SetUp(const std::string &program) {
-    std::istringstream iss{program};
+  void SetUp(std::string_view program) {
+    std::istringstream iss{program.data()};
     Lexer lexer{iss};
     Parser parser{lexer};
     const auto &root = parser.parse();
@@ -50,7 +50,7 @@ class IRGeneratorTestFixture : public testing::Test {
 
 using IRGeneratorTest = IRGeneratorTestFixture;
 
-TEST_F(IRGeneratorTest, VarDeclStmt) {
+TEST_F(IRGeneratorTest, VariableDeclarationStatements) {
   constexpr auto program = R"(
   fn main() {
     int aa = 5 + 2 * 10;
@@ -129,4 +129,36 @@ TEST_F(IRGeneratorTest, VarDeclStmt) {
   EXPECT_EQ(instructions[14]->getOperation(), Operation::MOV);
   EXPECT_STREQ(instructions[14]->getTarget()->getValue<std::string>().c_str(), "bb");
   EXPECT_STREQ(instructions[14]->getArg1()->getValue<std::string>().c_str(), "_t5");
+}
+
+TEST_F(IRGeneratorTest, PrintIRForVariableDeclarationStatements) {
+  constexpr auto program = R"(
+  fn main() {
+    int aa = 5 + 2 * 10;
+    int ba = 7 - 1;
+    bool bb = 6 > 5 && 6 != ba;
+  })"sv;
+  SetUp(program.data());
+  std::stringstream ss;
+  m_generator.printInstructions(ss);
+
+  EXPECT_STREQ(ss.str().c_str(),
+    "          Target           |      Op      |          Arg1          |               Arg2               \n"
+    "---------------------------+--------------+------------------------+----------------------------------\n"
+    "  _t0    %% IDENT_INT      |      <-      |  2   %% LIT_INT        |                %%                \n"
+    "  _t0    %% IDENT_INT      |      *       | 10   %% LIT_INT        |                %%                \n"
+    "  _t1    %% IDENT_INT      |      <-      |  5   %% LIT_INT        |                %%                \n"
+    "  _t1    %% IDENT_INT      |      +       | _t0  %% IDENT_INT      |                %%                \n"
+    "   aa    %% IDENT_INT      |      <-      | _t1  %% IDENT_INT      |                %%                \n"
+    "  _t2    %% IDENT_INT      |      <-      |  7   %% LIT_INT        |                %%                \n"
+    "  _t2    %% IDENT_INT      |      -       |  1   %% LIT_INT        |                %%                \n"
+    "   ba    %% IDENT_INT      |      <-      | _t2  %% IDENT_INT      |                %%                \n"
+    "  _t3    %% IDENT_INT      |      <-      |  6   %% LIT_INT        |                %%                \n"
+    "  _t3    %% IDENT_INT      |      >       |  5   %% LIT_INT        |                %%                \n"
+    "  _t4    %% IDENT_INT      |      <-      |  6   %% LIT_INT        |                %%                \n"
+    "  _t4    %% IDENT_INT      |      !=      | ba   %% IDENT_INT      |                %%                \n"
+    "  _t5    %% IDENT_INT      |      <-      | _t3  %% IDENT_INT      |                %%                \n"
+    "  _t5    %% IDENT_INT      |      &&      | _t4  %% IDENT_INT      |                %%                \n"
+    "   bb    %% IDENT_BOOL     |      <-      | _t5  %% IDENT_INT      |                %%                \n"
+    " _exit_  %% IDENT_VOID     |     call     |      %%                |                %%                \n");
 }
