@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_IRGENERATOR_HPP
-#define WISNIALANG_IRGENERATOR_HPP
+#ifndef WISNIALANG_IR_GENERATOR_HPP
+#define WISNIALANG_IR_GENERATOR_HPP
 
 #include <memory>
 #include <vector>
@@ -135,4 +135,4 @@ class IRGenerator : public Visitor {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_IRGENERATOR_HPP
+#endif  // WISNIALANG_IR_GENERATOR_HPP

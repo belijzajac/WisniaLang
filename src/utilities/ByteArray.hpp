@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_BYTEARRAY_HPP
-#define WISNIALANG_BYTEARRAY_HPP
+#ifndef WISNIALANG_BYTE_ARRAY_HPP
+#define WISNIALANG_BYTE_ARRAY_HPP
 
 #include <cassert>
 #include <cstddef>
@@ -117,4 +117,4 @@ class ByteArray {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_BYTEARRAY_HPP
+#endif  // WISNIALANG_BYTE_ARRAY_HPP

@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_TTYPE_HPP
-#define WISNIALANG_TTYPE_HPP
+#ifndef WISNIALANG_TOKEN_TYPE_HPP
+#define WISNIALANG_TOKEN_TYPE_HPP
 
 #include <unordered_map>
 
@@ -207,4 +207,4 @@ static inline std::unordered_map<std::string_view, TType> Str2TokenOp {
 
 }  // namespace Wisnia::Basic
 
-#endif  // WISNIALANG_TTYPE_HPP
+#endif  // WISNIALANG_TOKEN_TYPE_HPP

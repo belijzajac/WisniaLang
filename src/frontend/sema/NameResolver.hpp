@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_NAMERESOLVER_HPP
-#define WISNIALANG_NAMERESOLVER_HPP
+#ifndef WISNIALANG_NAME_RESOLVER_HPP
+#define WISNIALANG_NAME_RESOLVER_HPP
 
 // Wisnia
 #include "Visitor.hpp"
@@ -74,4 +74,4 @@ class NameResolver : public Visitor {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_NAMERESOLVER_HPP
+#endif  // WISNIALANG_NAME_RESOLVER_HPP

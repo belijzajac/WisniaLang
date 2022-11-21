@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_CODEGENERATOR_HPP
-#define WISNIALANG_CODEGENERATOR_HPP
+#ifndef WISNIALANG_CODE_GENERATOR_HPP
+#define WISNIALANG_CODE_GENERATOR_HPP
 
 #include <memory>
 #include <vector>
@@ -82,4 +82,4 @@ class CodeGenerator {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_CODEGENERATOR_HPP
+#endif  // WISNIALANG_CODE_GENERATOR_HPP

@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_NODECOLLECTOR_HPP
-#define WISNIALANG_NODECOLLECTOR_HPP
+#ifndef WISNIALANG_NODE_COLLECTOR_HPP
+#define WISNIALANG_NODE_COLLECTOR_HPP
 
 #include <vector>
 #include <type_traits>
@@ -87,4 +87,4 @@ class NodeCollector : public Visitor {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_NODECOLLECTOR_HPP
+#endif  // WISNIALANG_NODE_COLLECTOR_HPP

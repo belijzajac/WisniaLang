@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_REGISTERALLOCATOR_HPP
-#define WISNIALANG_REGISTERALLOCATOR_HPP
+#ifndef WISNIALANG_REGISTER_ALLOCATOR_HPP
+#define WISNIALANG_REGISTER_ALLOCATOR_HPP
 
 #include <algorithm>
 #include <array>
@@ -74,4 +74,4 @@ class RegisterAllocator {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_REGISTERALLOCATOR_HPP
+#endif  // WISNIALANG_REGISTER_ALLOCATOR_HPP
