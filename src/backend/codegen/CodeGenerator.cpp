@@ -383,9 +383,6 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
       case Operation::XOR:
         emitXor(instruction);
         break;
-      case Operation::OR:
-        emitOr(instruction);
-        break;
       case Operation::TEST:
         emitTest(instruction);
         break;
@@ -821,21 +818,6 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) 
   }
 
   throw CodeGenerationError{"Unknown xor operation"};
-}
-
-void CodeGenerator::emitOr(const CodeGenerator::InstructionValue &instruction) {
-  const auto &argOne = instruction->getArg1();
-  const auto &argTwo = instruction->getArg2();
-
-  // or dl, 0x30
-  if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::LIT_INT &&
-      argOne->getValue<std::string>() == "dl") {
-    m_textSection.putBytes(std::byte{0x80}, std::byte{0xca});
-    m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
-    return;
-  }
-
-  throw CodeGenerationError{"Unknown or operation"};
 }
 
 void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction) {
