@@ -33,8 +33,8 @@ class Token;
 class Instruction {
   using TokenValue = std::shared_ptr<Basic::Token>;
 
-  static inline size_t sArgOneWidth{15};
-  static inline size_t sTargetWidth{15};
+  static inline size_t sPrintTargetWidth{15};
+  static inline size_t sPrintArgOneWidth{15};
 
  public:
   explicit Instruction(
@@ -49,9 +49,9 @@ class Instruction {
   TokenValue &getArg1() { return m_arg1; }
   TokenValue &getArg2() { return m_arg2; }
 
-  static void setTargetWidth(size_t width) { sTargetWidth = width; }
-  static void setArgOneWidth(size_t width) { sArgOneWidth = width; }
-  void print() const;
+  static void setPrintTargetWidth(size_t width) { sPrintTargetWidth = width; }
+  static void setPrintArgOneWidth(size_t width) { sPrintArgOneWidth = width; }
+  void print(std::ostream &output) const;
 
  private:
   Operation m_operation;

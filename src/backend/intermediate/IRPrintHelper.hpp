@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_INSTRUCTION_PRINT_HELPER_HPP
-#define WISNIALANG_INSTRUCTION_PRINT_HELPER_HPP
+#ifndef WISNIALANG_IR_PRINT_HELPER_HPP
+#define WISNIALANG_IR_PRINT_HELPER_HPP
 
 #include <memory>
 #include <vector>
@@ -27,13 +27,13 @@
 namespace Wisnia {
 class Instruction;
 
-class InstructionPrintHelper {
+class IRPrintHelper {
   using InstructionList = std::vector<std::shared_ptr<Instruction>>;
 
  public:
-  static void print(const InstructionList &instructions);
+  static void print(std::ostream &output, const InstructionList &instructions);
 };
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_INSTRUCTION_PRINT_HELPER_HPP
+#endif  // WISNIALANG_IR_PRINT_HELPER_HPP

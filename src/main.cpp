@@ -79,10 +79,10 @@ int main(int argc, char *argv[]) {
     IRGenerator generator;
     root->accept(&generator);
     if (config.dump == "ir") {
-      generator.printInstructionsAfterInstructionSimplification();
+      generator.printInstructionsAfterInstructionOptimization(std::cout);
     }
     CodeGenerator codeGenerator{};
-    codeGenerator.generateCode(generator.getInstructionsAfterInstructionSimplification());
+    codeGenerator.generate(generator.getInstructionsAfterInstructionOptimization());
     if (config.dump == "code") {
       if (const auto &data = codeGenerator.getDataSection(); data.size() > 0) {
         std::cout << "Data section:\n";

@@ -322,7 +322,7 @@ constexpr Register assignRegisters(std::string_view source, std::string_view des
   return assigned;
 }
 
-void CodeGenerator::generateCode(const std::vector<CodeGenerator::InstructionValue> &instructions) {
+void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
       case Operation::LEA:

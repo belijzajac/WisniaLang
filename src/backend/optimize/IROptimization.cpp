@@ -20,14 +20,19 @@
 
 #include <algorithm>
 // Wisnia
-#include "InstructionSimplification.hpp"
+#include "IROptimization.hpp"
 #include "Instruction.hpp"
 #include "Token.hpp"
 
 using namespace Wisnia;
 using namespace Basic;
 
-void InstructionSimplification::simplify(InstructionList &&instructions) {
+void IROptimization::optimize(IROptimization::InstructionList &&instructions) {
+  removeRedundantInstructions(instructions);
+  m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
+}
+
+void IROptimization::removeRedundantInstructions(InstructionList &instructions) {
   // Redundant instructions, e.g. mov rax, rax
   instructions.erase(
     std::remove_if(instructions.begin(), instructions.end(),
@@ -42,6 +47,4 @@ void InstructionSimplification::simplify(InstructionList &&instructions) {
     }),
     instructions.end()
   );
-
-  m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
 }

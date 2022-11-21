@@ -45,7 +45,7 @@ class CodeGenerator {
  public:
   const ByteArray &getTextSection() const { return m_textSection; }
   const ByteArray &getDataSection() const { return m_dataSection; }
-  void generateCode(const std::vector<InstructionValue> &instructions);
+  void generate(const std::vector<InstructionValue> &instructions);
 
  private:
   void emitLea(const InstructionValue &instruction);

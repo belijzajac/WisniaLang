@@ -18,24 +18,27 @@
 
 ***/
 
-#ifndef WISNIALANG_INSTRUCTIONSIMPLIFICATION_HPP
-#define WISNIALANG_INSTRUCTIONSIMPLIFICATION_HPP
+#ifndef WISNIALANG_IR_OPTIMIZATION_HPP
+#define WISNIALANG_IR_OPTIMIZATION_HPP
 
 #include <array>
 #include <memory>
 // Wisnia
-#include "InstructionPrintHelper.hpp"
+#include "IRPrintHelper.hpp"
 
 namespace Wisnia {
 class Instruction;
 
-class InstructionSimplification {
+class IROptimization {
   using InstructionList = std::vector<std::shared_ptr<Instruction>>;
 
  public:
+  void optimize(InstructionList &&instructions);
   const InstructionList &getInstructions() const { return m_instructions; }
-  void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
-  void simplify(InstructionList &&instructions);
+  void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
+
+ private:
+  void removeRedundantInstructions(InstructionList &instructions);
 
  private:
   InstructionList m_instructions;
@@ -43,4 +46,4 @@ class InstructionSimplification {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_INSTRUCTIONSIMPLIFICATION_HPP
+#endif  // WISNIALANG_IR_OPTIMIZATION_HPP

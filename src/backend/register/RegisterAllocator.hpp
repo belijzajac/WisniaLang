@@ -25,7 +25,7 @@
 #include <array>
 #include <memory>
 // Wisnia
-#include "InstructionPrintHelper.hpp"
+#include "IRPrintHelper.hpp"
 
 namespace Wisnia {
 class Instruction;
@@ -60,8 +60,8 @@ class RegisterAllocator {
 
  public:
   const InstructionList &getInstructions() const { return m_instructions; }
-  void printInstructions() const { InstructionPrintHelper::print(m_instructions); }
-  void allocateRegisters(InstructionList &&instructions, bool allocateRegisters = true);
+  void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
+  void allocate(InstructionList &&instructions, bool allocateRegisters = true);
 
   static constexpr std::array<std::string_view, 15> getAllRegisters() {
     return {"rax", "rcx", "rdx", "rbx", "rbp", "rsi", "rdi", "r8",

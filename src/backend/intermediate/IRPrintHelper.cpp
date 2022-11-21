@@ -20,13 +20,13 @@
 
 #include <fmt/format.h>
 // Wisnia
-#include "InstructionPrintHelper.hpp"
+#include "IRPrintHelper.hpp"
 #include "Instruction.hpp"
 #include "Token.hpp"
 
 using namespace Wisnia;
 
-void InstructionPrintHelper::print(const InstructionPrintHelper::InstructionList &instructions) {
+void IRPrintHelper::print(std::ostream &output, const IRPrintHelper::InstructionList &instructions) {
   size_t maxTargetWidth{0}, maxArgOneWidth{0};
   for (const auto &ir : instructions) {
     if (const auto &token = ir->getTarget(); token) {
@@ -37,12 +37,12 @@ void InstructionPrintHelper::print(const InstructionPrintHelper::InstructionList
     }
   }
 
-  Instruction::setTargetWidth(maxTargetWidth);
-  Instruction::setArgOneWidth(maxArgOneWidth);
+  Instruction::setPrintTargetWidth(maxTargetWidth);
+  Instruction::setPrintArgOneWidth(maxArgOneWidth);
 
-  fmt::print("{:^{}}|{:^14}|{:^{}}|{:^34}\n", "Target", maxTargetWidth + 21, "Op", "Arg1", maxArgOneWidth + 21, "Arg2");
-  fmt::print("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", maxTargetWidth + 22, "+", 15, "+", maxArgOneWidth + 22, "", 34);
+  output << fmt::format("{:^{}}|{:^14}|{:^{}}|{:^34}\n", "Target", maxTargetWidth + 21, "Op", "Arg1", maxArgOneWidth + 21, "Arg2");
+  output << fmt::format("{:->{}}{:->{}}{:->{}}{:->{}}\n", "+", maxTargetWidth + 22, "+", 15, "+", maxArgOneWidth + 22, "", 34);
   for (const auto &ir : instructions) {
-    ir->print();
+    ir->print(output);
   }
 }

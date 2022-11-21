@@ -36,7 +36,7 @@ bool checkVariable(const std::shared_ptr<Basic::Token> &token, const T &variable
 }
 
 // Linear Scan algorithm (default for LLVM)
-void RegisterAllocator::allocateRegisters(InstructionList &&instructions, bool allocateRegisters) {
+void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRegisters) {
   if (!allocateRegisters) {
     m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
     return;

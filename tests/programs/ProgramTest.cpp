@@ -48,7 +48,7 @@ class IProgramTestFixture : public testing::Test {
     root->accept(&m_resolver);
     root->accept(&m_generator);
     CodeGenerator codeGenerator{};
-    codeGenerator.generateCode(m_generator.getInstructionsAfterInstructionSimplification());
+    codeGenerator.generate(m_generator.getInstructionsAfterInstructionOptimization());
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
     elf.compile();
   }

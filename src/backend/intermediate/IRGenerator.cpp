@@ -190,7 +190,7 @@ void IRGenerator::visit(AST::Root *node) {
     const size_t start = last;
     const size_t end   = last = m_instructions.size();
     if (m_allocateRegisters) {
-      registerAllocator.allocateRegisters(vec_slice(m_instructions, start, end));
+      registerAllocator.allocate(vec_slice(m_instructions, start, end));
     }
   }
 
@@ -200,13 +200,13 @@ void IRGenerator::visit(AST::Root *node) {
   auto [modulePrintBoolean, modulePrintBooleanUsed] = Modules::getModule(Module::PRINT_BOOLEAN);
   auto [moduleExit, moduleExitUsed] = Modules::getModule(Module::EXIT);
 
-  if (moduleCalculateStringLengthUsed) registerAllocator.allocateRegisters(std::move(moduleCalculateStringLength), false);
-  if (modulePrintNumberUsed) registerAllocator.allocateRegisters(std::move(modulePrintNumber), false);
-  if (modulePrintBooleanUsed) registerAllocator.allocateRegisters(std::move(modulePrintBoolean), false);
-  if (moduleExitUsed) registerAllocator.allocateRegisters(std::move(moduleExit), false);
+  if (moduleCalculateStringLengthUsed) registerAllocator.allocate(std::move(moduleCalculateStringLength), false);
+  if (modulePrintNumberUsed) registerAllocator.allocate(std::move(modulePrintNumber), false);
+  if (modulePrintBooleanUsed) registerAllocator.allocate(std::move(modulePrintBoolean), false);
+  if (moduleExitUsed) registerAllocator.allocate(std::move(moduleExit), false);
 
-  // Instruction optimization steps
-  instructionSimplification.simplify(vec_slice(getInstructionsAfterRegisterAllocation(), 0, getInstructionsAfterRegisterAllocation().size()));
+  // Instruction optimization
+  irOptimization.optimize(vec_slice(getInstructionsAfterRegisterAllocation(), 0, getInstructionsAfterRegisterAllocation().size()));
 }
 
 void IRGenerator::visit(AST::PrimitiveType *node) {

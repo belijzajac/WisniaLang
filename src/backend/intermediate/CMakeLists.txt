@@ -21,8 +21,8 @@ set(WISNIA_SOURCES
   backend/intermediate/Instruction.hpp
   backend/intermediate/Instruction.cpp
   backend/intermediate/Operation.hpp
-  backend/intermediate/InstructionPrintHelper.hpp
-  backend/intermediate/InstructionPrintHelper.cpp
+  backend/intermediate/IRPrintHelper.hpp
+  backend/intermediate/IRPrintHelper.cpp
   backend/intermediate/Modules.hpp
   backend/intermediate/Modules.cpp
   PARENT_SCOPE

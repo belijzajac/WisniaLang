@@ -26,8 +26,8 @@
 #include <stack>
 #include <variant>
 // Wisnia
-#include "InstructionPrintHelper.hpp"
-#include "InstructionSimplification.hpp"
+#include "IROptimization.hpp"
+#include "IRPrintHelper.hpp"
 #include "RegisterAllocator.hpp"
 #include "TType.hpp"
 #include "Visitor.hpp"
@@ -58,24 +58,24 @@ class IRGenerator : public Visitor {
     return registerAllocator.getInstructions();
   }
 
-  const InstructionList &getInstructionsAfterInstructionSimplification() const {
-    return instructionSimplification.getInstructions();
+  const InstructionList &getInstructionsAfterInstructionOptimization() const {
+    return irOptimization.getInstructions();
   }
 
   const TemporaryVariableList &getTemporaryVars() const {
     return m_tempVars;
   }
 
-  void printInstructions() const {
-    InstructionPrintHelper::print(m_instructions);
+  void printInstructions(std::ostream &output) const {
+    IRPrintHelper::print(output, m_instructions);
   }
 
-  void printInstructionsAfterRegisterAllocation() const {
-    InstructionPrintHelper::print(registerAllocator.getInstructions());
+  void printInstructionsAfterRegisterAllocation(std::ostream &output) const {
+    IRPrintHelper::print(output, registerAllocator.getInstructions());
   }
 
-  void printInstructionsAfterInstructionSimplification() const {
-    InstructionPrintHelper::print(instructionSimplification.getInstructions());
+  void printInstructionsAfterInstructionOptimization(std::ostream &output) const {
+    IRPrintHelper::print(output, irOptimization.getInstructions());
   }
 
  public: // TODO: why are these public???
@@ -129,7 +129,7 @@ class IRGenerator : public Visitor {
   TemporaryVariableList m_tempVars;
   bool m_allocateRegisters; // we want to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
-  InstructionSimplification instructionSimplification{};
+  IROptimization irOptimization{};
   size_t m_labelCount{0};
 };
 

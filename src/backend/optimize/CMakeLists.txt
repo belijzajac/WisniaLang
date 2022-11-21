@@ -16,7 +16,7 @@
 
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  backend/optimize/InstructionSimplification.hpp
-  backend/optimize/InstructionSimplification.cpp
+  backend/optimize/IROptimization.hpp
+  backend/optimize/IROptimization.cpp
   PARENT_SCOPE
 )
