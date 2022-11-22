@@ -16,8 +16,6 @@
 
 set(TEST_FILES
   ${TEST_FILES}
-  syntax-analysis/FunctionTest.cpp
-  syntax-analysis/LoopTest.cpp
-  syntax-analysis/ConditionalTest.cpp
+  syntax-analysis/ParserTest.cpp
   PARENT_SCOPE
 )
