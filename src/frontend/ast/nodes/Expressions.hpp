@@ -42,7 +42,7 @@ class BaseExpr : public Root {
     Root::print(output, level);
   }
 
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void addChild(std::unique_ptr<BaseExpr> child) {
     m_children.push_back(std::move(child));
@@ -64,8 +64,8 @@ class VarExpr : public BaseExpr {
   explicit VarExpr(const std::shared_ptr<Basic::Token> &tok)
       : BaseExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -116,8 +116,8 @@ class BinaryExpr : public BaseExpr {
   explicit BinaryExpr(const std::shared_ptr<Basic::Token> &tok)
       : BaseExpr(tok) { convertOpToStr(); }
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   void print(std::ostream &output, size_t level) const override {
@@ -187,8 +187,8 @@ class BooleanExpr : public BinaryExpr {
   explicit BooleanExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -203,8 +203,8 @@ class EqExpr : public BinaryExpr {
   explicit EqExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -219,8 +219,8 @@ class CompExpr : public BinaryExpr {
   explicit CompExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -235,8 +235,8 @@ class AddExpr : public BinaryExpr {
   explicit AddExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -251,8 +251,8 @@ class SubExpr : public BinaryExpr {
   explicit SubExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -267,8 +267,8 @@ class MultExpr : public BinaryExpr {
   explicit MultExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -283,8 +283,8 @@ class DivExpr : public BinaryExpr {
   explicit DivExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -299,8 +299,8 @@ class UnaryExpr : public BinaryExpr {
   explicit UnaryExpr(const std::shared_ptr<Basic::Token> &tok)
       : BinaryExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -322,8 +322,8 @@ class FnCallExpr : public BaseExpr {
 
   FnCallExpr() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -383,8 +383,8 @@ class ClassInitExpr : public BaseExpr {
   explicit ClassInitExpr(const std::shared_ptr<Basic::Token> &tok)
       : BaseExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -428,8 +428,8 @@ class ClassInitExpr : public BaseExpr {
 
 class ConstExpr : public BaseExpr {
  public:
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
  protected:
@@ -442,8 +442,8 @@ class IntExpr : public ConstExpr {
   explicit IntExpr(const std::shared_ptr<Basic::Token> &tok)
       : ConstExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -458,8 +458,8 @@ class FloatExpr : public ConstExpr {
   explicit FloatExpr(const std::shared_ptr<Basic::Token> &tok)
       : ConstExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -474,8 +474,8 @@ class BoolExpr : public ConstExpr {
   explicit BoolExpr(const std::shared_ptr<Basic::Token> &tok)
       : ConstExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -490,8 +490,8 @@ class StringExpr : public ConstExpr {
   explicit StringExpr(const std::shared_ptr<Basic::Token> &tok)
       : ConstExpr(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {

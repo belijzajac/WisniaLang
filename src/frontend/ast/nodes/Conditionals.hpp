@@ -34,7 +34,7 @@ namespace AST {
 
 class BaseIf : public BaseStmt {
  public:
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level);
@@ -61,8 +61,8 @@ class IfStmt : public BaseIf {
   explicit IfStmt(const std::shared_ptr<Basic::Token> &tok)
       : BaseIf(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -105,8 +105,8 @@ class ElseStmt : public BaseIf {
   explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok)
       : BaseIf(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -124,8 +124,8 @@ class ElseIfStmt : public BaseIf {
   explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok)
       : BaseIf(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {

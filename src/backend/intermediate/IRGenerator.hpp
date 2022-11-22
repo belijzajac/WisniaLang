@@ -78,50 +78,50 @@ class IRGenerator : public Visitor {
     IRPrintHelper::print(output, irOptimization.getInstructions());
   }
 
- public: // TODO: why are these public???
-  void visit(AST::Root *node) override;
-  void visit(AST::PrimitiveType *node) override;
-  void visit(AST::VarExpr *node) override;
-  void visit(AST::BooleanExpr *node) override;
-  void visit(AST::EqExpr *node) override;
-  void visit(AST::CompExpr *node) override;
-  void visit(AST::AddExpr *node) override;
-  void visit(AST::SubExpr *node) override;
-  void visit(AST::MultExpr *node) override;
-  void visit(AST::DivExpr *node) override;
-  void visit(AST::UnaryExpr *node) override;
-  void visit(AST::FnCallExpr *node) override;
-  void visit(AST::ClassInitExpr *node) override;
-  void visit(AST::IntExpr *node) override;
-  void visit(AST::FloatExpr *node) override;
-  void visit(AST::BoolExpr *node) override;
-  void visit(AST::StringExpr *node) override;
-  void visit(AST::StmtBlock *node) override;
-  void visit(AST::ReturnStmt *node) override;
-  void visit(AST::BreakStmt *node) override;
-  void visit(AST::ContinueStmt *node) override;
-  void visit(AST::VarDeclStmt *node) override;
-  void visit(AST::VarAssignStmt *node) override;
-  void visit(AST::ExprStmt *node) override;
-  void visit(AST::ReadStmt *node) override;
-  void visit(AST::WriteStmt *node) override;
-  void visit(AST::Param *node) override;
-  void visit(AST::FnDef *node) override;
-  void visit(AST::CtorDef *node) override;
-  void visit(AST::DtorDef *node) override;
-  void visit(AST::Field *node) override;
-  void visit(AST::ClassDef *node) override;
-  void visit(AST::WhileLoop *node) override;
-  void visit(AST::ForLoop *node) override;
-  void visit(AST::ForEachLoop *node) override;
-  void visit(AST::IfStmt *node) override;
-  void visit(AST::ElseStmt *node) override;
-  void visit(AST::ElseIfStmt *node) override;
+ private:
+  void visit(AST::Root &) override;
+  void visit(AST::PrimitiveType &) override;
+  void visit(AST::VarExpr &) override;
+  void visit(AST::BooleanExpr &) override;
+  void visit(AST::EqExpr &) override;
+  void visit(AST::CompExpr &) override;
+  void visit(AST::AddExpr &) override;
+  void visit(AST::SubExpr &) override;
+  void visit(AST::MultExpr &) override;
+  void visit(AST::DivExpr &) override;
+  void visit(AST::UnaryExpr &) override;
+  void visit(AST::FnCallExpr &) override;
+  void visit(AST::ClassInitExpr &) override;
+  void visit(AST::IntExpr &) override;
+  void visit(AST::FloatExpr &) override;
+  void visit(AST::BoolExpr &) override;
+  void visit(AST::StringExpr &) override;
+  void visit(AST::StmtBlock &) override;
+  void visit(AST::ReturnStmt &) override;
+  void visit(AST::BreakStmt &) override;
+  void visit(AST::ContinueStmt &) override;
+  void visit(AST::VarDeclStmt &) override;
+  void visit(AST::VarAssignStmt &) override;
+  void visit(AST::ExprStmt &) override;
+  void visit(AST::ReadStmt &) override;
+  void visit(AST::WriteStmt &) override;
+  void visit(AST::Param &) override;
+  void visit(AST::FnDef &) override;
+  void visit(AST::CtorDef &) override;
+  void visit(AST::DtorDef &) override;
+  void visit(AST::Field &) override;
+  void visit(AST::ClassDef &) override;
+  void visit(AST::WhileLoop &) override;
+  void visit(AST::ForLoop &) override;
+  void visit(AST::ForEachLoop &) override;
+  void visit(AST::IfStmt &) override;
+  void visit(AST::ElseStmt &) override;
+  void visit(AST::ElseIfStmt &) override;
 
  private:
-  AST::Root *popNode();
+  AST::Root &popNode();
   void genBinaryExpr(Basic::TType exprType);
-  std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> getExpression(AST::Root *node);
+  std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> getExpression(AST::Root &);
 
  private:
   std::stack<AST::Root *> m_stack;

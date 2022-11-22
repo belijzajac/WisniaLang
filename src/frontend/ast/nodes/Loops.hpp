@@ -34,7 +34,7 @@ namespace AST {
 
 class BaseLoop : public BaseStmt {
  public:
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level);
@@ -61,8 +61,8 @@ class WhileLoop : public BaseLoop {
   explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok)
       : BaseLoop(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -92,8 +92,8 @@ class ForLoop : public BaseLoop {
   explicit ForLoop(const std::shared_ptr<Basic::Token> &tok)
       : BaseLoop(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -143,8 +143,8 @@ class ForEachLoop : public BaseLoop {
   explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok)
       : BaseLoop(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {

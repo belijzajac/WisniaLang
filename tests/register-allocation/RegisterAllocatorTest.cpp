@@ -38,8 +38,8 @@ class RegisterAllocatorTestFixture : public testing::Test {
     Lexer lexer{iss};
     Parser parser{lexer};
     const auto &root = parser.parse();
-    root->accept(&m_resolver);
-    root->accept(&m_generator);
+    root->accept(m_resolver);
+    root->accept(m_generator);
   }
 
  protected:

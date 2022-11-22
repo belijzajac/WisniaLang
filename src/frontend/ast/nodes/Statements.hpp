@@ -37,7 +37,7 @@ class BaseStmt : public Root {
  public:
   BaseStmt() = default;
 
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level);
@@ -55,8 +55,8 @@ class StmtBlock : public BaseStmt {
 
   StmtBlock() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -89,8 +89,8 @@ class ReturnStmt : public BaseStmt {
 
   ReturnStmt() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -119,8 +119,8 @@ class BreakStmt : public BaseStmt {
   explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok)
       : BaseStmt(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -133,8 +133,8 @@ class ContinueStmt : public BaseStmt {
   explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok)
       : BaseStmt(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -149,8 +149,8 @@ class VarDeclStmt : public BaseStmt {
 
   VarDeclStmt() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -197,8 +197,8 @@ class VarAssignStmt : public BaseStmt {
 
   VarAssignStmt() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -245,8 +245,8 @@ class ExprStmt : public BaseStmt {
 
   ExprStmt() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -277,8 +277,8 @@ class ReadStmt : public BaseStmt {
 
   ReadStmt() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -311,8 +311,8 @@ class WriteStmt : public BaseStmt {
 
   WriteStmt() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {

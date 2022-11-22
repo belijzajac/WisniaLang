@@ -38,8 +38,8 @@ struct VarInfo {
 TEST_F(NameResolverTest, ResolveVarInfo) {
   NodeCollector<AST::VarExpr> collector;
   NameResolver resolver;
-  m_root->accept(&resolver);
-  m_root->accept(&collector);
+  m_root->accept(resolver);
+  m_root->accept(collector);
   const auto &collectedVars = collector.getNodes();
   EXPECT_EQ(collectedVars.size(), 44);
 

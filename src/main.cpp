@@ -72,12 +72,12 @@ int main(int argc, char *argv[]) {
       lexer.print(std::cout);
     }
     NameResolver resolver;
-    root->accept(&resolver);
+    root->accept(resolver);
     if (config.dump == "ast") {
       root->print(std::cout);
     }
     IRGenerator generator;
-    root->accept(&generator);
+    root->accept(generator);
     if (config.dump == "ir") {
       generator.printInstructionsAfterInstructionOptimization(std::cout);
     }

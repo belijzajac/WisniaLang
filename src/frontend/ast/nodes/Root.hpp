@@ -35,7 +35,7 @@ namespace AST {
 
 class IVisitable {
  public:
-  virtual void accept(Visitor *v) = 0;
+  virtual void accept(Visitor &) = 0;
 };
 
 class Root : public IVisitable {
@@ -43,8 +43,8 @@ class Root : public IVisitable {
   Root() = default;
   virtual ~Root() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   virtual std::string kind() const {

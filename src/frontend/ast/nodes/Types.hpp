@@ -36,7 +36,7 @@ class BaseType : public Root {
   explicit BaseType(const std::shared_ptr<Basic::Token> &tok)
       : Root(tok) { m_strType = typeToStr(getType()); }
 
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level);
@@ -80,8 +80,8 @@ class PrimitiveType : public BaseType {
   explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok)
       : BaseType(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {

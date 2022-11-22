@@ -36,8 +36,8 @@ class Param : public Root {
   explicit Param(const std::shared_ptr<Basic::Token> &tok)
       : Root(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -72,7 +72,7 @@ class BaseDef : public Root {
   explicit BaseDef(const std::shared_ptr<Basic::Token> &tok)
       : Root(tok) {}
 
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
@@ -102,7 +102,7 @@ class MethodDef : public BaseDef {
   explicit MethodDef(const std::shared_ptr<Basic::Token> &tok)
       : BaseDef(tok) {}
 
-  void accept(Visitor *v) override = 0;
+  void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     BaseDef::print(output, level++);
@@ -145,8 +145,8 @@ class FnDef : public MethodDef {
   explicit FnDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -164,8 +164,8 @@ class CtorDef : public MethodDef {
   explicit CtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -183,8 +183,8 @@ class DtorDef : public MethodDef {
   explicit DtorDef(const std::shared_ptr<Basic::Token> &tok)
       : MethodDef(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -204,8 +204,8 @@ class Field : public Root {
 
   Field() = default;
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {
@@ -249,8 +249,8 @@ class ClassDef : public BaseDef {
   explicit ClassDef(const std::shared_ptr<Basic::Token> &tok)
       : BaseDef(tok) {}
 
-  void accept(Visitor *v) override {
-    v->visit(this);
+  void accept(Visitor &v) override {
+    v.visit(*this);
   }
 
   std::string kind() const override {

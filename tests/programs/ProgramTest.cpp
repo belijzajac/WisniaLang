@@ -45,8 +45,8 @@ class IProgramTestFixture : public testing::Test {
     Lexer lexer{iss};
     Parser parser{lexer};
     const auto &root = parser.parse();
-    root->accept(&m_resolver);
-    root->accept(&m_generator);
+    root->accept(m_resolver);
+    root->accept(m_generator);
     CodeGenerator codeGenerator{};
     codeGenerator.generate(m_generator.getInstructionsAfterInstructionOptimization());
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};

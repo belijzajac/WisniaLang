@@ -31,9 +31,9 @@ using namespace Wisnia;
 using namespace Basic;
 using namespace AST;
 
-AST::Root *IRGenerator::popNode() {
+AST::Root &IRGenerator::popNode() {
   assert(!m_stack.empty() && "The stack is empty");
-  auto *topNode{m_stack.top()};
+  auto &topNode{*m_stack.top()};
   m_stack.pop();
   return topNode;
 }
@@ -97,19 +97,19 @@ constexpr TType getIdentForLitType(TType type) {
 }
 
 void IRGenerator::genBinaryExpr(Basic::TType exprType) {
-  auto rhs = popNode();
-  auto lhs = popNode();
+  const auto &rhs = popNode();
+  const auto &lhs = popNode();
 
   auto varToken = std::make_shared<Basic::Token>(
-    getIdentForLitType(rhs->getToken()->getType()),
+    getIdentForLitType(rhs.getToken()->getType()),
     "_t" + std::to_string(m_tempVars.size())
   );
 
   m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
   m_stack.push(m_tempVars.back().get());
 
-  bool isFloat = rhs->getToken()->getType() == TType::LIT_FLT ||
-                 rhs->getToken()->getType() == TType::IDENT_FLOAT;
+  bool isFloat = rhs.getToken()->getType() == TType::LIT_FLT ||
+                 rhs.getToken()->getType() == TType::IDENT_FLOAT;
   Operation op = getOperationForBinaryExpr(exprType, isFloat);
 
   // _tx = a <op> b rewritten as
@@ -117,27 +117,25 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
   //    _tx = _tx <op> b
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    varToken,        // _tx
-    lhs->getToken()  // a
+    varToken,       // _tx
+    lhs.getToken()  // a
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    op,              // <op>
-    varToken,        // _tx
-    rhs->getToken()  // b
+    op,             // <op>
+    varToken,       // _tx
+    rhs.getToken()  // b
   ));
 }
 
-std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(AST::Root *node) {
-  assert(node != nullptr);
-
+std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(AST::Root &node) {
   std::shared_ptr<Basic::Token> token;
   TType type;
 
-  if (dynamic_cast<AST::BinaryExpr *>(node)) {
+  if (dynamic_cast<AST::BinaryExpr *>(&node)) {
     token = m_tempVars.back()->getToken();
     type  = m_tempVars.back()->getToken()->getType();
-  } else if (dynamic_cast<AST::FnCallExpr *>(node)) {
-    type  = node->getToken()->getType();
+  } else if (dynamic_cast<AST::FnCallExpr *>(&node)) {
+    type  = node.getToken()->getType();
     token = std::make_shared<Basic::Token>(
       getIdentForLitType(type),
       "_t" + std::to_string(m_tempVars.size())
@@ -158,11 +156,11 @@ std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpressi
         functionReturn
       ));
     }
-  } else if (node->getToken()->isIdentifierType()) {
-    token = node->getToken();
+  } else if (node.getToken()->isIdentifierType()) {
+    token = node.getToken();
     type  = token->getType();
-  } else if (node->getToken()->isLiteralType()) {
-    const auto &litToken = node->getToken();
+  } else if (node.getToken()->isLiteralType()) {
+    const auto &litToken = node.getToken();
     auto varToken = std::make_shared<Basic::Token>(
       getIdentForLitType(litToken->getType()),
       "_t" + std::to_string(m_tempVars.size())
@@ -182,11 +180,11 @@ std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpressi
   return {token, type};
 }
 
-void IRGenerator::visit(AST::Root *node) {
+void IRGenerator::visit(AST::Root &node) {
   size_t last{0};
-  const auto &functions = node->getGlobalFunctions();
+  const auto &functions = node.getGlobalFunctions();
   for (const auto &function : std::ranges::reverse_view(functions)) {
-    function->accept(this);
+    function->accept(*this);
     const size_t start = last;
     const size_t end   = last = m_instructions.size();
     if (m_allocateRegisters) {
@@ -209,62 +207,62 @@ void IRGenerator::visit(AST::Root *node) {
   irOptimization.optimize(vec_slice(getInstructionsAfterRegisterAllocation(), 0, getInstructionsAfterRegisterAllocation().size()));
 }
 
-void IRGenerator::visit(AST::PrimitiveType *node) {
+void IRGenerator::visit(AST::PrimitiveType &) {
 }
 
-void IRGenerator::visit(AST::VarExpr *node) {
-  m_stack.push(node);
+void IRGenerator::visit(AST::VarExpr &node) {
+  m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::BooleanExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::BooleanExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::EqExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::EqExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::CompExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::CompExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::AddExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::AddExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::SubExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::SubExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::MultExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::MultExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::DivExpr *node) {
-  node->lhs()->accept(this);
-  node->rhs()->accept(this);
-  genBinaryExpr(node->getToken()->getType());
+void IRGenerator::visit(AST::DivExpr &node) {
+  node.lhs()->accept(*this);
+  node.rhs()->accept(*this);
+  genBinaryExpr(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::UnaryExpr *node) {
-  node->lhs()->accept(this);
+void IRGenerator::visit(AST::UnaryExpr &node) {
+  node.lhs()->accept(*this);
   throw NotImplementedError{"Unary expressions are not supported"};
 }
 
-void IRGenerator::visit(AST::FnCallExpr *node) {
-  node->getVar()->accept(this);
+void IRGenerator::visit(AST::FnCallExpr &node) {
+  node.getVar()->accept(*this);
   constexpr auto registers = RegisterAllocator::getAllRegisters();
 
   // suboptimal approach to avoid overriding registers inside the called function
@@ -276,9 +274,9 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
     ));
   }
 
-  for (const auto &arg : node->getArgs()) {
-    arg->accept(this);
-    const auto &[argToken, _] = getExpression(arg.get());
+  for (const auto &arg : node.getArgs()) {
+    arg->accept(*this);
+    const auto &[argToken, _] = getExpression(*arg);
     auto varToken = std::make_shared<Basic::Token>(
       getIdentForLitType(argToken->getType()),
       "_t" + std::to_string(m_tempVars.size())
@@ -296,7 +294,7 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
     ));
   }
 
-  const auto &functionName = node->getFnName();
+  const auto &functionName = node.getFnName();
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::CALL,
     std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getValue<std::string>())
@@ -312,39 +310,39 @@ void IRGenerator::visit(AST::FnCallExpr *node) {
   }
 }
 
-void IRGenerator::visit(AST::ClassInitExpr *node) {
-  node->getVar()->accept(this);
-  for (const auto &arg : node->getArgs()) {
-    arg->accept(this);
+void IRGenerator::visit(AST::ClassInitExpr &node) {
+  node.getVar()->accept(*this);
+  for (const auto &arg : node.getArgs()) {
+    arg->accept(*this);
   }
   throw NotImplementedError{"Class initialization expressions are not supported"};
 }
 
-void IRGenerator::visit(AST::IntExpr *node) {
-  m_stack.push(node);
+void IRGenerator::visit(AST::IntExpr &node) {
+  m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::FloatExpr *node) {
-  m_stack.push(node);
+void IRGenerator::visit(AST::FloatExpr &node) {
+  m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::BoolExpr *node) {
-  m_stack.push(node);
+void IRGenerator::visit(AST::BoolExpr &node) {
+  m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::StringExpr *node) {
-  m_stack.push(node);
+void IRGenerator::visit(AST::StringExpr &node) {
+  m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::StmtBlock *node) {
-  for (const auto &stmt : node->getStatements()) {
-    stmt->accept(this);
+void IRGenerator::visit(AST::StmtBlock &node) {
+  for (const auto &stmt : node.getStatements()) {
+    stmt->accept(*this);
   }
 }
 
-void IRGenerator::visit(AST::ReturnStmt *node) {
-  node->getReturnValue()->accept(this);
-  const auto &[token, _] = getExpression(node->getReturnValue().get());
+void IRGenerator::visit(AST::ReturnStmt &node) {
+  node.getReturnValue()->accept(*this);
+  const auto &[token, _] = getExpression(*node.getReturnValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::PUSH,
     nullptr,
@@ -352,43 +350,43 @@ void IRGenerator::visit(AST::ReturnStmt *node) {
   ));
 }
 
-void IRGenerator::visit(AST::BreakStmt *node) {
+void IRGenerator::visit(AST::BreakStmt &) {
   throw NotImplementedError{"Break statements are not supported"};
 }
 
-void IRGenerator::visit(AST::ContinueStmt *node) {
+void IRGenerator::visit(AST::ContinueStmt &) {
   throw NotImplementedError{"Continue statements are not supported"};
 }
 
-void IRGenerator::visit(AST::VarDeclStmt *node) {
-  node->getValue()->accept(this);
-  const auto &[token, _] = getExpression(node->getValue().get());
+void IRGenerator::visit(AST::VarDeclStmt &node) {
+  node.getValue()->accept(*this);
+  const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    node->getVar()->getToken(), // int a
-    token                       // _tx
+    node.getVar()->getToken(), // int a
+    token                      // _tx
   ));
 }
 
-void IRGenerator::visit(AST::VarAssignStmt *node) {
-  node->getVar()->accept(this);
-  node->getValue()->accept(this);
+void IRGenerator::visit(AST::VarAssignStmt &node) {
+  node.getVar()->accept(*this);
+  node.getValue()->accept(*this);
 
-  const auto &[token, _] = getExpression(node->getValue().get());
+  const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    node->getVar()->getToken(),
+    node.getVar()->getToken(),
     token
   ));
 }
 
-void IRGenerator::visit(AST::ExprStmt *node) {
-  node->getExpr()->accept(this);
+void IRGenerator::visit(AST::ExprStmt &node) {
+  node.getExpr()->accept(*this);
 }
 
-void IRGenerator::visit(AST::ReadStmt *node) {
-  for (const auto &var : node->getVars()) {
-    var->accept(this);
+void IRGenerator::visit(AST::ReadStmt &node) {
+  for (const auto &var : node.getVars()) {
+    var->accept(*this);
   }
   throw NotImplementedError{"Read statements are not supported"};
 }
@@ -400,13 +398,13 @@ void IRGenerator::visit(AST::ReadStmt *node) {
   mov rdi, 0x1       ;; stdout file descriptor
   syscall            ;; make the system call
 */
-void IRGenerator::visit(AST::WriteStmt *node) {
-  for (const auto &expr : node->getExprs()) {
-    expr->accept(this);
+void IRGenerator::visit(AST::WriteStmt &node) {
+  for (const auto &expr : node.getExprs()) {
+    expr->accept(*this);
   }
 
-  for (const auto &expr : node->getExprs()) {
-    const auto &[token, type] = getExpression(expr.get());
+  for (const auto &expr : node.getExprs()) {
+    const auto &[token, type] = getExpression(*expr);
 
     if (token->isIdentifierType()) {
       // Resolved at compiled program's run-time
@@ -577,15 +575,15 @@ void IRGenerator::visit(AST::WriteStmt *node) {
   }
 }
 
-void IRGenerator::visit(AST::Param *node) {
-  node->getVar()->accept(this);
+void IRGenerator::visit(AST::Param &node) {
+  node.getVar()->accept(*this);
   throw NotImplementedError{"Function parameters are not supported"};
 }
 
-void IRGenerator::visit(AST::FnDef *node) {
-  node->getVar()->accept(this);
-  auto functionName = popNode();
-  const auto functionNameStr = functionName->getToken()->getValue<std::string>();
+void IRGenerator::visit(AST::FnDef &node) {
+  node.getVar()->accept(*this);
+  const auto &functionName = popNode();
+  const auto functionNameStr = functionName.getToken()->getValue<std::string>();
   std::shared_ptr<Basic::Token> returnAddressToken;
 
   if (functionNameStr != "main") {
@@ -610,7 +608,7 @@ void IRGenerator::visit(AST::FnDef *node) {
     ));
   }
 
-  for (const auto &param : std::ranges::reverse_view(node->getParams())) {
+  for (const auto &param : std::ranges::reverse_view(node.getParams())) {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
@@ -618,7 +616,7 @@ void IRGenerator::visit(AST::FnDef *node) {
     ));
   }
 
-  node->getBody()->accept(this);
+  node.getBody()->accept(*this);
 
   if (functionNameStr != "main") {
     // put the function return address back on the stack
@@ -645,47 +643,47 @@ void IRGenerator::visit(AST::FnDef *node) {
   }
 }
 
-void IRGenerator::visit(AST::CtorDef *node) {
+void IRGenerator::visit(AST::CtorDef &) {
   throw NotImplementedError{"Constructors are not supported"};
 }
 
-void IRGenerator::visit(AST::DtorDef *node) {
+void IRGenerator::visit(AST::DtorDef &) {
   throw NotImplementedError{"Destructors are not supported"};
 }
 
-void IRGenerator::visit(AST::Field *node) {
+void IRGenerator::visit(AST::Field &) {
   throw NotImplementedError{"Class fields are not supported"};
 }
 
-void IRGenerator::visit(AST::ClassDef *node) {
+void IRGenerator::visit(AST::ClassDef &) {
   throw NotImplementedError{"Classes are not supported"};
 }
 
-void IRGenerator::visit(AST::WhileLoop *node) {
-  node->getCondition()->accept(this);
-  node->getBody()->accept(this);
+void IRGenerator::visit(AST::WhileLoop &node) {
+  node.getCondition()->accept(*this);
+  node.getBody()->accept(*this);
   throw NotImplementedError{"While loops are not supported"};
 }
 
-void IRGenerator::visit(AST::ForLoop *node) {
-  node->getInitial()->accept(this);
-  node->getCondition()->accept(this);
-  node->getIncrement()->accept(this);
-  node->getBody()->accept(this);
+void IRGenerator::visit(AST::ForLoop &node) {
+  node.getInitial()->accept(*this);
+  node.getCondition()->accept(*this);
+  node.getIncrement()->accept(*this);
+  node.getBody()->accept(*this);
   throw NotImplementedError{"For loops are not supported"};
 }
 
-void IRGenerator::visit(AST::ForEachLoop *node) {
-  node->getElement()->accept(this);
-  node->getCollection()->accept(this);
-  node->getBody()->accept(this);
+void IRGenerator::visit(AST::ForEachLoop &node) {
+  node.getElement()->accept(*this);
+  node.getCollection()->accept(*this);
+  node.getBody()->accept(*this);
   throw NotImplementedError{"For-each loops are not supported"};
 }
 
-void IRGenerator::visit(AST::IfStmt *node) {
-  node->getCondition()->accept(this);
+void IRGenerator::visit(AST::IfStmt &node) {
+  node.getCondition()->accept(*this);
 
-  const auto &[token, _] = getExpression(node->getCondition().get());
+  const auto &[token, _] = getExpression(*node.getCondition());
   const std::array<std::string_view, 3> labels {
     ".L" + std::to_string(m_labelCount) + "_true",
     ".L" + std::to_string(m_labelCount) + "_false",
@@ -704,13 +702,13 @@ void IRGenerator::visit(AST::IfStmt *node) {
     std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0].data())
   ));
 
-  for (const auto &elseBl : node->getElseStatements()) {
+  for (const auto &elseBl : node.getElseStatements()) {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::LABEL,
       nullptr,
       std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1].data())
     ));
-    elseBl->accept(this);
+    elseBl->accept(*this);
   }
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -724,7 +722,7 @@ void IRGenerator::visit(AST::IfStmt *node) {
     std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0].data())
   ));
 
-  node->getBody()->accept(this);
+  node.getBody()->accept(*this);
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
@@ -735,12 +733,12 @@ void IRGenerator::visit(AST::IfStmt *node) {
   m_labelCount++;
 }
 
-void IRGenerator::visit(AST::ElseStmt *node) {
-  node->getBody()->accept(this);
+void IRGenerator::visit(AST::ElseStmt &node) {
+  node.getBody()->accept(*this);
 }
 
-void IRGenerator::visit(AST::ElseIfStmt *node) {
-  node->getCondition()->accept(this);
-  node->getBody()->accept(this);
+void IRGenerator::visit(AST::ElseIfStmt &node) {
+  node.getCondition()->accept(*this);
+  node.getBody()->accept(*this);
   throw NotImplementedError{"Else-if statements are not supported"};
 }
