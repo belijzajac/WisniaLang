@@ -17,6 +17,7 @@
 set(TEST_FILES
   ${TEST_FILES}
   lexical-analysis/LexerTest.cpp
+  lexical-analysis/TokenTest.cpp
   lexical-analysis/ReadFromFile.cpp
   PARENT_SCOPE
 )

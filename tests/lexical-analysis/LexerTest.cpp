@@ -96,35 +96,6 @@ TEST(LexerTest, Operators) {
   EXPECT_EQ(tokens[36]->getType(), TType::TOK_EOF);
 }
 
-TEST(LexerTest, StringsWithEscapeSymbols) {
-  constexpr auto program = R"(
-    "hello\nworld"
-    "hello\fworld"
-    "hello\rworld"
-    "hello\tworld"
-    "hello\vworld"
-    "hello \"world\""
-  )"sv;
-  std::istringstream iss{program.data()};
-  Lexer lexer{iss};
-  const auto &tokens{lexer.getTokens()};
-
-  EXPECT_EQ(tokens.size(), 7);
-  EXPECT_EQ(tokens[0]->getType(), TType::LIT_STR);
-  EXPECT_EQ(tokens[0]->getValue<std::string>(), "hello\nworld");
-  EXPECT_EQ(tokens[1]->getType(), TType::LIT_STR);
-  EXPECT_EQ(tokens[1]->getValue<std::string>(), "hello\fworld");
-  EXPECT_EQ(tokens[2]->getType(), TType::LIT_STR);
-  EXPECT_EQ(tokens[2]->getValue<std::string>(), "hello\rworld");
-  EXPECT_EQ(tokens[3]->getType(), TType::LIT_STR);
-  EXPECT_EQ(tokens[3]->getValue<std::string>(), "hello\tworld");
-  EXPECT_EQ(tokens[4]->getType(), TType::LIT_STR);
-  EXPECT_EQ(tokens[4]->getValue<std::string>(), "hello\vworld");
-  EXPECT_EQ(tokens[5]->getType(), TType::LIT_STR);
-  EXPECT_EQ(tokens[5]->getValue<std::string>(), "hello \"world\"");
-  EXPECT_EQ(tokens[6]->getType(), TType::TOK_EOF);
-}
-
 TEST(LexerTest, StringWithUnknownEscapeSymbol) {
   EXPECT_THROW(
       {

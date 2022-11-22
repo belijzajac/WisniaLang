@@ -252,6 +252,7 @@ TEST(ParserTest, Conditionals) {
   EXPECT_NE(ifCond, nullptr);
   EXPECT_EQ(ifCond->getToken()->getType(), TType::KW_TRUE);
   EXPECT_EQ(ifCond->getToken()->getValue<bool>(), true);
+  EXPECT_STREQ(ifCond->getToken()->getValueStr().c_str(), "true");
   // { f(5 - 1, 5); }
   auto ifBody = dynamic_cast<AST::StmtBlock *>(&*ifStmt->getBody());
   EXPECT_NE(ifBody, nullptr);
