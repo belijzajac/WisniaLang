@@ -145,14 +145,11 @@ std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
 
 // <STMT_BLOCK> ::= "{" "}" | "{" <STMTS> "}"
 std::unique_ptr<BaseStmt> Parser::parseStmtBlock() {
-  if (has(TType::OP_BRACE_O)) {
-    consume();  // eat "{"
-    auto stmtBlock = std::make_unique<StmtBlock>();
-    while (hasNext() && !has(TType::OP_BRACE_C)) stmtBlock->addStmt(parseStmt());
-    expect(TType::OP_BRACE_C);  // expect "}"
-    return stmtBlock;
-  }
-  return parseStmt();
+  expect(TType::OP_BRACE_O);  // expect "{"
+  auto stmtBlock = std::make_unique<StmtBlock>();
+  while (hasNext() && !has(TType::OP_BRACE_C)) stmtBlock->addStmt(parseStmt());
+  expect(TType::OP_BRACE_C);  // expect "}"
+  return stmtBlock;
 }
 
 // <STMT> ::= <FN_RETURN_STMT> <STMT_END>
@@ -344,13 +341,13 @@ std::unique_ptr<BaseExpr> Parser::parseMultExpr() {
 // <UNARY_EXPR> ::= {UNARY_SYM} <SOME_EXPR>
 std::unique_ptr<BaseExpr> Parser::parseUnaryExpr() {
   // Checks for acceptable token types
-  auto isAnyOf{[&]() -> bool { return hasAnyOf(TType::OP_UNEG, TType::OP_UADD); }};
-  // {!|++} <SOME_EXPR>
+  auto isAnyOf{[&]() -> bool { return hasAnyOf(TType::OP_UNEG, TType::OP_UADD, TType::OP_USUB); }};
+  // {!|++|--} <SOME_EXPR>
   if (isAnyOf()) {
     auto lhs = std::unique_ptr<BaseExpr>();
     while (isAnyOf()) {  // <UNARY_SYM> ...
       const auto &token = peek();
-      consume(); // eat either "!" or "++"
+      consume(); // eat "!", "++", or "--"
       auto rhs = parseUnaryExpr();
       // Append the unary expression we've just found
       lhs = std::make_unique<UnaryExpr>(token);
@@ -613,9 +610,7 @@ std::unique_ptr<BaseStmt> Parser::parseExprStmt() {
 
 // <IO_STMT> ::= <INPUT_STMT> | <OUTPUT_STMT>
 std::unique_ptr<BaseStmt> Parser::parseIOStmt() {
-  if (has(TType::KW_READ))
-    return parseReadIOStmt();
-  return parseWriteIOStmt();
+  return has(TType::KW_READ) ? parseReadIOStmt() : parseWriteIOStmt();
 }
 
 // <INPUT_STMT> ::= "read" "(" <INPUT_SEQ> ")"

@@ -28,9 +28,62 @@ using namespace Wisnia;
 using namespace Basic;
 using namespace std::literals;
 
+TEST(ParserTest, NotAGlobalFunctionOrClass) {
+  constexpr auto program = R"(int a;)"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+
+  EXPECT_THROW(
+      {
+        Parser parser{lexer};
+        const auto &root = parser.parse();
+      },
+      ParserError);
+}
+
+TEST(ParserTest, FunctionsMustHaveParametersList) {
+  constexpr auto program = R"(fn main {})"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+
+  EXPECT_THROW(
+      {
+        Parser parser{lexer};
+        const auto &root = parser.parse();
+      },
+      ParserError);
+}
+
+TEST(ParserTest, FunctionNameMustBeAVariable) {
+  constexpr auto program = R"(fn 555() {})"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+
+  EXPECT_THROW(
+      {
+        Parser parser{lexer};
+        const auto &root = parser.parse();
+      },
+      ParserError);
+}
+
+TEST(ParserTest, FunctionMustHaveASupportedReturnType) {
+  constexpr auto program = R"(fn main() -> lol {})"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+
+  EXPECT_THROW(
+      {
+        Parser parser{lexer};
+        const auto &root = parser.parse();
+      },
+      ParserError);
+}
+
 TEST(ParserTest, Functions) {
   constexpr auto program = R"(
   fn empty() {}
+  fn emptyReturn() { return; }
   fn main(argc: int, argv: string) -> int { return 5; }
   )"sv;
   std::istringstream iss{program.data()};
@@ -38,7 +91,7 @@ TEST(ParserTest, Functions) {
   Parser parser{lexer};
   const auto &root = parser.parse();
 
-  EXPECT_EQ(root->getGlobalFunctions().size(), 2);
+  EXPECT_EQ(root->getGlobalFunctions().size(), 3);
 
   {
     // fn empty()
@@ -56,8 +109,26 @@ TEST(ParserTest, Functions) {
   }
 
   {
-    // fn main(argc: int, argv: string) -> int
+    // fn emptyReturn()
     auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[1]);
+    EXPECT_NE(fn, nullptr);
+    EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "emptyReturn");
+    EXPECT_EQ(fn->getParams().size(), 0);
+    auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+    EXPECT_NE(fnVar, nullptr);
+    EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+    // { return; }
+    auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+    EXPECT_NE(stmtBlock, nullptr);
+    EXPECT_EQ(stmtBlock->getStatements().size(), 1);
+    auto returnStmt = dynamic_cast<AST::ReturnStmt *>(&*stmtBlock->getStatements()[0]);
+    EXPECT_NE(returnStmt, nullptr);
+    EXPECT_EQ(returnStmt->getReturnValue(), nullptr);
+  }
+
+  {
+    // fn main(argc: int, argv: string) -> int
+    auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[2]);
     EXPECT_NE(fn, nullptr);
     EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
     EXPECT_EQ(fn->getParams().size(), 2);
@@ -346,4 +417,152 @@ TEST(ParserTest, Conditionals) {
   auto breakExprStmt = dynamic_cast<AST::BreakStmt *>(&*elseBody->getStatements()[0]);
   EXPECT_NE(breakExprStmt, nullptr);
   EXPECT_EQ(breakExprStmt->getToken()->getType(), TType::KW_BREAK);
+}
+
+TEST(ParserTest, LogicalOrExpression) {
+  constexpr auto program = R"(
+  fn main() {
+    bool var1 = var2 || var3;
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalFunctions().size(), 1);
+
+  // fn main()
+  auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0]);
+  EXPECT_NE(fn, nullptr);
+  EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
+  EXPECT_EQ(fn->getParams().size(), 0);
+  auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+  EXPECT_NE(fnVar, nullptr);
+  EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+  auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+  EXPECT_NE(stmtBlock, nullptr);
+  EXPECT_EQ(stmtBlock->getStatements().size(), 1);
+  // bool var1
+  auto varDeclStmt = dynamic_cast<AST::VarDeclStmt *>(&*stmtBlock->getStatements()[0]);
+  EXPECT_NE(varDeclStmt, nullptr);
+  EXPECT_EQ(varDeclStmt->getVar()->getToken()->getType(), TType::IDENT_BOOL);
+  EXPECT_STREQ(varDeclStmt->getVar()->getToken()->getValue<std::string>().c_str(), "var1");
+  auto binaryExpr = dynamic_cast<AST::BinaryExpr *>(varDeclStmt->getValue().get());
+  EXPECT_NE(binaryExpr, nullptr);
+  // ||
+  EXPECT_EQ(binaryExpr->getOperand(), TType::OP_OR);
+  // var2
+  EXPECT_NE(binaryExpr->lhs(), nullptr);
+  EXPECT_EQ(binaryExpr->lhs()->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(binaryExpr->lhs()->getToken()->getValue<std::string>().c_str(), "var2");
+  // var3
+  EXPECT_NE(binaryExpr->rhs(), nullptr);
+  EXPECT_EQ(binaryExpr->rhs()->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(binaryExpr->rhs()->getToken()->getValue<std::string>().c_str(), "var3");
+}
+
+TEST(ParserTest, UnaryExpression) {
+  constexpr auto program = R"(
+  fn main() {
+    !var1;
+    ++var2;
+    --var3;
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalFunctions().size(), 1);
+
+  // fn main()
+  auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0]);
+  EXPECT_NE(fn, nullptr);
+  EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
+  EXPECT_EQ(fn->getParams().size(), 0);
+  auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+  EXPECT_NE(fnVar, nullptr);
+  EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+  auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+  EXPECT_NE(stmtBlock, nullptr);
+  EXPECT_EQ(stmtBlock->getStatements().size(), 3);
+  // !
+  auto negExpressionStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[0]);
+  EXPECT_NE(negExpressionStmt, nullptr);
+  auto negExpression = dynamic_cast<AST::UnaryExpr *>(negExpressionStmt->getExpr().get());
+  EXPECT_NE(negExpression, nullptr);
+  EXPECT_EQ(negExpression->getOperand(), TType::OP_UNEG);
+  // var1
+  EXPECT_NE(negExpression->lhs(), nullptr);
+  EXPECT_EQ(negExpression->lhs()->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(negExpression->lhs()->getToken()->getValue<std::string>().c_str(), "var1");
+  // ++
+  auto ppExpressionStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[1]);
+  EXPECT_NE(ppExpressionStmt, nullptr);
+  auto ppExpression = dynamic_cast<AST::UnaryExpr *>(ppExpressionStmt->getExpr().get());
+  EXPECT_NE(ppExpression, nullptr);
+  EXPECT_EQ(ppExpression->getOperand(), TType::OP_UADD);
+  // var2
+  EXPECT_NE(ppExpression->lhs(), nullptr);
+  EXPECT_EQ(ppExpression->lhs()->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(ppExpression->lhs()->getToken()->getValue<std::string>().c_str(), "var2");
+  // --
+  auto mmExpressionStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[2]);
+  EXPECT_NE(mmExpressionStmt, nullptr);
+  auto mmExpression = dynamic_cast<AST::UnaryExpr *>(mmExpressionStmt->getExpr().get());
+  EXPECT_NE(mmExpression, nullptr);
+  EXPECT_EQ(mmExpression->getOperand(), TType::OP_USUB);
+  // var3
+  EXPECT_NE(mmExpression->lhs(), nullptr);
+  EXPECT_EQ(mmExpression->lhs()->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(mmExpression->lhs()->getToken()->getValue<std::string>().c_str(), "var3");
+}
+
+TEST(ParserTest, IOStatements) {
+  constexpr auto program = R"(
+  fn main() {
+    print(var1, var2);
+    read(var3, var4);
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalFunctions().size(), 1);
+
+  // fn main()
+  auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0]);
+  EXPECT_NE(fn, nullptr);
+  EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
+  EXPECT_EQ(fn->getParams().size(), 0);
+  auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+  EXPECT_NE(fnVar, nullptr);
+  EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+  auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+  EXPECT_NE(stmtBlock, nullptr);
+  EXPECT_EQ(stmtBlock->getStatements().size(), 2);
+  // print(var1, var2)
+  auto printStmt = dynamic_cast<AST::WriteStmt *>(&*stmtBlock->getStatements()[0]);
+  EXPECT_NE(printStmt, nullptr);
+  EXPECT_EQ(printStmt->getExprs().size(), 2);
+  constexpr std::array<std::string_view, 2> printVariables{"var1", "var2"};
+  for (size_t i = 0; i < printStmt->getExprs().size(); i++) {
+    const auto &expr = printStmt->getExprs()[i];
+    EXPECT_EQ(expr->getToken()->getType(), TType::IDENT);
+    EXPECT_STREQ(expr->getToken()->getValue<std::string>().c_str(), printVariables[i].data());
+  }
+  // read(var3, var4)
+  auto readStmt = dynamic_cast<AST::ReadStmt *>(&*stmtBlock->getStatements()[1]);
+  EXPECT_NE(readStmt, nullptr);
+  EXPECT_EQ(readStmt->getVars().size(), 2);
+  constexpr std::array<std::string_view, 2> readVariables{"var3", "var4"};
+  for (size_t i = 0; i < readStmt->getVars().size(); i++) {
+    const auto &var = readStmt->getVars()[i];
+    EXPECT_EQ(var->getToken()->getType(), TType::IDENT);
+    EXPECT_STREQ(var->getToken()->getValue<std::string>().c_str(), readVariables[i].data());
+  }
 }

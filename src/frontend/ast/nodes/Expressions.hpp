@@ -154,6 +154,8 @@ class BinaryExpr : public BaseExpr {
         // Unary
         case Basic::TType::OP_UADD:
           return "++";
+        case Basic::TType::OP_USUB:
+          return "--";
         case Basic::TType::OP_UNEG:
           return "!";
         // Logical
