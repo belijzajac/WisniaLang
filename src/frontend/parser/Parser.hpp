@@ -49,15 +49,15 @@ class Parser {
  public:
   explicit Parser(const Lexer &lexer);
 
-  // Starts parsing and returns the root node when done doing so
+  // Starts parsing and returns the root node
   std::unique_ptr<AST::Root> parse();
 
  private:
-  // Checks if the current token is of type `token`
+  // Checks if the current token holds a correct type
   bool has(const Basic::TType &token) const;
   bool has2(const Basic::TType &token) const;
 
-  // Checks if the sequence of tokens is of type `token`
+  // Checks if the sequence of tokens holds a correct type
   template <typename... TokenTypes>
   bool hasAnyOf(TokenTypes... type) {
     return (has(type) || ...);
@@ -108,7 +108,7 @@ class Parser {
   // Parses a single parameter
   std::unique_ptr<AST::Param> parseParam();
 
-  // Parses parameters list, found in function and ctor/dtor definitions
+  // Parses parameters list, found in function and constructor/destructor definitions
   std::vector<std::unique_ptr<AST::Param>> parseParamsList();
 
   // Parses primitive types
@@ -130,7 +130,7 @@ class Parser {
   std::unique_ptr<AST::BaseStmt> parseVarDeclStmt();
 
   // Parses variable assignment statement
-  std::unique_ptr<AST::BaseStmt> parseVarAssignStmt(bool expect_semicolon = true);
+  std::unique_ptr<AST::BaseStmt> parseVarAssignStmt(bool expectSemicolon = true);
 
   // Parses expression statement
   std::unique_ptr<AST::BaseStmt> parseExprStmt();
@@ -162,7 +162,7 @@ class Parser {
   // Parses multiple else block statements
   std::vector<std::unique_ptr<AST::BaseIf>> parseMultipleElseBlock();
 
-  // Parses expression -- starts the whole parsing from this function
+  // Parses expression -- start of the expression parsing
   std::unique_ptr<AST::BaseExpr> parseExpr();
 
   // Parses logical AND (&&) expression
@@ -186,14 +186,14 @@ class Parser {
   // Parses other expressions
   std::unique_ptr<AST::BaseExpr> parseSomeExpr();
 
-  // Parses variangle expression (variable, class method call, function call)
+  // Parses variable expression (variable, class method call, function call)
   std::unique_ptr<AST::BaseExpr> parseVarExp();
 
   // Parses function call
   std::unique_ptr<AST::BaseExpr> parseFnCall();
 
   // Parses class method call
-  // e.g. classPtr->getObj()->...->calculateFib(5)
+  // e.g. classPtr->calculateFib(5)
   std::unique_ptr<AST::BaseExpr> parseMethodCall();
 
   // Parses argument list for function, class initialization, and method call
@@ -208,13 +208,13 @@ class Parser {
   // Parses class definitions
   std::unique_ptr<AST::BaseDef> parseClassDef();
 
-  // Parses class c-tor definition
+  // Parses class constructor definition
   std::unique_ptr<AST::BaseDef> parseClassCtorDef();
 
-  // Parses class d-tor definition
+  // Parses class destructor definition
   std::unique_ptr<AST::BaseDef> parseClassDtorDef();
 
-  // Parses class' fields
+  // Parses class fields
   std::unique_ptr<AST::Field> parseClassField();
 };
 

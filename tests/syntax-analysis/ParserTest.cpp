@@ -520,6 +520,65 @@ TEST(ParserTest, UnaryExpression) {
   EXPECT_STREQ(mmExpression->lhs()->getToken()->getValue<std::string>().c_str(), "var3");
 }
 
+TEST(ParserTest, MultiplicationAndDivisionExpression) {
+  constexpr auto program = R"(
+  fn main() {
+    var1 * var2;
+    var3 / var4;
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalFunctions().size(), 1);
+
+  // fn main()
+  auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0]);
+  EXPECT_NE(fn, nullptr);
+  EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
+  EXPECT_EQ(fn->getParams().size(), 0);
+  auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+  EXPECT_NE(fnVar, nullptr);
+  EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+  auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+  EXPECT_NE(stmtBlock, nullptr);
+  EXPECT_EQ(stmtBlock->getStatements().size(), 2);
+  // *
+  auto multiplicationStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[0]);
+  EXPECT_NE(multiplicationStmt, nullptr);
+  EXPECT_EQ(multiplicationStmt->getExpr()->getToken()->getType(), TType::OP_MUL);
+  // var1
+  EXPECT_NE(multiplicationStmt->getExpr()->lhs(), nullptr);
+  auto var1 = dynamic_cast<AST::VarExpr *>(multiplicationStmt->getExpr()->lhs());
+  EXPECT_NE(var1, nullptr);
+  EXPECT_EQ(var1->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(var1->getToken()->getValue<std::string>().c_str(), "var1");
+  // var2
+  EXPECT_NE(multiplicationStmt->getExpr()->rhs(), nullptr);
+  auto var2 = dynamic_cast<AST::VarExpr *>(multiplicationStmt->getExpr()->rhs());
+  EXPECT_NE(var2, nullptr);
+  EXPECT_EQ(var2->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(var2->getToken()->getValue<std::string>().c_str(), "var2");
+  // /
+  auto divisionStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[1]);
+  EXPECT_NE(divisionStmt, nullptr);
+  EXPECT_EQ(divisionStmt->getExpr()->getToken()->getType(), TType::OP_DIV);
+  // var3
+  EXPECT_NE(divisionStmt->getExpr()->lhs(), nullptr);
+  auto var3 = dynamic_cast<AST::VarExpr *>(divisionStmt->getExpr()->lhs());
+  EXPECT_NE(var3, nullptr);
+  EXPECT_EQ(var3->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(var3->getToken()->getValue<std::string>().c_str(), "var3");
+  // var4
+  EXPECT_NE(divisionStmt->getExpr()->rhs(), nullptr);
+  auto var4 = dynamic_cast<AST::VarExpr *>(divisionStmt->getExpr()->rhs());
+  EXPECT_NE(var4, nullptr);
+  EXPECT_EQ(var4->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(var4->getToken()->getValue<std::string>().c_str(), "var4");
+}
+
 TEST(ParserTest, IOStatements) {
   constexpr auto program = R"(
   fn main() {
@@ -565,4 +624,237 @@ TEST(ParserTest, IOStatements) {
     EXPECT_EQ(var->getToken()->getType(), TType::IDENT);
     EXPECT_STREQ(var->getToken()->getValue<std::string>().c_str(), readVariables[i].data());
   }
+}
+
+TEST(ParserTest, FunctionAndMehtodCalls) {
+  constexpr auto program = R"(
+  fn main() {
+    # function call
+    foo(1, 2);
+    bar{3, 4};
+    # method call
+    obj.foo(5, 6);
+    obj->bar(7, 8);
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalFunctions().size(), 1);
+
+  // fn main()
+  auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0]);
+  EXPECT_NE(fn, nullptr);
+  EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
+  EXPECT_EQ(fn->getParams().size(), 0);
+  auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+  EXPECT_NE(fnVar, nullptr);
+  EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+  auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+  EXPECT_NE(stmtBlock, nullptr);
+  EXPECT_EQ(stmtBlock->getStatements().size(), 4);
+  {
+    auto fnCallStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[0]);
+    EXPECT_NE(fnCallStmt, nullptr);
+    auto fnCallExpr = dynamic_cast<AST::FnCallExpr *>(fnCallStmt->getExpr().get());
+    EXPECT_NE(fnCallExpr, nullptr);
+    // foo
+    EXPECT_EQ(fnCallExpr->getVar()->getToken()->getType(), TType::IDENT);
+    EXPECT_STREQ(fnCallExpr->getVar()->getToken()->getValue<std::string>().c_str(), "foo");
+    EXPECT_EQ(fnCallExpr->getFnName()->getType(), TType::IDENT);
+    EXPECT_STREQ(fnCallExpr->getFnName()->getValue<std::string>().c_str(), "foo");
+    // (1, 2)
+    constexpr std::array<size_t, 2> arguments{1, 2};
+    for (size_t i = 0; i < fnCallExpr->getArgs().size(); i++) {
+      const auto &arg = fnCallExpr->getArgs()[i];
+      EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
+      EXPECT_EQ(arg->getToken()->getValue<int>(), arguments[i]);
+    }
+  }
+  {
+    auto fnCallStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[1]);
+    EXPECT_NE(fnCallStmt, nullptr);
+    auto fnCallExpr = dynamic_cast<AST::FnCallExpr *>(fnCallStmt->getExpr().get());
+    EXPECT_NE(fnCallExpr, nullptr);
+    // bar
+    EXPECT_EQ(fnCallExpr->getVar()->getToken()->getType(), TType::IDENT);
+    EXPECT_STREQ(fnCallExpr->getVar()->getToken()->getValue<std::string>().c_str(), "bar");
+    EXPECT_EQ(fnCallExpr->getFnName()->getType(), TType::IDENT);
+    EXPECT_STREQ(fnCallExpr->getFnName()->getValue<std::string>().c_str(), "bar");
+    // (3, 4)
+    constexpr std::array<size_t, 2> arguments{3, 4};
+    for (size_t i = 0; i < fnCallExpr->getArgs().size(); i++) {
+      const auto &arg = fnCallExpr->getArgs()[i];
+      EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
+      EXPECT_EQ(arg->getToken()->getValue<int>(), arguments[i]);
+    }
+  }
+  {
+    auto methodCallStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[2]);
+    EXPECT_NE(methodCallStmt, nullptr);
+    auto methodCallExpr = dynamic_cast<AST::FnCallExpr *>(methodCallStmt->getExpr().get());
+    EXPECT_NE(methodCallExpr, nullptr);
+    // obj.foo
+    EXPECT_EQ(methodCallExpr->getVar()->getToken()->getType(), TType::IDENT);
+    EXPECT_STREQ(methodCallExpr->getVar()->getToken()->getValue<std::string>().c_str(), "obj::foo");
+    EXPECT_EQ(methodCallExpr->getFnName()->getType(), TType::IDENT);
+    EXPECT_STREQ(methodCallExpr->getFnName()->getValue<std::string>().c_str(), "obj::foo");
+    EXPECT_EQ(methodCallExpr->getClassName()->getType(), TType::IDENT);
+    EXPECT_STREQ(methodCallExpr->getClassName()->getValue<std::string>().c_str(), "obj");
+    // (5, 6)
+    constexpr std::array<size_t, 2> arguments{5, 6};
+    for (size_t i = 0; i < methodCallExpr->getArgs().size(); i++) {
+      const auto &arg = methodCallExpr->getArgs()[i];
+      EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
+      EXPECT_EQ(arg->getToken()->getValue<int>(), arguments[i]);
+    }
+  }
+  {
+    auto methodCallStmt = dynamic_cast<AST::ExprStmt *>(&*stmtBlock->getStatements()[3]);
+    EXPECT_NE(methodCallStmt, nullptr);
+    auto methodCallExpr = dynamic_cast<AST::FnCallExpr *>(methodCallStmt->getExpr().get());
+    EXPECT_NE(methodCallExpr, nullptr);
+    // obj->bar
+    EXPECT_EQ(methodCallExpr->getVar()->getToken()->getType(), TType::IDENT);
+    EXPECT_STREQ(methodCallExpr->getVar()->getToken()->getValue<std::string>().c_str(), "obj::bar");
+    EXPECT_EQ(methodCallExpr->getFnName()->getType(), TType::IDENT);
+    EXPECT_STREQ(methodCallExpr->getFnName()->getValue<std::string>().c_str(), "obj::bar");
+    EXPECT_EQ(methodCallExpr->getClassName()->getType(), TType::IDENT);
+    EXPECT_STREQ(methodCallExpr->getClassName()->getValue<std::string>().c_str(), "obj");
+    // (7, 8)
+    constexpr std::array<size_t, 2> arguments{7, 8};
+    for (size_t i = 0; i < methodCallExpr->getArgs().size(); i++) {
+      const auto &arg = methodCallExpr->getArgs()[i];
+      EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
+      EXPECT_EQ(arg->getToken()->getValue<int>(), arguments[i]);
+    }
+  }
+}
+
+TEST(ParserTest, FloatVariables) {
+  constexpr auto program = R"(
+  fn main() {
+    float var1 = 123.45;
+    float var2 {67.89};
+    float var3;
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalFunctions().size(), 1);
+
+  // fn main()
+  auto fn = dynamic_cast<AST::FnDef *>(&*root->getGlobalFunctions()[0]);
+  EXPECT_NE(fn, nullptr);
+  EXPECT_STREQ(fn->getToken()->getValue<std::string>().c_str(), "main");
+  EXPECT_EQ(fn->getParams().size(), 0);
+  auto fnVar = dynamic_cast<AST::VarExpr *>(&*fn->getVar());
+  EXPECT_NE(fnVar, nullptr);
+  EXPECT_EQ(fnVar->getType()->getType(), TType::KW_VOID);
+  auto stmtBlock = dynamic_cast<AST::StmtBlock *>(&*fn->getBody());
+  EXPECT_NE(stmtBlock, nullptr);
+  EXPECT_EQ(stmtBlock->getStatements().size(), 3);
+  {
+    // float var1 = 123.45
+    auto floatDeclStmt = dynamic_cast<AST::VarDeclStmt *>(&*stmtBlock->getStatements()[0]);
+    EXPECT_NE(floatDeclStmt, nullptr);
+    // float
+    auto floatVar = dynamic_cast<AST::VarExpr *>(&*floatDeclStmt->getVar());
+    EXPECT_NE(floatVar, nullptr);
+    EXPECT_EQ(floatVar->getType()->getType(), TType::KW_FLOAT);
+    // var1
+    EXPECT_EQ(floatVar->getToken()->getType(), TType::IDENT_FLOAT);
+    EXPECT_STREQ(floatVar->getToken()->getValue<std::string>().c_str(), "var1");
+    // 123.45
+    auto floatVarConstExpr = dynamic_cast<AST::FloatExpr *>(&*floatDeclStmt->getValue());
+    EXPECT_NE(floatVarConstExpr, nullptr);
+    EXPECT_EQ(floatVarConstExpr->getToken()->getType(), TType::LIT_FLT);
+    EXPECT_EQ(floatVarConstExpr->getToken()->getValue<float>(), 123.45f);
+  }
+  {
+    // float var2 {67.89}
+    auto floatDeclStmt = dynamic_cast<AST::VarDeclStmt *>(&*stmtBlock->getStatements()[1]);
+    EXPECT_NE(floatDeclStmt, nullptr);
+    // float
+    auto floatVar = dynamic_cast<AST::VarExpr *>(&*floatDeclStmt->getVar());
+    EXPECT_NE(floatVar, nullptr);
+    EXPECT_EQ(floatVar->getType()->getType(), TType::KW_FLOAT);
+    // var2
+    EXPECT_EQ(floatVar->getToken()->getType(), TType::IDENT_FLOAT);
+    EXPECT_STREQ(floatVar->getToken()->getValue<std::string>().c_str(), "var2");
+    // 67.89
+    auto floatVarConstExpr = dynamic_cast<AST::FloatExpr *>(&*floatDeclStmt->getValue());
+    EXPECT_NE(floatVarConstExpr, nullptr);
+    EXPECT_EQ(floatVarConstExpr->getToken()->getType(), TType::LIT_FLT);
+    EXPECT_EQ(floatVarConstExpr->getToken()->getValue<float>(), 67.89f);
+  }
+  {
+    // float var3
+    auto floatDeclStmt = dynamic_cast<AST::VarDeclStmt *>(&*stmtBlock->getStatements()[2]);
+    EXPECT_NE(floatDeclStmt, nullptr);
+    // float
+    auto floatVar = dynamic_cast<AST::VarExpr *>(&*floatDeclStmt->getVar());
+    EXPECT_NE(floatVar, nullptr);
+    EXPECT_EQ(floatVar->getType()->getType(), TType::KW_FLOAT);
+    // var3
+    EXPECT_EQ(floatVar->getToken()->getType(), TType::IDENT_FLOAT);
+    EXPECT_STREQ(floatVar->getToken()->getValue<std::string>().c_str(), "var3");
+    // 0.0
+    auto floatVarConstExpr = dynamic_cast<AST::FloatExpr *>(&*floatDeclStmt->getValue());
+    EXPECT_NE(floatVarConstExpr, nullptr);
+    EXPECT_EQ(floatVarConstExpr->getToken()->getType(), TType::LIT_FLT);
+    EXPECT_EQ(floatVarConstExpr->getToken()->getValue<float>(), 0.0f);
+  }
+}
+
+TEST(ParserTest, ClassDefinition) {
+  constexpr auto program = R"(
+  class Main {
+    def Main(var1: int) {}
+    rem Main {}
+    int m_var;
+  }
+  )"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  Parser parser{lexer};
+  const auto &root = parser.parse();
+
+  EXPECT_EQ(root->getGlobalClasses().size(), 1);
+
+  // class Main
+  auto klass = dynamic_cast<AST::ClassDef *>(&*root->getGlobalClasses()[0]);
+  EXPECT_NE(klass, nullptr);
+  EXPECT_STREQ(klass->getToken()->getValue<std::string>().c_str(), "Main");
+  auto klassVar = dynamic_cast<AST::VarExpr *>(&*klass->getVar());
+  EXPECT_NE(klassVar, nullptr);
+  EXPECT_EQ(klassVar->getType()->getType(), TType::KW_CLASS);
+  // def Main
+  auto constructor = dynamic_cast<AST::CtorDef *>(klass->getCtor().get());
+  EXPECT_NE(constructor, nullptr);
+  EXPECT_EQ(constructor->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(constructor->getToken()->getValue<std::string>().c_str(), "Main");
+  // (var1: int)
+  EXPECT_EQ(constructor->getParams().size(), 1);
+  auto param = dynamic_cast<AST::Param *>(constructor->getParams()[0].get());
+  EXPECT_NE(param, nullptr);
+  EXPECT_EQ(param->getVar()->getToken()->getType(), TType::IDENT_INT);
+  EXPECT_STREQ(param->getVar()->getToken()->getValue<std::string>().c_str(), "var1");
+  // rem Main
+  auto destructor = dynamic_cast<AST::DtorDef *>(klass->getDtor().get());
+  EXPECT_NE(destructor, nullptr);
+  EXPECT_EQ(destructor->getToken()->getType(), TType::IDENT);
+  EXPECT_STREQ(destructor->getToken()->getValue<std::string>().c_str(), "Main");
+  // int m_var
+  EXPECT_EQ(klass->getFields().size(), 1);
+  auto field = dynamic_cast<AST::Field *>(klass->getFields()[0].get());
+  EXPECT_NE(field, nullptr);
+  EXPECT_EQ(field->getVar()->getToken()->getType(), TType::IDENT_INT);
+  EXPECT_STREQ(field->getVar()->getToken()->getValue<std::string>().c_str(), "m_var");
+  EXPECT_EQ(field->getValue(), nullptr);
 }
