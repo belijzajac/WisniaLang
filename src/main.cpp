@@ -41,13 +41,13 @@ int main(int argc, char *argv[]) {
   } config;
 
   auto cli = help(show_help).description("")
-        | arg(config.file, "file name")("File to compile.").required();
+    | arg(config.file, "file name")("File to compile.").required();
   cli.add_argument(
-      opt(config.dump, "tokens|ast|ir|code")
-          .name("-d")
-          .name("--dump")
-          .help("Dump information.")
-          .choices("tokens", "ast", "ir", "code"));
+    opt(config.dump, "tokens|ast|ir|code")
+      .name("-d")
+      .name("--dump")
+      .help("Dump information.")
+      .choices("tokens", "ast", "ir", "code"));
 
   const auto result = cli.parse({ argc, argv });
 

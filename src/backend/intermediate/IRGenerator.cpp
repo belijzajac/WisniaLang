@@ -476,10 +476,10 @@ void IRGenerator::visit(AST::WriteStmt &node) {
           Modules::markAsUsed(Module::PRINT_BOOLEAN);
           continue;
         case TType::IDENT_FLOAT:
-          throw InstructionError{"Float type identifiers are not supported"};
+          throw InstructionError{"Float variables are not supported"};
           break;
         default:
-          throw InstructionError{"Unknown identifier type"};
+          throw InstructionError{"Unknown variable type"};
       }
     }
 
