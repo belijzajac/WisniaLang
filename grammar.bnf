@@ -137,16 +137,16 @@
 //-----------------------.
 // IF  |  ELIF  |  ELSE  |
 //-----------------------.
-// +   |        |        | 1st row
-// +   |        |   +    | 2nd row
-// +   |   +    |        | 3rd row
-// +   |   +    |   +    | 4th row
+// +   |        |        | (1)
+// +   |        |   +    | (2)
+// +   |   +    |        | (3)
+// +   |   +    |   +    | (4)
 //-----------------------.
 
-<IF_STMT>    ::= <IF_BLOCK>                              // 1st row
-               | <IF_BLOCK> <ELSE_BLOCK>                 // 2nd row
-               | <IF_BLOCK> <MULTIPLE_ELIF>              // 3rd row
-               | <IF_BLOCK> <MULTIPLE_ELIF> <ELSE_BLOCK> // 4th row
+<IF_STMT>    ::= <IF_BLOCK>                              // (1)
+               | <IF_BLOCK> <ELSE_BLOCK>                 // (2)
+               | <IF_BLOCK> <MULTIPLE_ELIF>              // (3)
+               | <IF_BLOCK> <MULTIPLE_ELIF> <ELSE_BLOCK> // (4)
 
 <IF_BLOCK>   ::= "if"   <IF_ELIF_COND_BODY>
 <ELIF_BLOCK> ::= "elif" <IF_ELIF_COND_BODY>
@@ -225,7 +225,7 @@
 <COMMENT>          ::= <COMMENT_SINGLE> | <COMMENT_MULTIPLE>
 
 <COMMENT_SINGLE>   ::= "#"  <CMT_SYMS> <NEWLINE>
-<COMMENT_MULTIPLE> ::= "##" <CMT_SYMS> "##" <NEWLINE>
+<COMMENT_MULTIPLE> ::= "/*" <CMT_SYMS> "*/" <NEWLINE>
 
 <CMT_SYMS>         ::= <CMT_SYM> | <CMT_SYMS> <CMT_SYM>
 
