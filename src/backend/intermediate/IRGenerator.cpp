@@ -53,7 +53,7 @@ constexpr std::array<std::array<Operation, 2>, 12> binaryExprMapping {{
   {{Operation::OR,   Operation::NOP }}
 }};
 
-constexpr Operation getOperationForBinaryExpr(Basic::TType exprType, bool isFloat) {
+constexpr Operation getOperationForBinaryExpression(Basic::TType exprType, bool isFloat) {
   switch (exprType) {
     case Basic::TType::OP_ADD:
       return binaryExprMapping[0][isFloat];
@@ -80,11 +80,11 @@ constexpr Operation getOperationForBinaryExpr(Basic::TType exprType, bool isFloa
     case Basic::TType::OP_OR:
       return binaryExprMapping[11][0];
     default:
-      throw InstructionError{"Undefined binary expression"};
+      throw InstructionError{"Unknown binary expression"};
   }
 }
 
-constexpr TType getIdentForLitType(TType type) {
+constexpr TType getIdentForLiteralType(TType type) {
   switch (type) {
     case TType::LIT_INT:  return TType::IDENT_INT;
     case TType::LIT_FLT:  return TType::IDENT_FLOAT;
@@ -96,12 +96,12 @@ constexpr TType getIdentForLitType(TType type) {
   }
 }
 
-void IRGenerator::genBinaryExpr(Basic::TType exprType) {
+void IRGenerator::createBinaryExpression(Basic::TType expressionType) {
   const auto &rhs = popNode();
   const auto &lhs = popNode();
 
   auto varToken = std::make_shared<Basic::Token>(
-    getIdentForLitType(rhs.getToken()->getType()),
+    getIdentForLiteralType(rhs.getToken()->getType()),
     "_t" + std::to_string(m_tempVars.size())
   );
 
@@ -110,7 +110,7 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
 
   bool isFloat = rhs.getToken()->getType() == TType::LIT_FLT ||
                  rhs.getToken()->getType() == TType::IDENT_FLOAT;
-  Operation op = getOperationForBinaryExpr(exprType, isFloat);
+  Operation op = getOperationForBinaryExpression(expressionType, isFloat);
 
   // _tx = a <op> b rewritten as
   //    _tx = a
@@ -127,7 +127,8 @@ void IRGenerator::genBinaryExpr(Basic::TType exprType) {
   ));
 }
 
-std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(AST::Root &node) {
+std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(
+    Root &node, bool createVariableForLiteral) {
   std::shared_ptr<Basic::Token> token;
   TType type;
 
@@ -137,7 +138,7 @@ std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpressi
   } else if (dynamic_cast<AST::FnCallExpr *>(&node)) {
     type  = node.getToken()->getType();
     token = std::make_shared<Basic::Token>(
-      getIdentForLitType(type),
+      getIdentForLiteralType(type),
       "_t" + std::to_string(m_tempVars.size())
     );
     m_tempVars.emplace_back(std::make_unique<VarExpr>(token));
@@ -160,19 +161,24 @@ std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpressi
     token = node.getToken();
     type  = token->getType();
   } else if (node.getToken()->isLiteralType()) {
-    const auto &litToken = node.getToken();
-    auto varToken = std::make_shared<Basic::Token>(
-      getIdentForLitType(litToken->getType()),
-      "_t" + std::to_string(m_tempVars.size())
-    );
-    m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
-    m_instructions.emplace_back(std::make_unique<Instruction>(
-      Operation::MOV,
-      varToken, // _tx
-      litToken  // literal
-    ));
-    token = m_tempVars.back()->getToken();
-    type  = m_tempVars.back()->getToken()->getType();
+    if (createVariableForLiteral) {
+      const auto &litToken = node.getToken();
+      auto varToken = std::make_shared<Basic::Token>(
+        getIdentForLiteralType(litToken->getType()),
+        "_t" + std::to_string(m_tempVars.size())
+      );
+      m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
+      m_instructions.emplace_back(std::make_unique<Instruction>(
+        Operation::MOV,
+        varToken, // _tx
+        litToken  // literal
+      ));
+      token = m_tempVars.back()->getToken();
+      type  = m_tempVars.back()->getToken()->getType();
+    } else {
+      token = node.getToken();
+      type  = node.getToken()->getType();
+    }
   } else {
     assert(0 && "Unknown expression");
   }
@@ -217,43 +223,43 @@ void IRGenerator::visit(AST::VarExpr &node) {
 void IRGenerator::visit(AST::BooleanExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::EqExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::CompExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::AddExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::SubExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::MultExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::DivExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
-  genBinaryExpr(node.getToken()->getType());
+  createBinaryExpression(node.getToken()->getType());
 }
 
 void IRGenerator::visit(AST::UnaryExpr &node) {
@@ -278,7 +284,7 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
     arg->accept(*this);
     const auto &[argToken, _] = getExpression(*arg);
     auto varToken = std::make_shared<Basic::Token>(
-      getIdentForLitType(argToken->getType()),
+      getIdentForLiteralType(argToken->getType()),
       "_t" + std::to_string(m_tempVars.size())
     );
     m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
@@ -404,7 +410,7 @@ void IRGenerator::visit(AST::WriteStmt &node) {
   }
 
   for (const auto &expr : node.getExprs()) {
-    const auto &[token, type] = getExpression(*expr);
+    const auto &[token, type] = getExpression(*expr, false);
 
     if (token->isIdentifierType()) {
       // Resolved at compiled program's run-time

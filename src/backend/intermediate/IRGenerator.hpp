@@ -120,14 +120,19 @@ class IRGenerator : public Visitor {
 
  private:
   AST::Root &popNode();
-  void genBinaryExpr(Basic::TType exprType);
-  std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> getExpression(AST::Root &);
+  void createBinaryExpression(Basic::TType expressionType);
+
+  // In general, we want literal types to be associated with variables, but in the case of
+  // "AST::WriteStmt", we perform a compile-time optimization to prevent loading modules for
+  // printing variables whose values we already know at compile time
+  std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> getExpression(
+      AST::Root &node, bool createVariableForLiteral = true);
 
  private:
   std::stack<AST::Root *> m_stack;
   InstructionList m_instructions;
   TemporaryVariableList m_tempVars;
-  bool m_allocateRegisters; // we want to skip register allocation in some unit tests
+  bool m_allocateRegisters; // We wish to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
   IROptimization irOptimization{};
   size_t m_labelCount{0};
