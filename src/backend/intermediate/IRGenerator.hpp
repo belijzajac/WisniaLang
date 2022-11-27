@@ -46,6 +46,13 @@ class IRGenerator : public Visitor {
     return std::vector<T>{first, last};
   }
 
+  template <typename T>
+  std::basic_string<T> to_lowercase(const std::basic_string<T> &str) {
+    std::basic_string<T> lowercase = str;
+    std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), tolower);
+    return lowercase;
+  }
+
  public:
   explicit IRGenerator(bool allocateRegisters = true)
       : m_allocateRegisters{allocateRegisters} {}
