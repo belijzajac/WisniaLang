@@ -30,7 +30,7 @@
 using namespace Wisnia;
 using namespace std::literals;
 
-class IRGeneratorTestFixture : public testing::Test {
+class IRGeneratorTestWithoutRegisterAllocationFixture : public testing::Test {
  protected:
   void SetUp(std::string_view program) {
     std::istringstream iss{program.data()};
@@ -48,9 +48,9 @@ class IRGeneratorTestFixture : public testing::Test {
   NameResolver m_resolver{};
 };
 
-using IRGeneratorTest = IRGeneratorTestFixture;
+using IRGeneratorTestWithoutRegisterAllocation = IRGeneratorTestWithoutRegisterAllocationFixture;
 
-TEST_F(IRGeneratorTest, VariableDeclarationStatements) {
+TEST_F(IRGeneratorTestWithoutRegisterAllocation, VariableDeclarationStatements) {
   constexpr auto program = R"(
   fn main() {
     int aa = 5 + 2 * 10;
@@ -131,7 +131,7 @@ TEST_F(IRGeneratorTest, VariableDeclarationStatements) {
   EXPECT_STREQ(instructions[14]->getArg1()->getValue<std::string>().c_str(), "_t5");
 }
 
-TEST_F(IRGeneratorTest, PrintIRForVariableDeclarationStatements) {
+TEST_F(IRGeneratorTestWithoutRegisterAllocation, PrintIRForVariableDeclarationStatements) {
   constexpr auto program = R"(
   fn main() {
     int aa = 5 + 2 * 10;

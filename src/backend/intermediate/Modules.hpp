@@ -59,6 +59,7 @@ class Modules {
  public:
   static std::tuple<InstructionList, bool> getModule(Module module);
   static void markAsUsed(Module module) { m_isUsed[module] = true; }
+  static void markAllAsUnused() { m_isUsed.fill(false); }
 };
 
 }  // namespace Wisnia

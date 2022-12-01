@@ -16,6 +16,7 @@
 
 set(TEST_FILES
   ${TEST_FILES}
-  intermediate-representation/IRGeneratorTest.cpp
+  intermediate-representation/IRGeneratorTestWithoutRegisterAllocation.cpp
+  intermediate-representation/IRGeneratorTestWithRegisterAllocation.cpp
   PARENT_SCOPE
 )

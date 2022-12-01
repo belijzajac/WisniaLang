@@ -120,39 +120,3 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   // syscall
   EXPECT_EQ(instructions[instructions.size() - 1]->getOperation(), Operation::SYSCALL);
 }
-
-TEST_F(RegisterAllocatorTest, InstructionsShouldBeOptimized) {
-  constexpr auto program = R"(
-  fn main() {
-    print((1 + 2) * 3);
-  })"sv;
-  SetUp(program.data());
-  const auto &unoptimizedInstructions = m_generator.getInstructions();
-  const auto &optimizedInstructions   = m_generator.getInstructionsAfterInstructionOptimization();
-
-  // since we add extra instructions from `_print_number_` module
-  EXPECT_LT(unoptimizedInstructions.size(), optimizedInstructions.size());
-
-  // `rax <- rax`
-  EXPECT_EQ(unoptimizedInstructions[2]->getOperation(), Operation::MOV);
-  EXPECT_EQ(unoptimizedInstructions[2]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_EQ(unoptimizedInstructions[2]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(unoptimizedInstructions[2]->getTarget()->getValue<std::string>().c_str(),
-               unoptimizedInstructions[2]->getArg1()->getValue<std::string>().c_str());
-
-  // `rax <- rax` has been optimized out, so should not be present anymore
-
-  // the following unoptimized instruction should contain IR for `rax * 3`
-  EXPECT_EQ(unoptimizedInstructions[3]->getOperation(), Operation::IMUL);
-  EXPECT_EQ(unoptimizedInstructions[3]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_STREQ(unoptimizedInstructions[3]->getTarget()->getValue<std::string>().c_str(), "rax");
-  EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getValue<int>(), 3);
-
-  // in its old place (`rax <- rax`) now should stand IR for `rax * 3`
-  EXPECT_EQ(optimizedInstructions[2]->getOperation(), Operation::IMUL);
-  EXPECT_EQ(optimizedInstructions[2]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_EQ(optimizedInstructions[2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_STREQ(optimizedInstructions[2]->getTarget()->getValue<std::string>().c_str(), "rax");
-  EXPECT_EQ(optimizedInstructions[2]->getArg1()->getValue<int>(), 3);
-}
