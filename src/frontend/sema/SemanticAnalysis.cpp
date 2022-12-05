@@ -21,13 +21,13 @@
 #include <fmt/ostream.h>
 #include <iostream>
 // Wisnia
-#include "NameResolver.hpp"
 #include "AST.hpp"
+#include "SemanticAnalysis.hpp"
 
 using namespace Wisnia;
 using namespace AST;
 
-void NameResolver::visit(Root &node) {
+void SemanticAnalysis::visit(Root &node) {
   for (const auto &klass : node.getGlobalClasses()) {
     klass->accept(*this);
   }
@@ -36,11 +36,11 @@ void NameResolver::visit(Root &node) {
   }
 }
 
-void NameResolver::visit(AST::PrimitiveType &) {
+void SemanticAnalysis::visit(AST::PrimitiveType &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::VarExpr &node) {
+void SemanticAnalysis::visit(AST::VarExpr &node) {
   try {
     auto foundVar = m_table.findSymbol(node.getToken()->getValue<std::string>()); // VarExpr
     node.addType(std::make_unique<PrimitiveType>(foundVar->getType()->getToken()));
@@ -49,76 +49,76 @@ void NameResolver::visit(AST::VarExpr &node) {
   }
 }
 
-void NameResolver::visit(AST::BooleanExpr &node) {
+void SemanticAnalysis::visit(AST::BooleanExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::EqExpr &node) {
+void SemanticAnalysis::visit(AST::EqExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::CompExpr &node) {
+void SemanticAnalysis::visit(AST::CompExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::AddExpr &node) {
+void SemanticAnalysis::visit(AST::AddExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::SubExpr &node) {
+void SemanticAnalysis::visit(AST::SubExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::MultExpr &node) {
+void SemanticAnalysis::visit(AST::MultExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::DivExpr &node) {
+void SemanticAnalysis::visit(AST::DivExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::UnaryExpr &node) {
+void SemanticAnalysis::visit(AST::UnaryExpr &node) {
   node.lhs()->accept(*this);
 }
 
-void NameResolver::visit(AST::FnCallExpr &node) {
+void SemanticAnalysis::visit(AST::FnCallExpr &node) {
   node.getVar()->accept(*this);
   for (const auto &arg : node.getArgs()) {
     arg->accept(*this);
   }
 }
 
-void NameResolver::visit(AST::ClassInitExpr &node) {
+void SemanticAnalysis::visit(AST::ClassInitExpr &node) {
   node.getVar()->accept(*this);
   for (const auto &arg : node.getArgs()) {
     arg->accept(*this);
   }
 }
 
-void NameResolver::visit(AST::IntExpr &) {
+void SemanticAnalysis::visit(AST::IntExpr &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::FloatExpr &) {
+void SemanticAnalysis::visit(AST::FloatExpr &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::BoolExpr &) {
+void SemanticAnalysis::visit(AST::BoolExpr &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::StringExpr &) {
+void SemanticAnalysis::visit(AST::StringExpr &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::StmtBlock &node) {
+void SemanticAnalysis::visit(AST::StmtBlock &node) {
   m_table.pushScope();
   for (const auto &stmt : node.getStatements()) {
     stmt->accept(*this);
@@ -126,51 +126,51 @@ void NameResolver::visit(AST::StmtBlock &node) {
   m_table.popScope();
 }
 
-void NameResolver::visit(AST::ReturnStmt &node) {
+void SemanticAnalysis::visit(AST::ReturnStmt &node) {
   node.getReturnValue()->accept(*this);
 }
 
-void NameResolver::visit(AST::BreakStmt &) {
+void SemanticAnalysis::visit(AST::BreakStmt &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::ContinueStmt &) {
+void SemanticAnalysis::visit(AST::ContinueStmt &) {
   // nothing to do
 }
 
-void NameResolver::visit(AST::VarDeclStmt &node) {
+void SemanticAnalysis::visit(AST::VarDeclStmt &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
   node.getVar()->accept(*this);
   node.getValue()->accept(*this);
 }
 
-void NameResolver::visit(AST::VarAssignStmt &node) {
+void SemanticAnalysis::visit(AST::VarAssignStmt &node) {
   node.getVar()->accept(*this);
   node.getValue()->accept(*this);
 }
 
-void NameResolver::visit(AST::ExprStmt &node) {
+void SemanticAnalysis::visit(AST::ExprStmt &node) {
   node.getExpr()->accept(*this);
 }
 
-void NameResolver::visit(AST::ReadStmt &node) {
+void SemanticAnalysis::visit(AST::ReadStmt &node) {
   for (const auto &var : node.getVars()) {
     var->accept(*this);
   }
 }
 
-void NameResolver::visit(AST::WriteStmt &node) {
+void SemanticAnalysis::visit(AST::WriteStmt &node) {
   for (const auto &expr : node.getExprs()) {
     expr->accept(*this);
   }
 }
 
-void NameResolver::visit(AST::Param &node) {
+void SemanticAnalysis::visit(AST::Param &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
   node.getVar()->accept(*this);
 }
 
-void NameResolver::visit(AST::FnDef &node) {
+void SemanticAnalysis::visit(AST::FnDef &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
   node.getVar()->accept(*this);
   for (const auto &param : node.getParams()) {
@@ -179,21 +179,21 @@ void NameResolver::visit(AST::FnDef &node) {
   node.getBody()->accept(*this);
 }
 
-void NameResolver::visit(AST::CtorDef &) {
+void SemanticAnalysis::visit(AST::CtorDef &) {
   throw NotImplementedError{"Constructors are not supported"};
 }
 
-void NameResolver::visit(AST::DtorDef &) {
+void SemanticAnalysis::visit(AST::DtorDef &) {
   throw NotImplementedError{"Destructors are not supported"};
 }
 
-void NameResolver::visit(AST::Field &node) {
+void SemanticAnalysis::visit(AST::Field &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
   node.getVar()->accept(*this);
   node.getValue()->accept(*this);
 }
 
-void NameResolver::visit(AST::ClassDef &node) {
+void SemanticAnalysis::visit(AST::ClassDef &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
   node.getVar()->accept(*this);
   for (const auto &field : node.getFields()) {
@@ -206,25 +206,25 @@ void NameResolver::visit(AST::ClassDef &node) {
   }
 }
 
-void NameResolver::visit(AST::WhileLoop &node) {
+void SemanticAnalysis::visit(AST::WhileLoop &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
 }
 
-void NameResolver::visit(AST::ForLoop &node) {
+void SemanticAnalysis::visit(AST::ForLoop &node) {
   node.getInitial()->accept(*this);
   node.getCondition()->accept(*this);
   node.getIncrement()->accept(*this);
   node.getBody()->accept(*this);
 }
 
-void NameResolver::visit(AST::ForEachLoop &node) {
+void SemanticAnalysis::visit(AST::ForEachLoop &node) {
   node.getElement()->accept(*this);
   node.getCollection()->accept(*this);
   node.getBody()->accept(*this);
 }
 
-void NameResolver::visit(AST::IfStmt &node) {
+void SemanticAnalysis::visit(AST::IfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
   for (const auto &elseBl : node.getElseStatements()) {
@@ -232,11 +232,11 @@ void NameResolver::visit(AST::IfStmt &node) {
   }
 }
 
-void NameResolver::visit(AST::ElseStmt &node) {
+void SemanticAnalysis::visit(AST::ElseStmt &node) {
   node.getBody()->accept(*this);
 }
 
-void NameResolver::visit(AST::ElseIfStmt &node) {
+void SemanticAnalysis::visit(AST::ElseIfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
 }

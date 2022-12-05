@@ -26,8 +26,8 @@
 #include "ELF.hpp"
 #include "IRGenerator.hpp"
 #include "Lexer.hpp"
-#include "NameResolver.hpp"
 #include "Parser.hpp"
+#include "SemanticAnalysis.hpp"
 
 using namespace Wisnia;
 using namespace std::literals;
@@ -45,7 +45,7 @@ class IProgramTestFixture : public testing::Test {
     Lexer lexer{iss};
     Parser parser{lexer};
     const auto &root = parser.parse();
-    root->accept(m_resolver);
+    root->accept(m_analysis);
     root->accept(m_generator);
     CodeGenerator codeGenerator{};
     codeGenerator.generate(m_generator.getInstructionsAfterInstructionOptimization());
@@ -104,7 +104,7 @@ class IProgramTestFixture : public testing::Test {
   Program m_program{};
 
  private:
-  NameResolver m_resolver{};
+  SemanticAnalysis m_analysis{};
   IRGenerator m_generator{};
 };
 

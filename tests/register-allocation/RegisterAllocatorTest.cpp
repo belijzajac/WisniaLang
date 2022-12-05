@@ -24,8 +24,8 @@
 #include "IRGenerator.hpp"
 #include "Instruction.hpp"
 #include "Lexer.hpp"
-#include "NameResolver.hpp"
 #include "Parser.hpp"
+#include "SemanticAnalysis.hpp"
 
 using namespace Wisnia;
 using namespace Basic;
@@ -38,7 +38,7 @@ class RegisterAllocatorTestFixture : public testing::Test {
     Lexer lexer{iss};
     Parser parser{lexer};
     const auto &root = parser.parse();
-    root->accept(m_resolver);
+    root->accept(m_analysis);
     root->accept(m_generator);
   }
 
@@ -46,7 +46,7 @@ class RegisterAllocatorTestFixture : public testing::Test {
   IRGenerator m_generator{};
 
  private:
-  NameResolver m_resolver{};
+  SemanticAnalysis m_analysis{};
 };
 
 using RegisterAllocatorTest = RegisterAllocatorTestFixture;

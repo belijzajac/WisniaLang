@@ -19,11 +19,11 @@
 ***/
 
 // Wisnia
-#include "Lexer.hpp"
-#include "Parser.hpp"
 #include "AST.hpp"
+#include "Lexer.hpp"
 #include "NodeCollector.hpp"
-#include "NameResolver.hpp"
+#include "Parser.hpp"
+#include "SemanticAnalysis.hpp"
 #include "SemanticTestFixture.hpp"
 
 using namespace Wisnia;
@@ -37,8 +37,8 @@ struct VarInfo {
 
 TEST_F(NameResolverTest, ResolveVarInfo) {
   NodeCollector<AST::VarExpr> collector;
-  NameResolver resolver;
-  m_root->accept(resolver);
+  SemanticAnalysis analysis;
+  m_root->accept(analysis);
   m_root->accept(collector);
   const auto &collectedVars = collector.getNodes();
   EXPECT_EQ(collectedVars.size(), 44);

@@ -19,19 +19,19 @@
 ***/
 
 // Wisnia
+#include "AST.hpp"
 #include "Lexer.hpp"
 #include "Parser.hpp"
-#include "AST.hpp"
-#include "NameResolver.hpp"
+#include "SemanticAnalysis.hpp"
 #include "SemanticTestFixture.hpp"
 
 using namespace Wisnia;
 using ASTPrinterTest = SemanticTestFixture;
 
 TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
-  NameResolver resolver;
+  SemanticAnalysis analysis;
   std::stringstream ss;
-  m_root->accept(resolver);
+  m_root->accept(analysis);
   m_root->print(ss);
 
   EXPECT_STREQ(ss.str().c_str(),

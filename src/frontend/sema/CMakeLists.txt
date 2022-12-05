@@ -16,8 +16,8 @@
 
 set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
-  frontend/sema/NameResolver.hpp
-  frontend/sema/NameResolver.cpp
+  frontend/sema/SemanticAnalysis.hpp
+  frontend/sema/SemanticAnalysis.cpp
   frontend/sema/SymbolTable.hpp
   frontend/sema/SymbolTable.cpp
   frontend/sema/NodeCollector.hpp

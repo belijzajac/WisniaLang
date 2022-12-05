@@ -18,8 +18,8 @@
 
 ***/
 
-#ifndef WISNIALANG_NAME_RESOLVER_HPP
-#define WISNIALANG_NAME_RESOLVER_HPP
+#ifndef WISNIALANG_SEMANTIC_ANALYSIS_HPP
+#define WISNIALANG_SEMANTIC_ANALYSIS_HPP
 
 // Wisnia
 #include "Visitor.hpp"
@@ -27,7 +27,7 @@
 
 namespace Wisnia {
 
-class NameResolver : public Visitor {
+class SemanticAnalysis : public Visitor {
  private:
   void visit(AST::Root &) override;
   void visit(AST::PrimitiveType &) override;
@@ -74,4 +74,4 @@ class NameResolver : public Visitor {
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_NAME_RESOLVER_HPP
+#endif  // WISNIALANG_SEMANTIC_ANALYSIS_HPP

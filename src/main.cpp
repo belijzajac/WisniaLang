@@ -27,8 +27,8 @@
 #include "Exceptions.hpp"
 #include "IRGenerator.hpp"
 #include "Lexer.hpp"
-#include "NameResolver.hpp"
 #include "Parser.hpp"
+#include "SemanticAnalysis.hpp"
 
 using namespace Wisnia;
 using namespace lyra;
@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
     if (config.dump == "tokens") {
       lexer.print(std::cout);
     }
-    NameResolver resolver;
-    root->accept(resolver);
+    SemanticAnalysis analysis;
+    root->accept(analysis);
     if (config.dump == "ast") {
       root->print(std::cout);
     }
