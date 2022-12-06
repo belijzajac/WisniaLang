@@ -70,7 +70,7 @@ class SymbolTable {
       if (m_parentScope) {
         return m_parentScope->findSymbol(name);
       }
-      throw SemanticError{"No variable named " + name};
+      throw SemanticError{fmt::format("Name `{}` is not known in the current scope", name)};
     }
   };
 

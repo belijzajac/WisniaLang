@@ -22,8 +22,8 @@
 #define WISNIALANG_SEMANTIC_ANALYSIS_HPP
 
 // Wisnia
-#include "Visitor.hpp"
 #include "SymbolTable.hpp"
+#include "Visitor.hpp"
 
 namespace Wisnia {
 
@@ -67,6 +67,35 @@ class SemanticAnalysis : public Visitor {
   void visit(AST::IfStmt &) override;
   void visit(AST::ElseStmt &) override;
   void visit(AST::ElseIfStmt &) override;
+
+ private:
+  struct ProgramSemanticChecks {
+    struct Function {
+      struct Parameter {
+        std::string name;
+        Basic::TType type;
+      };
+
+      std::string name;
+      std::vector<Parameter> parameters;
+    };
+
+    bool mainFunctionFound;
+    std::vector<Function> functionDefinitions;
+    std::vector<std::string> invokedFunctions;
+  } m_programChecks;
+
+  struct FunctionSemanticChecks {
+    enum class ReturnType { NOT_FOUND, NONE, INT, FLOAT, STRING, BOOLEAN };
+
+    void reset() {
+      returnFound = false;
+      returnType = ReturnType::NOT_FOUND;
+    }
+
+    bool returnFound;
+    ReturnType returnType{ReturnType::NOT_FOUND};
+  } m_functionChecks;
 
  private:
   SymbolTable m_table;

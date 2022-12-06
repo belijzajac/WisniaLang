@@ -592,7 +592,7 @@ void IRGenerator::visit(AST::FnDef &node) {
   const auto functionNameStr = functionName.getToken()->getValue<std::string>();
   std::shared_ptr<Basic::Token> returnAddressToken;
 
-  if (to_lowercase(functionNameStr) != "main") {
+  if (functionNameStr != "main") {
     // the main function doesn't require a label indicating where it begins
     // because we have already designated address "0x4000b0" as the program's main entry point
     m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -624,7 +624,7 @@ void IRGenerator::visit(AST::FnDef &node) {
 
   node.getBody()->accept(*this);
 
-  if (to_lowercase(functionNameStr) != "main") {
+  if (functionNameStr != "main") {
     // put the function return address back on the stack
     // only functions other than "main" must return to the caller
     m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -634,7 +634,7 @@ void IRGenerator::visit(AST::FnDef &node) {
     ));
   }
 
-  if (to_lowercase(functionNameStr) == "main") {
+  if (functionNameStr == "main") {
     // the "ret" instruction isn't required in the main function
     // because we terminate the program immediately in the "_exit_" function
     m_instructions.emplace_back(std::make_unique<Instruction>(

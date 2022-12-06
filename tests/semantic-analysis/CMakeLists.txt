@@ -19,5 +19,6 @@ set(TEST_FILES
   semantic-analysis/NodeCollectorTest.cpp
   semantic-analysis/NameResolverTest.cpp
   semantic-analysis/ASTPrinterTest.cpp
+  semantic-analysis/SemanticTest.cpp
   PARENT_SCOPE
 )

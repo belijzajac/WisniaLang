@@ -19,12 +19,16 @@
 ***/
 
 #include <fmt/ostream.h>
+
+#include <algorithm>
 #include <iostream>
+#include <map>
 // Wisnia
 #include "AST.hpp"
 #include "SemanticAnalysis.hpp"
 
 using namespace Wisnia;
+using namespace Basic;
 using namespace AST;
 
 void SemanticAnalysis::visit(Root &node) {
@@ -32,7 +36,30 @@ void SemanticAnalysis::visit(Root &node) {
     klass->accept(*this);
   }
   for (const auto &function : node.getGlobalFunctions()) {
+    m_functionChecks.reset();
     function->accept(*this);
+  }
+
+  if (!m_programChecks.mainFunctionFound) {
+    throw SemanticError{"Function `main` not found"};
+  }
+
+  for (const auto &function : m_programChecks.functionDefinitions) {
+    auto found = std::find(m_programChecks.invokedFunctions.begin(), m_programChecks.invokedFunctions.end(), function.name);
+    if (function.name != "main" && found == m_programChecks.invokedFunctions.end()) {
+      std::cout << fmt::format("[Warning] Function '{}' is defined but never used\n", function.name);
+    }
+  }
+
+  std::map<std::string, size_t> functionOccurrenceMap;
+  for (const auto &function : m_programChecks.functionDefinitions) {
+    functionOccurrenceMap[function.name]++;
+  }
+
+  for (const auto &[function, count] : functionOccurrenceMap) {
+    if (count > 1) {
+      throw SemanticError{fmt::format("Found multiple definitions for `{}` function", function)};
+    }
   }
 }
 
@@ -41,12 +68,8 @@ void SemanticAnalysis::visit(AST::PrimitiveType &) {
 }
 
 void SemanticAnalysis::visit(AST::VarExpr &node) {
-  try {
-    auto foundVar = m_table.findSymbol(node.getToken()->getValue<std::string>()); // VarExpr
-    node.addType(std::make_unique<PrimitiveType>(foundVar->getType()->getToken()));
-  } catch (const SemanticError &ex) {
-    fmt::print(std::cerr, "{}\n", ex.what());
-  }
+  auto foundVar = m_table.findSymbol(node.getToken()->getValue<std::string>()); // VarExpr
+  node.addType(std::make_unique<PrimitiveType>(foundVar->getType()->getToken()));
 }
 
 void SemanticAnalysis::visit(AST::BooleanExpr &node) {
@@ -89,6 +112,23 @@ void SemanticAnalysis::visit(AST::UnaryExpr &node) {
 }
 
 void SemanticAnalysis::visit(AST::FnCallExpr &node) {
+  const auto functionName = node.getVar()->getToken()->getValue<std::string>();
+  m_programChecks.invokedFunctions.emplace_back(functionName);
+
+  const auto fnDefinition = std::find_if(
+    m_programChecks.functionDefinitions.begin(), m_programChecks.functionDefinitions.end(),
+    [&](const auto &function) { return function.name == functionName; });
+  if (fnDefinition == m_programChecks.functionDefinitions.end()) {
+    throw SemanticError{fmt::format("Failed to find function '{}' definition", functionName)};
+  }
+
+  if (node.getArgs().size() != fnDefinition->parameters.size()) {
+    throw SemanticError{fmt::format("Function '{}' expects {} arguments but only {} were provided",
+                                    fnDefinition->name,
+                                    fnDefinition->parameters.size(),
+                                    node.getArgs().size())};
+  }
+
   node.getVar()->accept(*this);
   for (const auto &arg : node.getArgs()) {
     arg->accept(*this);
@@ -127,6 +167,7 @@ void SemanticAnalysis::visit(AST::StmtBlock &node) {
 }
 
 void SemanticAnalysis::visit(AST::ReturnStmt &node) {
+  m_functionChecks.returnFound = true;
   node.getReturnValue()->accept(*this);
 }
 
@@ -171,12 +212,34 @@ void SemanticAnalysis::visit(AST::Param &node) {
 }
 
 void SemanticAnalysis::visit(AST::FnDef &node) {
+  const auto functionName = node.getVar()->getToken()->getValue<std::string>();
+  if (functionName == "main") {
+    m_programChecks.mainFunctionFound = true;
+  }
+
+  std::vector<ProgramSemanticChecks::Function::Parameter> parameters;
+  for (const auto &param : node.getParams()) {
+    parameters.push_back({
+      param->getToken()->getValue<std::string>(),
+      param->getToken()->getType()
+    });
+  }
+
+  m_programChecks.functionDefinitions.emplace_back(ProgramSemanticChecks::Function{
+    .name = functionName,
+    .parameters = std::move(parameters)
+  });
+
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
   node.getVar()->accept(*this);
   for (const auto &param : node.getParams()) {
     param->accept(*this);
   }
   node.getBody()->accept(*this);
+
+  if (node.getVar()->getToken()->getType() != TType::IDENT_VOID && !m_functionChecks.returnFound) {
+    throw SemanticError{fmt::format("Non-void function '{}' is not returning", functionName)};
+  }
 }
 
 void SemanticAnalysis::visit(AST::CtorDef &) {
