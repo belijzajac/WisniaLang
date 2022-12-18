@@ -96,14 +96,16 @@ TEST(LexerTest, Operators) {
   EXPECT_EQ(tokens[36]->getType(), TType::TOK_EOF);
 }
 
-TEST(LexerTest, StringWithUnknownEscapeSymbol) {
-  EXPECT_THROW(
-      {
-        constexpr auto program = R"("hello\xworld")"sv;
-        std::istringstream iss{program.data()};
-        Lexer lexer{iss};
-      },
-      LexerError);
+TEST(LexerTest, StringWithUnknownEscapeSymbolsShouldPass) {
+  constexpr auto program = R"("\o/ >\\\<")"sv;
+  std::istringstream iss{program.data()};
+  Lexer lexer{iss};
+  const auto &tokens{lexer.getTokens()};
+
+  EXPECT_EQ(tokens.size(), 2);
+  EXPECT_EQ(tokens[0]->getType(), TType::LIT_STR);
+  EXPECT_EQ(tokens[0]->getValue<std::string>(), "\\o/ >\\\\\\<");
+  EXPECT_EQ(tokens[1]->getType(), TType::TOK_EOF);
 }
 
 TEST(LexerTest, IllegalCharacters) {

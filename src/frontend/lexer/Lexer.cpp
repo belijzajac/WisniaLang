@@ -197,10 +197,9 @@ std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
           m_tokenState.m_buff += '\"';
           break;
         default:
-          throw LexerError{
-            m_tokenState.m_fileName + ":" + std::to_string(m_tokenState.m_lineNo) +
-            ": Unknown escape symbol"
-          };
+          m_tokenState.m_buff += "\\";
+          m_tokenState.m_buff += ch;
+          break;
       }
       // Continue parsing
       m_tokenState.m_state = State::STRING;

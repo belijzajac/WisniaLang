@@ -26,7 +26,6 @@
 #include "SemanticAnalysis.hpp"
 
 using namespace Wisnia;
-using namespace Basic;
 using namespace std::literals;
 
 class SemanticTestFixture : public testing::Test {
