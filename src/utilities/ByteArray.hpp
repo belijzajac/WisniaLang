@@ -47,9 +47,9 @@ class ByteArray {
   template <typename T>
   constexpr explicit ByteArray(T value) {
     if constexpr (std::is_same<T, uint32_t>()) {
-      putU32(value);
+      putValue<uint32_t>(value);
     } else if constexpr (std::is_same<T, uint64_t>()) {
-      putU64(value);
+      putValue<uint64_t>(value);
     } else if constexpr (std::is_same<T, std::byte>()) {
       putBytes(value);
     } else {
@@ -72,14 +72,21 @@ class ByteArray {
     m_byteData[index] = value;
   }
 
-  constexpr void putU32(uint32_t value) {
+  template <typename T>
+  constexpr void putValue(T) {
+    assert(0 && "Unsupported type T");
+  }
+
+  template <std::same_as<uint32_t> T>
+  constexpr void putValue(T value) {
     m_byteData.emplace_back(static_cast<std::byte>(value));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 16));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 24));
   }
 
-  constexpr void putU64(uint64_t value) {
+  template <std::same_as<uint64_t> T>
+  constexpr void putValue(T value) {
     m_byteData.emplace_back(static_cast<std::byte>(value));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 16));

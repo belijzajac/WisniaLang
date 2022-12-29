@@ -30,12 +30,14 @@ enum class TType {
   REGISTER,
   // Main types
   LIT_INT,
+  LIT_INT_U32,
   LIT_FLT,
   LIT_STR,
   LIT_BOOL,
   IDENT,
   IDENT_VOID,
   IDENT_INT,
+  IDENT_INT_U32,
   IDENT_BOOL,
   IDENT_FLOAT,
   IDENT_STRING,
@@ -61,6 +63,7 @@ enum class TType {
   KW_PRINT,
   KW_VOID,
   KW_INT,
+  KW_INT_U32,
   KW_BOOL,
   KW_FLOAT,
   KW_STRING,
@@ -105,11 +108,13 @@ static inline std::unordered_map<TType, std::string> TokenType2Str {
   {TType::REGISTER, "REGISTER"},
   // Main types
   {TType::LIT_INT, "LIT_INT"},
+  {TType::LIT_INT_U32, "LIT_INT_U32"},
   {TType::LIT_FLT, "LIT_FLT"},
   {TType::LIT_STR, "LIT_STR"},
   {TType::IDENT, "IDENT"},
   {TType::IDENT_VOID, "IDENT_VOID"},
   {TType::IDENT_INT, "IDENT_INT"},
+  {TType::IDENT_INT_U32, "IDENT_INT_U32"},
   {TType::IDENT_BOOL, "IDENT_BOOL"},
   {TType::IDENT_FLOAT, "IDENT_FLOAT"},
   {TType::IDENT_STRING, "IDENT_STRING"},
@@ -135,6 +140,7 @@ static inline std::unordered_map<TType, std::string> TokenType2Str {
   {TType::KW_PRINT, "KW_PRINT"},
   {TType::KW_VOID, "KW_VOID"},
   {TType::KW_INT, "KW_INT"},
+  {TType::KW_INT_U32, "KW_INT_U32"},
   {TType::KW_BOOL, "KW_BOOL"},
   {TType::KW_FLOAT, "KW_FLOAT"},
   {TType::KW_STRING, "KW_STRING"},
@@ -185,8 +191,9 @@ static inline std::unordered_map<std::string_view, TType> Str2TokenKw {
   {"break", TType::KW_BREAK},    {"true", TType::KW_TRUE},
   {"false", TType::KW_FALSE},    {"read", TType::KW_READ},
   {"print", TType::KW_PRINT},    {"void", TType::KW_VOID},
-  {"int", TType::KW_INT},        {"bool", TType::KW_BOOL},
-  {"float", TType::KW_FLOAT},    {"string", TType::KW_STRING}
+  {"int", TType::KW_INT},        {"u32", TType::KW_INT_U32},
+  {"bool", TType::KW_BOOL},      {"float", TType::KW_FLOAT},
+  {"string", TType::KW_STRING}
 };
 
 static inline std::unordered_map<std::string_view, TType> Str2TokenOp {
