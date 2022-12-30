@@ -27,12 +27,13 @@
 // Wisnia
 #include "Exceptions.hpp"
 #include "Position.hpp"
+#include "Register.hpp"
 #include "TType.hpp"
 
 namespace Wisnia::Basic {
 
 // Variant that holds all the possible values for token
-using TokenValue = std::variant<int, float, bool, std::string, nullptr_t>;
+using TokenValue = std::variant<int, float, bool, std::string, nullptr_t, Basic::register_t>;
 
 // Helper type for the visitor
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -40,10 +41,10 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 class Token {
  public:
-  Token(const TType &type, const TokenValue &value, std::unique_ptr<Position> pif = nullptr)
+  Token(TType type, const TokenValue &value, std::unique_ptr<Position> pif = nullptr)
       : m_type{type}, m_value{value}, m_position{std::move(pif)} {}
 
-  Token(const TType &type, const TokenValue &value, const Position &pif)
+  Token(TType type, const TokenValue &value, const Position &pif)
       : m_type{type}, m_value{value}, m_position{std::make_unique<Position>(pif)} {}
 
   template <typename T>
@@ -63,6 +64,7 @@ class Token {
       [&](float arg)              { strResult = std::to_string(arg); },
       [&](bool arg)               { strResult = arg ? "true" : "false"; },
       [&](nullptr_t arg)          { strResult = "null"; },
+      [&](Basic::register_t arg)  { strResult = Register2Str[arg]; },
     },
     m_value);
     return strResult;
@@ -92,10 +94,11 @@ class Token {
           strResult = arg;
         }
       },
-      [&](int arg)       { strResult = std::to_string(arg); },
-      [&](float arg)     { strResult = std::to_string(arg); },
-      [&](bool arg)      { strResult = arg ? "true" : "false"; },
-      [&](nullptr_t arg) { strResult = "null"; },
+      [&](int arg)               { strResult = std::to_string(arg); },
+      [&](float arg)             { strResult = std::to_string(arg); },
+      [&](bool arg)              { strResult = arg ? "true" : "false"; },
+      [&](nullptr_t arg)         { strResult = "null"; },
+      [&](Basic::register_t arg) { strResult = Register2Str[arg]; },
     },
     m_value);
     return strResult;
@@ -110,6 +113,10 @@ class Token {
     return m_type == TType::LIT_INT || m_type == TType::LIT_FLT  ||
            m_type == TType::LIT_STR || m_type == TType::LIT_BOOL ||
            m_type == TType::KW_TRUE || m_type == TType::KW_FALSE;
+  }
+
+  constexpr bool isLiteralIntegerType() const {
+    return m_type == TType::LIT_INT || m_type == TType::LIT_INT_U32;
   }
 
   TType getType() const { return m_type; }

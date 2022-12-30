@@ -43,7 +43,7 @@ void IROptimization::removeRedundantInstructions(InstructionList &instructions) 
 
       return op == Operation::MOV && target->getType() == TType::REGISTER &&
              argOne->getType() == TType::REGISTER &&
-             target->template getValue<std::string>() == argOne->template getValue<std::string>();
+             target->template getValue<Basic::register_t>() == argOne->template getValue<Basic::register_t>();
     }),
     instructions.end()
   );

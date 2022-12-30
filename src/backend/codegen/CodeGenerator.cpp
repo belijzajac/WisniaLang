@@ -23,6 +23,7 @@
 #include <cassert>
 #include <iostream>
 // Wisnia
+#include "CodeFragment.hpp"
 #include "CodeGenerator.hpp"
 #include "ELF.hpp"
 #include "Instruction.hpp"
@@ -31,289 +32,156 @@
 using namespace Wisnia;
 using namespace Basic;
 
-static inline std::unordered_map<std::string_view, ByteArray> LeaMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x84}, std::byte{0x24}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x8c}, std::byte{0x24}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0x9c}, std::byte{0x24}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xa4}, std::byte{0x24}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xac}, std::byte{0x24}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xb4}, std::byte{0x24}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x8d}, std::byte{0xbc}, std::byte{0x24}}},
-  {"r8",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x84}, std::byte{0x24}}},
-  {"r9",  ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x8c}, std::byte{0x24}}},
-  {"r10", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
-  {"r11", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0x9c}, std::byte{0x24}}},
-  {"r12", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xa4}, std::byte{0x24}}},
-  {"r13", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xac}, std::byte{0x24}}},
-  {"r14", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xb4}, std::byte{0x24}}},
-  {"r15", ByteArray{std::byte{0x4c}, std::byte{0x8d}, std::byte{0xbc}, std::byte{0x24}}},
-  {"edx", ByteArray{std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> PushMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x50}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x51}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x52}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x53}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x54}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x55}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x56}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x57}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x41}, std::byte{0x50}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x41}, std::byte{0x51}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x41}, std::byte{0x52}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x41}, std::byte{0x53}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x41}, std::byte{0x54}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x41}, std::byte{0x55}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x41}, std::byte{0x56}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x41}, std::byte{0x57}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> MovMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc1}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc3}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc5}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0xc7}, std::byte{0xc7}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc1}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc2}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc3}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc4}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc5}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc6}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0xc7}, std::byte{0xc7}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> PopMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x58}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x59}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x5a}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x5b}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x5c}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x5d}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x5e}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x5f}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x41}, std::byte{0x58}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x41}, std::byte{0x59}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x41}, std::byte{0x5a}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x41}, std::byte{0x5b}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x41}, std::byte{0x5c}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x41}, std::byte{0x5d}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x41}, std::byte{0x5e}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x41}, std::byte{0x5f}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> PushMachineCode {
-  {"rax", ByteArray{std::byte{0x50}}},
-  {"rcx", ByteArray{std::byte{0x51}}},
-  {"rdx", ByteArray{std::byte{0x52}}},
-  {"rbx", ByteArray{std::byte{0x53}}},
-  {"rsp", ByteArray{std::byte{0x54}}},
-  {"rbp", ByteArray{std::byte{0x55}}},
-  {"rsi", ByteArray{std::byte{0x56}}},
-  {"rdi", ByteArray{std::byte{0x57}}},
-  {"r8",  ByteArray{std::byte{0x41}, std::byte{0x50}}},
-  {"r9",  ByteArray{std::byte{0x41}, std::byte{0x51}}},
-  {"r10", ByteArray{std::byte{0x41}, std::byte{0x52}}},
-  {"r11", ByteArray{std::byte{0x41}, std::byte{0x53}}},
-  {"r12", ByteArray{std::byte{0x41}, std::byte{0x54}}},
-  {"r13", ByteArray{std::byte{0x41}, std::byte{0x55}}},
-  {"r14", ByteArray{std::byte{0x41}, std::byte{0x56}}},
-  {"r15", ByteArray{std::byte{0x41}, std::byte{0x57}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> IncMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc3}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc4}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc5}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc6}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc7}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc0}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc1}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc2}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc3}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc4}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc5}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc6}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> PopMachineCode {
-  {"rax", ByteArray{std::byte{0x58}}},
-  {"rcx", ByteArray{std::byte{0x59}}},
-  {"rdx", ByteArray{std::byte{0x5a}}},
-  {"rbx", ByteArray{std::byte{0x5b}}},
-  {"rsp", ByteArray{std::byte{0x5c}}},
-  {"rbp", ByteArray{std::byte{0x5d}}},
-  {"rsi", ByteArray{std::byte{0x5e}}},
-  {"rdi", ByteArray{std::byte{0x5f}}},
-  {"r8",  ByteArray{std::byte{0x41}, std::byte{0x58}}},
-  {"r9",  ByteArray{std::byte{0x41}, std::byte{0x59}}},
-  {"r10", ByteArray{std::byte{0x41}, std::byte{0x5a}}},
-  {"r11", ByteArray{std::byte{0x41}, std::byte{0x5b}}},
-  {"r12", ByteArray{std::byte{0x41}, std::byte{0x5c}}},
-  {"r13", ByteArray{std::byte{0x41}, std::byte{0x5d}}},
-  {"r14", ByteArray{std::byte{0x41}, std::byte{0x5e}}},
-  {"r15", ByteArray{std::byte{0x41}, std::byte{0x5f}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> DecMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xca}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcb}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcc}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcd}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xce}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcf}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc8}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc9}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xca}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcb}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcc}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcd}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xce}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> IncMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc3}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc5}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc7}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc1}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc2}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc3}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc4}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc5}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc6}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> DivMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf3}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf4}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf5}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf6}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf7}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf0}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf1}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf2}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf3}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf4}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf5}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf6}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> DecMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xca}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcc}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcd}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xce}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcf}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc8}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc9}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xca}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcb}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcc}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcd}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xce}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> XorMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc0}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc9}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xd2}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xdb}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xe4}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xed}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xf6}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xff}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xc0}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xc9}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xd2}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xdb}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xe4}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xed}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xf6}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xff}}},
+  {Basic::register_t::EDX, ByteArray{std::byte{0x31}, std::byte{0xd2}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> CmpMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x3d}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xf9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfa}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfc}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfd}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xfe}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xff}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xf8}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xf9}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfa}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfb}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfc}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfd}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xfe}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xff}}},
+static inline std::unordered_map<Basic::register_t, ByteArray> TestMachineCode {
+  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc0}}},
+  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc9}}},
+  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xd2}}},
+  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xdb}}},
+  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xe4}}},
+  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xed}}},
+  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xf6}}},
+  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xff}}},
+  {Basic::register_t::R8,  ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xc0}}},
+  {Basic::register_t::R9,  ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xc9}}},
+  {Basic::register_t::R10, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xd2}}},
+  {Basic::register_t::R11, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xdb}}},
+  {Basic::register_t::R12, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xe4}}},
+  {Basic::register_t::R13, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xed}}},
+  {Basic::register_t::R14, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xf6}}},
+  {Basic::register_t::R15, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}}},
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> CmpBytePtrMachineCode {
-  {"rax", ByteArray{std::byte{0x80}, std::byte{0x38}}},
-  {"rcx", ByteArray{std::byte{0x80}, std::byte{0x39}}},
-  {"rdx", ByteArray{std::byte{0x80}, std::byte{0x3a}}},
-  {"rbx", ByteArray{std::byte{0x80}, std::byte{0x3b}}},
-  {"rsp", ByteArray{std::byte{0x80}, std::byte{0x3c}}},
-  {"rbp", ByteArray{std::byte{0x80}, std::byte{0x7d}}},
-  {"rsi", ByteArray{std::byte{0x80}, std::byte{0x3e}}},
-  {"rdi", ByteArray{std::byte{0x80}, std::byte{0x3f}}},
-  {"r8",  ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x38}}},
-  {"r9",  ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x39}}},
-  {"r10", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x3a}}},
-  {"r11", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x3b}}},
-  {"r12", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x3c}}},
-  {"r13", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x7d}}},
-  {"r14", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x3e}}},
-  {"r15", ByteArray{std::byte{0x41}, std::byte{0x80}, std::byte{0x3f}}},
+constexpr std::array<Basic::register_t, 16> kRegisters { // todo: put to register alloc class
+  Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX, Basic::register_t::RBX,
+  Basic::register_t::RSP, Basic::register_t::RBP, Basic::register_t::RSI, Basic::register_t::RDI,
+  Basic::register_t::R8,  Basic::register_t::R9,  Basic::register_t::R10, Basic::register_t::R11,
+  Basic::register_t::R12, Basic::register_t::R13, Basic::register_t::R14, Basic::register_t::R15,
 };
 
-static inline std::unordered_map<std::string_view, ByteArray> AddMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x05}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc1}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc3}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc5}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xc7}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc1}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc2}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc3}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc4}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc5}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc6}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xc7}}},
-  {"edx", ByteArray{std::byte{0x81}, std::byte{0xc2}}},
-};
+constexpr auto kHalfRegisters{kRegisters.size() / 2}; // todo: put to register alloc class
 
-static inline std::unordered_map<std::string_view, ByteArray> SubMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x2d}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xe9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xea}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xeb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xec}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xed}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xee}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x81}, std::byte{0xef}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xe8}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xe9}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xea}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xeb}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xec}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xed}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xee}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0x81}, std::byte{0xef}}},
-};
-
-static inline std::unordered_map<std::string_view, ByteArray> MulMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xc0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xc9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xd2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xdb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xe4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xed}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xf6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x69}, std::byte{0xff}}},
-  {"r8",  ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xc9}}},
-  {"r10", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xd2}}},
-  {"r11", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xdb}}},
-  {"r12", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xe4}}},
-  {"r13", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xed}}},
-  {"r14", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xf6}}},
-  {"r15", ByteArray{std::byte{0x4d}, std::byte{0x69}, std::byte{0xff}}},
-};
-
-static inline std::unordered_map<std::string_view, ByteArray> DivMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf3}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf5}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf7}}},
-  {"r8",  ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf0}}},
-  {"r9",  ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf1}}},
-  {"r10", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf2}}},
-  {"r11", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf3}}},
-  {"r12", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf4}}},
-  {"r13", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf5}}},
-  {"r14", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf6}}},
-  {"r15", ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}}},
-};
-
-static inline std::unordered_map<std::string_view, ByteArray> XorMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xd2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xdb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xe4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xed}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xf6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xff}}},
-  {"r8",  ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xc9}}},
-  {"r10", ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xd2}}},
-  {"r11", ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xdb}}},
-  {"r12", ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xe4}}},
-  {"r13", ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xed}}},
-  {"r14", ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xf6}}},
-  {"r15", ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xff}}},
-  {"edx", ByteArray{std::byte{0x31}, std::byte{0xd2}}},
-};
-
-static inline std::unordered_map<std::string_view, ByteArray> TestMachineCode {
-  {"rax", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc0}}},
-  {"rcx", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc9}}},
-  {"rdx", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xd2}}},
-  {"rbx", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xdb}}},
-  {"rsp", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xe4}}},
-  {"rbp", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xed}}},
-  {"rsi", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xf6}}},
-  {"rdi", ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xff}}},
-  {"r8",  ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xc0}}},
-  {"r9",  ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xc9}}},
-  {"r10", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xd2}}},
-  {"r11", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xdb}}},
-  {"r12", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xe4}}},
-  {"r13", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xed}}},
-  {"r14", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xf6}}},
-  {"r15", ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}}},
-};
-
-constexpr std::array<std::string_view, 16> kRegisters {
-  "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-  "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-};
-
-constexpr auto kHalfRegisters{kRegisters.size() / 2};
-
-struct Register {
+struct RegisterContext {
   int source{-1};
   int destination{-1};
 };
 
-constexpr Register assignRegisters(std::string_view source, std::string_view destination) {
-  Register assigned{};
+constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::register_t destination) {
+  RegisterContext assigned{};
   for (auto i = 0; i < kRegisters.size(); i++) {
     if (kRegisters[i] == source) assigned.source = i;
     if (kRegisters[i] == destination) assigned.destination = i;
@@ -445,13 +313,14 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) 
   const auto &argOne = instruction->getArg1();
 
   // lea reg, [rsp + number]
-  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
-    m_textSection.putBytes(LeaMachineCode[target->getValue<std::string>()]);
-    m_textSection.putU32(argOne->getValue<int>());
+  if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
+    const auto bytes = CodeFragment<uint32_t>::getLeaMachineCode(target->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
   }
 
-  throw CodeGenerationError{"Unknown lea operation"};
+  throw CodeGenerationError{"Unknown lea instruction"};
 }
 
 void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
@@ -459,21 +328,35 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
   const auto &argOne = instruction->getArg1();
 
   // mov reg, number
-  if (target->getType() == TType::REGISTER && (argOne->getType() == TType::LIT_INT || argOne->getType() == TType::LIT_BOOL)) {
-    m_textSection.putBytes(MovMachineCode[target->getValue<std::string>()]);
+  if (target->getType() == TType::REGISTER && (argOne->isLiteralIntegerType() || argOne->getType() == TType::LIT_BOOL)) {
+    const auto dataType = [&]() {
+      switch (argOne->getType()) {
+        case Basic::TType::LIT_INT:
+        case Basic::TType::LIT_INT_U32:
+          return CodeFragment<uint32_t>::type;
+        default: {
+          assert(0 && "Unknown data type for mov instruction");
+        }
+      }
+    };
+
+    using data_type = decltype(dataType());
+    const auto bytes = CodeFragment<data_type>::getMovMachineCode(target->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
     if (label) {
       m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<int>())});
     }
-    const auto value = (argOne->getType() == TType::LIT_INT) ? argOne->getValue<int>()
-                                                             : (argOne->getValue<bool>() ? 1 : 0);
-    m_textSection.putU32(value);
+    const auto value = argOne->isLiteralIntegerType() ? argOne->getValue<int>()
+                                                      : (argOne->getValue<bool>() ? 1 : 0);
+    m_textSection.putValue<data_type>(value);
     return;
   }
 
   // mov reg, bool
   if (target->getType() == TType::REGISTER && (argOne->getType() == TType::KW_TRUE || argOne->getType() == TType::KW_FALSE)) {
-    m_textSection.putBytes(MovMachineCode[target->getValue<std::string>()]);
-    m_textSection.putU32(argOne->getValue<bool>() ? 1 : 0);
+    const auto bytes = CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<uint32_t>(argOne->getValue<bool>() ? 1 : 0); // todo: u8 ??
     return;
   }
 
@@ -483,7 +366,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     for (const auto ch : strVal) {
       m_dataSection.putBytes(std::byte(ch));
     }
-    argOne->setType(TType::LIT_INT);
+    argOne->setType(TType::LIT_INT); // todo: hmm
     argOne->setValue(std::abs(static_cast<int>(m_dataSection.size() - strVal.size())));
     emitMove(instruction, true);
     return;
@@ -491,8 +374,8 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
 
   // mov reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
-    assert((src > -1 && dst > -1) && "Failed to look up registers for mov operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<Basic::register_t>(), target->getValue<Basic::register_t>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for mov instruction");
 
     // <-        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
@@ -511,7 +394,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x89});
     } else {
-      assert(0 && "Unknown table entry for mov operation");
+      assert(0 && "Unknown table entry for mov instruction");
     }
 
     auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
@@ -520,7 +403,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     return;
   }
 
-  throw CodeGenerationError{"Unknown move operation"};
+  throw CodeGenerationError{"Unknown mov instruction"};
 }
 
 void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instruction) {
@@ -529,12 +412,13 @@ void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instru
 
   // mov [rsi], dl
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
-      target->getValue<std::string>() == "rsi" && argOne->getValue<std::string>() == "dl") {
+      target->getValue<Basic::register_t>() == Basic::register_t::RSI &&
+      argOne->getValue<Basic::register_t>() == Basic::register_t::DL) {
     m_textSection.putBytes(std::byte{0x88}, std::byte{0x16});
     return;
   }
 
-  throw CodeGenerationError{"Unknown move memory operation"};
+  throw CodeGenerationError{"Unknown mov memory instruction"};
 }
 
 void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instruction) {
@@ -544,21 +428,21 @@ void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instructi
 void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction) {
   // push reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PushMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(PushMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown push operation"};
+  throw CodeGenerationError{"Unknown push instruction"};
 }
 
 void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
   // pop reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PopMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(PopMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown pop operation"};
+  throw CodeGenerationError{"Unknown pop instruction"};
 }
 
 void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction) {
@@ -569,7 +453,7 @@ void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction)
   const auto offset{m_textSection.size()};
   m_calls.emplace_back(Label{label, offset});
 
-  m_textSection.putU32(0);
+  m_textSection.putValue<uint32_t>(0);
 }
 
 void CodeGenerator::emitLabel(const CodeGenerator::InstructionValue &instruction) {
@@ -584,12 +468,13 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) 
 
   // cmp reg, number
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(CmpMachineCode[instruction->getArg1()->getValue<std::string>()]);
-    m_textSection.putU32(argTwo->getValue<int>());
+    const auto bytes = CodeFragment<uint32_t>::getCmpMachineCode(instruction->getArg1()->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<uint32_t>(argTwo->getValue<int>());
     return;
   }
 
-  throw CodeGenerationError{"Unknown cmp operation"};
+  throw CodeGenerationError{"Unknown cmp instruction"};
 }
 
 void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instruction) {
@@ -598,12 +483,13 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
 
   // cmp byte ptr [reg], number
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(CmpBytePtrMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    const auto bytes = CodeFragment<uint8_t>::getCmpPtrMachineCode(instruction->getArg1()->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
     m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
     return;
   }
 
-  throw CodeGenerationError{"Unknown cmp byte ptr operation"};
+  throw CodeGenerationError{"Unknown cmp byte ptr instruction"};
 }
 
 void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) {
@@ -618,8 +504,7 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
       case Operation::JNZ:
         return std::byte{0x75};
       default: {
-        assert(0 && "Unknown jump operation");
-        return std::byte{0x00};
+        assert(0 && "Unknown jump instruction");
       }
     }
   };
@@ -637,21 +522,21 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
 void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) {
   // inc reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(IncMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(IncMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown inc operation"};
+  throw CodeGenerationError{"Unknown inc instruction"};
 }
 
 void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) {
   // dec reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(DecMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(DecMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown dec operation"};
+  throw CodeGenerationError{"Unknown dec instruction"};
 }
 
 void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
@@ -659,16 +544,29 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
   const auto &argOne = instruction->getArg1();
 
   // add reg, number
-  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
-    m_textSection.putBytes(AddMachineCode[target->getValue<std::string>()]);
-    m_textSection.putU32(argOne->getValue<int>());
+  if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
+    const auto dataType = [&]() {
+      switch (argOne->getType()) {
+        case Basic::TType::LIT_INT:
+        case Basic::TType::LIT_INT_U32:
+          return CodeFragment<uint32_t>::type;
+        default: {
+          assert(0 && "Unknown data type for add instruction");
+        }
+      }
+    };
+
+    using data_type = decltype(dataType());
+    const auto bytes = CodeFragment<data_type>::getAddMachineCode(target->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<data_type>(argOne->getValue<int>());
     return;
   }
 
   // add reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
-    assert((src > -1 && dst > -1) && "Failed to look up registers for add operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<Basic::register_t>(), target->getValue<Basic::register_t>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for add instruction");
 
     //  +        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
@@ -687,7 +585,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x01});
     } else {
-      assert(0 && "Unknown table entry for add operation");
+      assert(0 && "Unknown table entry for add instruction");
     }
 
     auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
@@ -696,7 +594,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  throw CodeGenerationError{"Unknown add operation"};
+  throw CodeGenerationError{"Unknown add instruction"};
 }
 
 void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) {
@@ -704,23 +602,37 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
   const auto &argOne = instruction->getArg1();
 
   // sub reg, number
-  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
-    m_textSection.putBytes(SubMachineCode[target->getValue<std::string>()]);
-    m_textSection.putU32(argOne->getValue<int>());
+  if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
+    const auto dataType = [&]() {
+      switch (argOne->getType()) {
+        case Basic::TType::LIT_INT:
+        case Basic::TType::LIT_INT_U32:
+          return CodeFragment<uint32_t>::type;
+        default: {
+          assert(0 && "Unknown data type for sub instruction");
+        }
+      }
+    };
+
+    using data_type = decltype(dataType());
+    const auto bytes = CodeFragment<data_type>::getSubMachineCode(target->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<data_type>(argOne->getValue<int>());
     return;
   }
 
   // sub edx, esi
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
-      target->getValue<std::string>() == "edx" && argOne->getValue<std::string>() == "esi") {
+      target->getValue<Basic::register_t>() == Basic::register_t::EDX &&
+      argOne->getValue<Basic::register_t>() == Basic::register_t::ESI) {
     m_textSection.putBytes(std::byte{0x29}, std::byte{0xf2});
     return;
   }
 
   // sub reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
-    assert((src > -1 && dst > -1) && "Failed to look up registers for sub operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<Basic::register_t>(), target->getValue<Basic::register_t>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for sub instruction");
 
     //  -        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
@@ -739,7 +651,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x29});
     } else {
-      assert(0 && "Unknown table entry for sub operation");
+      assert(0 && "Unknown table entry for sub instruction");
     }
 
     auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
@@ -748,7 +660,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  throw CodeGenerationError{"Unknown sub operation"};
+  throw CodeGenerationError{"Unknown sub instruction"};
 }
 
 void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) {
@@ -756,16 +668,29 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
   const auto &argOne = instruction->getArg1();
 
   // imul reg, number
-  if (target->getType() == TType::REGISTER && argOne->getType() == TType::LIT_INT) {
-    m_textSection.putBytes(MulMachineCode[target->getValue<std::string>()]);
-    m_textSection.putU32(argOne->getValue<int>());
+  if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
+    const auto dataType = [&]() {
+      switch (argOne->getType()) {
+        case Basic::TType::LIT_INT:
+        case Basic::TType::LIT_INT_U32:
+          return CodeFragment<uint32_t>::type;
+        default: {
+          assert(0 && "Unknown data type for imul instruction");
+        }
+      }
+    };
+
+    using data_type = decltype(dataType());
+    const auto bytes = CodeFragment<data_type>::getMulMachineCode(target->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<data_type>(argOne->getValue<int>());
     return;
   }
 
   // imul reg1, reg2
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER) {
-    const auto [src, dst] = assignRegisters(argOne->getValue<std::string>(), target->getValue<std::string>());
-    assert((src > -1 && dst > -1) && "Failed to look up registers for mul operation");
+    const auto [src, dst] = assignRegisters(argOne->getValue<Basic::register_t>(), target->getValue<Basic::register_t>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for imul instruction");
 
     //  *        rax       ...       r15
     // rax   <byte_0000>   ...   <byte_0015>
@@ -784,7 +709,7 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x0f}, std::byte{0xaf});
     } else {
-      assert(0 && "Unknown table entry for mul operation");
+      assert(0 && "Unknown table entry for imul instruction");
     }
 
     auto result = 0xc0 + (src % kHalfRegisters) + (8 * (dst % kHalfRegisters));
@@ -793,17 +718,17 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     return;
   }
 
-  throw CodeGenerationError{"Unknown mul operation"};
+  throw CodeGenerationError{"Unknown imul instruction"};
 }
 
 void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
   // div reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(DivMachineCode[instruction->getArg1()->getValue<std::string>()]);
+    m_textSection.putBytes(DivMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown div operation"};
+  throw CodeGenerationError{"Unknown div instruction"};
 }
 
 void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) {
@@ -812,12 +737,12 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) 
 
   // xor reg, reg
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER &&
-      argOne->getValue<std::string>() == argTwo->getValue<std::string>()) {
-    m_textSection.putBytes(XorMachineCode[argOne->getValue<std::string>()]);
+      argOne->getValue<Basic::register_t>() == argTwo->getValue<Basic::register_t>()) {
+    m_textSection.putBytes(XorMachineCode[argOne->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown xor operation"};
+  throw CodeGenerationError{"Unknown xor instruction"};
 }
 
 void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction) {
@@ -826,12 +751,12 @@ void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction)
 
   // test reg, reg
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER &&
-      argOne->getValue<std::string>() == argTwo->getValue<std::string>()) {
-    m_textSection.putBytes(TestMachineCode[argOne->getValue<std::string>()]);
+      argOne->getValue<Basic::register_t>() == argTwo->getValue<Basic::register_t>()) {
+    m_textSection.putBytes(TestMachineCode[argOne->getValue<Basic::register_t>()]);
     return;
   }
 
-  throw CodeGenerationError{"Unknown test operation"};
+  throw CodeGenerationError{"Unknown test instruction"};
 }
 
 void CodeGenerator::emitRet(const CodeGenerator::InstructionValue &instruction) {
