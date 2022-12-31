@@ -27,6 +27,10 @@ make -j$(nproc) wisnia
 (gdb) r
 ```
 
+## Benchmarks
+
+[![benchmarks](https://belijzajac.dev/post-images/benchmark-results.png)](https://belijzajac.dev/wisnialang-compiler-project/)
+
 ## License
 
 This project is available under the [GPLv3 license](LICENSE).
