@@ -72,8 +72,8 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, InstructionsShouldBeOptimized) {
   EXPECT_EQ(unoptimizedInstructions[2]->getOperation(), Operation::MOV);
   EXPECT_EQ(unoptimizedInstructions[2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(unoptimizedInstructions[2]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(unoptimizedInstructions[2]->getTarget()->getValue<std::string>().c_str(),
-               unoptimizedInstructions[2]->getArg1()->getValue<std::string>().c_str());
+  EXPECT_EQ(unoptimizedInstructions[2]->getTarget()->getValue<Basic::register_t>(),
+            unoptimizedInstructions[2]->getArg1()->getValue<Basic::register_t>());
 
   // `rax <- rax` has been optimized out, so should not be present anymore
 
@@ -81,14 +81,14 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, InstructionsShouldBeOptimized) {
   EXPECT_EQ(unoptimizedInstructions[3]->getOperation(), Operation::IMUL);
   EXPECT_EQ(unoptimizedInstructions[3]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_STREQ(unoptimizedInstructions[3]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(unoptimizedInstructions[3]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getValue<int>(), 3);
 
   // in its old place (`rax <- rax`) now should stand IR for `rax * 3`
   EXPECT_EQ(optimizedInstructions[2]->getOperation(), Operation::IMUL);
   EXPECT_EQ(optimizedInstructions[2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(optimizedInstructions[2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_STREQ(optimizedInstructions[2]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(optimizedInstructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(optimizedInstructions[2]->getArg1()->getValue<int>(), 3);
 }
 
@@ -104,49 +104,49 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   // push rdx
   EXPECT_EQ(instructions[0]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[0]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[0]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[0]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // push rsi
   EXPECT_EQ(instructions[1]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[1]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[1]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[1]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // mov rdx, 5
   EXPECT_EQ(instructions[2]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[2]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[2]->getTarget()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[2]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[2]->getArg1()->getValue<int>(), 5);
   // mov rsi, "12345"
   EXPECT_EQ(instructions[3]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[3]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[3]->getTarget()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[3]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   EXPECT_EQ(instructions[3]->getArg1()->getType(), TType::LIT_STR);
   EXPECT_STREQ(instructions[3]->getArg1()->getValue<std::string>().c_str(), "12345");
   // push rax
   EXPECT_EQ(instructions[4]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[4]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[4]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[4]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // push rcx
   EXPECT_EQ(instructions[5]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[5]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[5]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[5]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // push r11
   EXPECT_EQ(instructions[6]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[6]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[6]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[6]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // push rdi
   EXPECT_EQ(instructions[7]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[7]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[7]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[7]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 1
   EXPECT_EQ(instructions[8]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[8]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[8]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[8]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[8]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[8]->getArg1()->getValue<int>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[9]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[9]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[9]->getTarget()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[9]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[9]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[9]->getArg1()->getValue<int>(), 1);
   // syscall
@@ -154,27 +154,27 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   // pop rdi
   EXPECT_EQ(instructions[11]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[11]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[11]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[11]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // pop r11
   EXPECT_EQ(instructions[12]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[12]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[12]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[12]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // pop rcx
   EXPECT_EQ(instructions[13]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[13]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[13]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[13]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // pop rax
   EXPECT_EQ(instructions[14]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[14]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[14]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[14]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // pop rsi
   EXPECT_EQ(instructions[15]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[15]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[15]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[15]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // pop rdx
   EXPECT_EQ(instructions[16]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[16]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[16]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // call _exit_
   EXPECT_EQ(instructions[17]->getOperation(), Operation::CALL);
   EXPECT_EQ(instructions[17]->getTarget()->getType(), TType::IDENT_VOID);
@@ -186,13 +186,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   // xor rdi, rdi
   EXPECT_EQ(instructions[19]->getOperation(), Operation::XOR);
   EXPECT_EQ(instructions[19]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[19]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[19]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[19]->getArg2()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[19]->getArg2()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[19]->getArg2()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 60
   EXPECT_EQ(instructions[20]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[20]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[20]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[20]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[20]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[20]->getArg1()->getValue<int>(), 60);
   // syscall
@@ -211,49 +211,49 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   // push rdx
   EXPECT_EQ(instructions[0]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[0]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[0]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[0]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // push rsi
   EXPECT_EQ(instructions[1]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[1]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[1]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[1]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // mov rdx, 5
   EXPECT_EQ(instructions[2]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[2]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[2]->getTarget()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[2]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[2]->getArg1()->getValue<int>(), 5);
   // mov rsi, "12345"
   EXPECT_EQ(instructions[3]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[3]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[3]->getTarget()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[3]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   EXPECT_EQ(instructions[3]->getArg1()->getType(), TType::LIT_STR);
   EXPECT_STREQ(instructions[3]->getArg1()->getValue<std::string>().c_str(), "haiii");
   // push rax
   EXPECT_EQ(instructions[4]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[4]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[4]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[4]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // push rcx
   EXPECT_EQ(instructions[5]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[5]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[5]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[5]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // push r11
   EXPECT_EQ(instructions[6]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[6]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[6]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[6]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // push rdi
   EXPECT_EQ(instructions[7]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[7]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[7]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[7]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 1
   EXPECT_EQ(instructions[8]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[8]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[8]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[8]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[8]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[8]->getArg1()->getValue<int>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[9]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[9]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[9]->getTarget()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[9]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[9]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[9]->getArg1()->getValue<int>(), 1);
   // syscall
@@ -261,27 +261,27 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   // pop rdi
   EXPECT_EQ(instructions[11]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[11]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[11]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[11]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // pop r11
   EXPECT_EQ(instructions[12]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[12]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[12]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[12]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // pop rcx
   EXPECT_EQ(instructions[13]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[13]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[13]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[13]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // pop rax
   EXPECT_EQ(instructions[14]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[14]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[14]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[14]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // pop rsi
   EXPECT_EQ(instructions[15]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[15]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[15]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[15]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // pop rdx
   EXPECT_EQ(instructions[16]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[16]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[16]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // call _exit_
   EXPECT_EQ(instructions[17]->getOperation(), Operation::CALL);
   EXPECT_EQ(instructions[17]->getTarget()->getType(), TType::IDENT_VOID);
@@ -293,13 +293,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   // xor rdi, rdi
   EXPECT_EQ(instructions[19]->getOperation(), Operation::XOR);
   EXPECT_EQ(instructions[19]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[19]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[19]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[19]->getArg2()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[19]->getArg2()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[19]->getArg2()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 60
   EXPECT_EQ(instructions[20]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[20]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[20]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[20]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[20]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[20]->getArg1()->getValue<int>(), 60);
   // syscall
@@ -318,49 +318,49 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   // push rdx
   EXPECT_EQ(instructions[0]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[0]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[0]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[0]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // push rsi
   EXPECT_EQ(instructions[1]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[1]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[1]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[1]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // mov rdx, 4
   EXPECT_EQ(instructions[2]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[2]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[2]->getTarget()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[2]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[2]->getArg1()->getValue<int>(), 4);
   // mov rsi, "true"
   EXPECT_EQ(instructions[3]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[3]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[3]->getTarget()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[3]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   EXPECT_EQ(instructions[3]->getArg1()->getType(), TType::LIT_STR);
   EXPECT_STREQ(instructions[3]->getArg1()->getValue<std::string>().c_str(), "true");
   // push rax
   EXPECT_EQ(instructions[4]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[4]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[4]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[4]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // push rcx
   EXPECT_EQ(instructions[5]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[5]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[5]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[5]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // push r11
   EXPECT_EQ(instructions[6]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[6]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[6]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[6]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // push rdi
   EXPECT_EQ(instructions[7]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[7]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[7]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[7]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 1
   EXPECT_EQ(instructions[8]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[8]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[8]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[8]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[8]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[8]->getArg1()->getValue<int>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[9]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[9]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[9]->getTarget()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[9]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[9]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[9]->getArg1()->getValue<int>(), 1);
   // syscall
@@ -368,73 +368,73 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   // pop rdi
   EXPECT_EQ(instructions[11]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[11]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[11]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[11]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // pop r11
   EXPECT_EQ(instructions[12]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[12]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[12]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[12]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // pop rcx
   EXPECT_EQ(instructions[13]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[13]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[13]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[13]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // pop rax
   EXPECT_EQ(instructions[14]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[14]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[14]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[14]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // pop rsi
   EXPECT_EQ(instructions[15]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[15]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[15]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[15]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // pop rdx
   EXPECT_EQ(instructions[16]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[16]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[16]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // push rdx
   EXPECT_EQ(instructions[17]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[17]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[17]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[17]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // push rsi
   EXPECT_EQ(instructions[18]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[18]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[18]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[18]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // mov rdx, 5
   EXPECT_EQ(instructions[19]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[19]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[19]->getTarget()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[19]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[19]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[19]->getArg1()->getValue<int>(), 5);
   // mov rsi, "false"
   EXPECT_EQ(instructions[20]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[20]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[20]->getTarget()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[20]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   EXPECT_EQ(instructions[20]->getArg1()->getType(), TType::LIT_STR);
   EXPECT_STREQ(instructions[20]->getArg1()->getValue<std::string>().c_str(), "false");
   // push rax
   EXPECT_EQ(instructions[21]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[21]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[21]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[21]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // push rcx
   EXPECT_EQ(instructions[22]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[22]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[22]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[22]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // push r11
   EXPECT_EQ(instructions[23]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[23]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[23]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[23]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // push rdi
   EXPECT_EQ(instructions[24]->getOperation(), Operation::PUSH);
   EXPECT_EQ(instructions[24]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[24]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[24]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 1
   EXPECT_EQ(instructions[25]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[25]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[25]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[25]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[25]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[25]->getArg1()->getValue<int>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[26]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[26]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[26]->getTarget()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[26]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[26]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[26]->getArg1()->getValue<int>(), 1);
   // syscall
@@ -442,27 +442,27 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   // pop rdi
   EXPECT_EQ(instructions[28]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[28]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[28]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[28]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // pop r11
   EXPECT_EQ(instructions[29]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[29]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[29]->getArg1()->getValue<std::string>().c_str(), "r11");
+  EXPECT_EQ(instructions[29]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::R11);
   // pop rcx
   EXPECT_EQ(instructions[30]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[30]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[30]->getArg1()->getValue<std::string>().c_str(), "rcx");
+  EXPECT_EQ(instructions[30]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RCX);
   // pop rax
   EXPECT_EQ(instructions[31]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[31]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[31]->getArg1()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[31]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   // pop rsi
   EXPECT_EQ(instructions[32]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[32]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[32]->getArg1()->getValue<std::string>().c_str(), "rsi");
+  EXPECT_EQ(instructions[32]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RSI);
   // pop rdx
   EXPECT_EQ(instructions[33]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[33]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[33]->getArg1()->getValue<std::string>().c_str(), "rdx");
+  EXPECT_EQ(instructions[33]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   // call _exit_
   EXPECT_EQ(instructions[34]->getOperation(), Operation::CALL);
   EXPECT_EQ(instructions[34]->getTarget()->getType(), TType::IDENT_VOID);
@@ -474,13 +474,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   // xor rdi, rdi
   EXPECT_EQ(instructions[36]->getOperation(), Operation::XOR);
   EXPECT_EQ(instructions[36]->getArg1()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[36]->getArg1()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[36]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[36]->getArg2()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[36]->getArg2()->getValue<std::string>().c_str(), "rdi");
+  EXPECT_EQ(instructions[36]->getArg2()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   // mov rax, 60
   EXPECT_EQ(instructions[37]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[37]->getTarget()->getType(), TType::REGISTER);
-  EXPECT_STREQ(instructions[37]->getTarget()->getValue<std::string>().c_str(), "rax");
+  EXPECT_EQ(instructions[37]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[37]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(instructions[37]->getArg1()->getValue<int>(), 60);
   // syscall
