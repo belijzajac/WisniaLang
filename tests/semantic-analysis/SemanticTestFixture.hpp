@@ -31,7 +31,7 @@ class SemanticTestFixture : public testing::Test {
   class Foo {
     bool is_fifteen{false};
     float number = 5.0;
-    int digit = 123456;
+    u32 digit = 123456;
 
     fn simple_operations() {
        float a = number + 7.75;

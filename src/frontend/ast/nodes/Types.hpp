@@ -60,6 +60,8 @@ class BaseType : public Root {
           return "void";
         case Basic::TType::KW_INT:
           return "int";
+        case Basic::TType::KW_INT_U32:
+          return "u32";
         case Basic::TType::KW_BOOL:
           return "bool";
         case Basic::TType::KW_FLOAT:

@@ -84,15 +84,16 @@ constexpr Operation getOperationForBinaryExpression(Basic::TType exprType, bool 
   }
 }
 
-constexpr TType getIdentForLiteralType(TType type) {
+TType getIdentForLiteralType(TType type) {
   switch (type) {
-    case TType::LIT_INT:  return TType::IDENT_INT;
-    case TType::LIT_FLT:  return TType::IDENT_FLOAT;
-    case TType::LIT_STR:  return TType::IDENT_STRING;
+    case TType::LIT_INT:     return TType::IDENT_INT;
+    case TType::LIT_INT_U32: return TType::IDENT_INT_U32;
+    case TType::LIT_FLT:     return TType::IDENT_FLOAT;
+    case TType::LIT_STR:     return TType::IDENT_STRING;
     case TType::LIT_BOOL:
     case TType::KW_TRUE:
-    case TType::KW_FALSE: return TType::IDENT_BOOL;
-    default: return type;
+    case TType::KW_FALSE:    return TType::IDENT_BOOL;
+    default:                 return type;
   }
 }
 
@@ -438,6 +439,7 @@ void IRGenerator::visit(AST::WriteStmt &node) {
           Modules::markAsUsed(Module::CALCULATE_STRING_LENGTH);
           break;
         case TType::IDENT_INT:
+        case TType::IDENT_INT_U32:
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::PUSH,
             nullptr,

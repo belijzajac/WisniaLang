@@ -21,6 +21,7 @@
 #ifndef WISNIALANG_AST_EXPRESSIONS_HPP
 #define WISNIALANG_AST_EXPRESSIONS_HPP
 
+#include <cassert>
 #include "fmt/format.h"
 // Wisnia
 #include "Root.hpp"
@@ -87,6 +88,9 @@ class VarExpr : public BaseExpr {
         break;
       case Basic::TType::KW_INT:
         tokenType = Basic::TType::IDENT_INT;
+        break;
+      case Basic::TType::KW_INT_U32:
+        tokenType = Basic::TType::IDENT_INT_U32;
         break;
       case Basic::TType::KW_BOOL:
         tokenType = Basic::TType::IDENT_BOOL;
@@ -449,9 +453,17 @@ class IntExpr : public ConstExpr {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "IntExpr" << " (" << m_token->getASTValueStr() << ")";
-    return ss.str();
+    const auto GetType = [&]() {
+      switch (m_token->getType()) {
+        case Basic::TType::LIT_INT:
+          return "int";
+        case Basic::TType::LIT_INT_U32:
+          return "u32";
+        default:
+          assert(0 && "Unknown integer type");
+      }
+    };
+    return fmt::format("IntExpr (value={}, type={})", m_token->getASTValueStr(), GetType());
   }
 };
 

@@ -105,14 +105,15 @@ class Token {
   };
 
   constexpr bool isIdentifierType() const {
-    return m_type == TType::IDENT_INT    || m_type == TType::IDENT_FLOAT ||
-           m_type == TType::IDENT_STRING || m_type == TType::IDENT_BOOL;
+    return m_type == TType::IDENT_INT   || m_type == TType::IDENT_INT_U32 ||
+           m_type == TType::IDENT_FLOAT || m_type == TType::IDENT_STRING  ||
+           m_type == TType::IDENT_BOOL;
   }
 
   constexpr bool isLiteralType() const {
-    return m_type == TType::LIT_INT || m_type == TType::LIT_FLT  ||
-           m_type == TType::LIT_STR || m_type == TType::LIT_BOOL ||
-           m_type == TType::KW_TRUE || m_type == TType::KW_FALSE;
+    return m_type == TType::LIT_INT || m_type == TType::LIT_INT_U32 || m_type == TType::LIT_FLT ||
+           m_type == TType::LIT_STR || m_type == TType::LIT_BOOL    || m_type == TType::KW_TRUE ||
+           m_type == TType::KW_FALSE;
   }
 
   constexpr bool isLiteralIntegerType() const {
