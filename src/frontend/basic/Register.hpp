@@ -25,14 +25,13 @@
 
 namespace Wisnia::Basic {
 
-enum class register_t {
-  SPILLED,
+enum register_t : uint8_t {
   // RAX - RDI
   RAX, RCX, RDX, RBX, RSP, RBP, RSI, RDI,
   // R8 - R15
   R8, R9, R10, R11, R12, R13, R14, R15,
   // Other
-  EDX, ESI, DL,
+  EDX, ESI, DL, SPILLED
 };
 
 static inline std::unordered_map<register_t, std::string_view> Register2Str {

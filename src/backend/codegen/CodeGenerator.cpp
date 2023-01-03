@@ -32,148 +32,14 @@
 using namespace Wisnia;
 using namespace Basic;
 
-static inline std::unordered_map<Basic::register_t, ByteArray> PushMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x50}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x51}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x52}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x53}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x54}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x55}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x56}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x57}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x41}, std::byte{0x50}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x41}, std::byte{0x51}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x41}, std::byte{0x52}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x41}, std::byte{0x53}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x41}, std::byte{0x54}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x41}, std::byte{0x55}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x41}, std::byte{0x56}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x41}, std::byte{0x57}}},
-};
-
-static inline std::unordered_map<Basic::register_t, ByteArray> PopMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x58}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x59}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x5a}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x5b}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x5c}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x5d}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x5e}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x5f}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x41}, std::byte{0x58}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x41}, std::byte{0x59}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x41}, std::byte{0x5a}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x41}, std::byte{0x5b}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x41}, std::byte{0x5c}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x41}, std::byte{0x5d}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x41}, std::byte{0x5e}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x41}, std::byte{0x5f}}},
-};
-
-static inline std::unordered_map<Basic::register_t, ByteArray> IncMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc3}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc4}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc5}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc6}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc7}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc0}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc1}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc2}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc3}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc4}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc5}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc6}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}}},
-};
-
-static inline std::unordered_map<Basic::register_t, ByteArray> DecMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xca}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcb}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcc}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcd}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xce}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0xff}, std::byte{0xcf}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc8}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xc9}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xca}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcb}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcc}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcd}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xce}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}}},
-};
-
-static inline std::unordered_map<Basic::register_t, ByteArray> DivMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf3}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf4}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf5}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf6}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0xf7}, std::byte{0xf7}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf0}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf1}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf2}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf3}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf4}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf5}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf6}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}}},
-};
-
-static inline std::unordered_map<Basic::register_t, ByteArray> XorMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc0}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xc9}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xd2}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xdb}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xe4}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xed}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xf6}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0x31}, std::byte{0xff}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xc0}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xc9}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xd2}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xdb}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xe4}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xed}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xf6}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x4d}, std::byte{0x31}, std::byte{0xff}}},
-  {Basic::register_t::EDX, ByteArray{std::byte{0x31}, std::byte{0xd2}}},
-};
-
-static inline std::unordered_map<Basic::register_t, ByteArray> TestMachineCode {
-  {Basic::register_t::RAX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc0}}},
-  {Basic::register_t::RCX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xc9}}},
-  {Basic::register_t::RDX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xd2}}},
-  {Basic::register_t::RBX, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xdb}}},
-  {Basic::register_t::RSP, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xe4}}},
-  {Basic::register_t::RBP, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xed}}},
-  {Basic::register_t::RSI, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xf6}}},
-  {Basic::register_t::RDI, ByteArray{std::byte{0x48}, std::byte{0x85}, std::byte{0xff}}},
-  {Basic::register_t::R8,  ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xc0}}},
-  {Basic::register_t::R9,  ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xc9}}},
-  {Basic::register_t::R10, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xd2}}},
-  {Basic::register_t::R11, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xdb}}},
-  {Basic::register_t::R12, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xe4}}},
-  {Basic::register_t::R13, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xed}}},
-  {Basic::register_t::R14, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xf6}}},
-  {Basic::register_t::R15, ByteArray{std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}}},
-};
-
-constexpr std::array<Basic::register_t, 16> kRegisters { // todo: put to register alloc class
+constexpr std::array<Basic::register_t, 16> kRegisters {
   Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX, Basic::register_t::RBX,
   Basic::register_t::RSP, Basic::register_t::RBP, Basic::register_t::RSI, Basic::register_t::RDI,
   Basic::register_t::R8,  Basic::register_t::R9,  Basic::register_t::R10, Basic::register_t::R11,
   Basic::register_t::R12, Basic::register_t::R13, Basic::register_t::R14, Basic::register_t::R15,
 };
 
-constexpr auto kHalfRegisters{kRegisters.size() / 2}; // todo: put to register alloc class
+constexpr auto kHalfRegisters{kRegisters.size() / 2};
 
 struct RegisterContext {
   int source{-1};
@@ -255,10 +121,11 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
         emitTest(instruction);
         break;
       case Operation::RET:
-        emitRet(instruction);
+        emitRet();
         break;
-      default:
-        throw CodeGenerationError{"Unknown operation to generate the code for"};
+      default: {
+        assert(0 && "Unknown operation to generate the code for");
+      }
     }
   }
 
@@ -397,8 +264,8 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
       assert(0 && "Unknown table entry for mov instruction");
     }
 
-    auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
-    assert(result < 255 && "Result value is out of range");
+    const auto result = 0xc0 + (kHalfRegisters * (src % kHalfRegisters)) + (dst % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
   }
@@ -428,7 +295,15 @@ void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instructi
 void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction) {
   // push reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PushMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
+    const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
+    assert(reg <= Basic::register_t::R15 && "Register is not in the RAX-R15 range");
+    const auto result = 0x50 + (reg % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
+    if (reg < Basic::register_t::R8) {
+      m_textSection.putBytes(std::byte(result));
+    } else {
+      m_textSection.putBytes(std::byte(0x41), std::byte(result));
+    }
     return;
   }
 
@@ -438,7 +313,15 @@ void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction)
 void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
   // pop reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(PopMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
+    const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
+    assert(reg <= Basic::register_t::R15 && "Register is not in the RAX-R15 range");
+    const auto result = 0x58 + (reg % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
+    if (reg < Basic::register_t::R8) {
+      m_textSection.putBytes(std::byte(result));
+    } else {
+      m_textSection.putBytes(std::byte(0x41), std::byte(result));
+    }
     return;
   }
 
@@ -467,8 +350,8 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) 
   const auto &argTwo = instruction->getArg2();
 
   // cmp reg, number
-  if (instruction->getArg1()->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint32_t>::getCmpMachineCode(instruction->getArg1()->getValue<Basic::register_t>());
+  if (argOne->getType() == TType::REGISTER) {
+    const auto bytes = CodeFragment<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argTwo->getValue<int>());
     return;
@@ -482,8 +365,8 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
   const auto &argTwo = instruction->getArg2();
 
   // cmp byte ptr [reg], number
-  if (instruction->getArg1()->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint8_t>::getCmpPtrMachineCode(instruction->getArg1()->getValue<Basic::register_t>());
+  if (argOne->getType() == TType::REGISTER) {
+    const auto bytes = CodeFragment<uint8_t>::getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
     return;
@@ -522,7 +405,15 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
 void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) {
   // inc reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(IncMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
+    const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
+    assert(reg <= Basic::register_t::R15 && "Register is not in the RAX-R15 range");
+    const auto result = 0xc0 + (reg % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
+    if (reg < Basic::register_t::R8) {
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0xff}, std::byte(result));
+    } else {
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0xff}, std::byte(result));
+    }
     return;
   }
 
@@ -532,7 +423,15 @@ void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) 
 void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) {
   // dec reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(DecMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
+    const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
+    assert(reg <= Basic::register_t::R15 && "Register is not in the RAX-R15 range");
+    const auto result = 0xc8 + (reg % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
+    if (reg < Basic::register_t::R8) {
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0xff}, std::byte(result));
+    } else {
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0xff}, std::byte(result));
+    }
     return;
   }
 
@@ -588,8 +487,8 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
       assert(0 && "Unknown table entry for add instruction");
     }
 
-    auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
-    assert(result < 255 && "Result value is out of range");
+    const auto result = 0xc0 + (kHalfRegisters * (src % kHalfRegisters)) + (dst % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
   }
@@ -654,8 +553,8 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
       assert(0 && "Unknown table entry for sub instruction");
     }
 
-    auto result = 0xc0 + (8 * (src % kHalfRegisters)) + (dst % kHalfRegisters);
-    assert(result < 255 && "Result value is out of range");
+    const auto result = 0xc0 + (kHalfRegisters * (src % kHalfRegisters)) + (dst % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
   }
@@ -712,8 +611,8 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
       assert(0 && "Unknown table entry for imul instruction");
     }
 
-    auto result = 0xc0 + (src % kHalfRegisters) + (8 * (dst % kHalfRegisters));
-    assert(result < 255 && "Result value is out of range");
+    const auto result = 0xc0 + (src % kHalfRegisters) + (kHalfRegisters * (dst % kHalfRegisters));
+    assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
   }
@@ -724,7 +623,15 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
 void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
   // div reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
-    m_textSection.putBytes(DivMachineCode[instruction->getArg1()->getValue<Basic::register_t>()]);
+    const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
+    assert(reg <= Basic::register_t::R15 && "Register is not in the RAX-R15 range");
+    const auto result = 0xf0 + (reg % kHalfRegisters);
+    assert(result <= 255 && "Result value is out of range");
+    if (reg < Basic::register_t::R8) {
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0xf7}, std::byte(result));
+    } else {
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0xf7}, std::byte(result));
+    }
     return;
   }
 
@@ -738,7 +645,23 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) 
   // xor reg, reg
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER &&
       argOne->getValue<Basic::register_t>() == argTwo->getValue<Basic::register_t>()) {
-    m_textSection.putBytes(XorMachineCode[argOne->getValue<Basic::register_t>()]);
+    const auto reg = argOne->getValue<Basic::register_t>();
+    assert((reg <= Basic::register_t::R15 || reg == Basic::register_t::EDX) &&
+           "Register is not in the {RAX-R15, EDX} range");
+    switch (reg) {
+      case Basic::register_t::EDX:
+        m_textSection.putBytes(std::byte{0x31}, std::byte{0xd2});
+        break;
+      default: {
+        const auto result = 0xc0 + (reg % kHalfRegisters * (kHalfRegisters + 1));
+        assert(result <= 255 && "Result value is out of range");
+        if (reg < Basic::register_t::R8) {
+          m_textSection.putBytes(std::byte{0x48}, std::byte{0x31}, std::byte(result));
+        } else {
+          m_textSection.putBytes(std::byte{0x4d}, std::byte{0x31}, std::byte(result));
+        }
+      }
+    }
     return;
   }
 
@@ -752,13 +675,21 @@ void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction)
   // test reg, reg
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER &&
       argOne->getValue<Basic::register_t>() == argTwo->getValue<Basic::register_t>()) {
-    m_textSection.putBytes(TestMachineCode[argOne->getValue<Basic::register_t>()]);
+    const auto reg = argOne->getValue<Basic::register_t>();
+    assert(reg <= Basic::register_t::R15 && "Register is not in the RAX-R15 range");
+    const auto result = 0xc0 + (reg % kHalfRegisters * (kHalfRegisters + 1));
+    assert(result <= 255 && "Result value is out of range");
+    if (reg < Basic::register_t::R8) {
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0x85}, std::byte(result));
+    } else {
+      m_textSection.putBytes(std::byte{0x4d}, std::byte{0x85}, std::byte(result));
+    }
     return;
   }
 
   throw CodeGenerationError{"Unknown test instruction"};
 }
 
-void CodeGenerator::emitRet(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitRet() {
   m_textSection.putBytes(std::byte{0xc3});
 }

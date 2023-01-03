@@ -84,7 +84,7 @@ constexpr Operation getOperationForBinaryExpression(Basic::TType exprType, bool 
   }
 }
 
-TType getIdentForLiteralType(TType type) {
+constexpr TType getIdentForLiteralType(TType type) {
   switch (type) {
     case TType::LIT_INT:     return TType::IDENT_INT;
     case TType::LIT_INT_U32: return TType::IDENT_INT_U32;
@@ -270,7 +270,7 @@ void IRGenerator::visit(AST::UnaryExpr &node) {
 
 void IRGenerator::visit(AST::FnCallExpr &node) {
   node.getVar()->accept(*this);
-  constexpr auto registers = RegisterAllocator::getAllRegisters();
+  constexpr auto registers = RegisterAllocator::getAllocableRegisters();
 
   // suboptimal approach to avoid overriding registers inside the called function
   for (auto reg : registers) {

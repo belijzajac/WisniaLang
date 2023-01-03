@@ -76,7 +76,8 @@ class RegisterAllocator {
   void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
   void allocate(InstructionList &&instructions, bool allocateRegisters = true);
 
-  static constexpr std::array<Basic::register_t, 15> getAllRegisters() {
+  // All the registers for RegisterAllocator to work with excluding `RSP`
+  static constexpr std::array<Basic::register_t, 15> getAllocableRegisters() {
     return {
         Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
         Basic::register_t::RBX, Basic::register_t::RBP, Basic::register_t::RSI,
