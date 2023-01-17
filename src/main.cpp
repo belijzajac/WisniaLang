@@ -33,6 +33,16 @@
 using namespace Wisnia;
 using namespace lyra;
 
+constexpr std::string_view kVersion{"1.0.0"};
+constexpr std::string_view kLogo {
+" __        ___           _       _                      \n"
+    " \\ \\      / (_)___ _ __ (_) __ _| |    __ _ _ __   __ _ \n"
+    "  \\ \\ /\\ / /| / __| '_ \\| |/ _` | |   / _` | '_ \\ / _` |\n"
+    "   \\ V  V / | \\__ \\ | | | | (_| | |__| (_| | | | | (_| |\n"
+    "    \\_/\\_/  |_|___/_| |_|_|\\__,_|_____\\__,_|_| |_|\\__, |\n"
+    "                                                  |___/ "
+};
+
 int main(int argc, char *argv[]) {
   bool show_help{false};
   struct Config {
@@ -40,7 +50,7 @@ int main(int argc, char *argv[]) {
     std::string dump;
   } config;
 
-  auto cli = help(show_help).description("")
+  auto cli = help(show_help)
     | arg(config.file, "file name")("File to compile.").required();
   cli.add_argument(
     opt(config.dump, "tokens|ast|ir|code")
@@ -51,14 +61,25 @@ int main(int argc, char *argv[]) {
 
   const auto result = cli.parse({ argc, argv });
 
+  bool logoShown{false};
+  auto showLogo = [&logoShown]() {
+    if (!logoShown) {
+      std::cout << fmt::format("{} v{}\n\n", kLogo, kVersion);
+      logoShown = true;
+    }
+  };
+
   if (!result) {
+    showLogo();
     std::cerr << result.message() << "\n\n";
   }
   if (show_help || !result) {
+    showLogo();
     std::cout << cli << "\n";
     return 0;
   }
   if (!config.file.ends_with(".wsn")) {
+    showLogo();
     std::cout << "Expected: <file name> ending with .wsn extension\n\n";
     std::cout << cli << "\n";
     return 0;
@@ -99,7 +120,7 @@ int main(int argc, char *argv[]) {
     std::cerr << ex.what() << "\n";
     return -1;
   } catch (...) {
-    std::cerr << "Caught an undefined exception\n";
+    std::cerr << "Caught an unknown exception\n";
     return -1;
   }
 }
