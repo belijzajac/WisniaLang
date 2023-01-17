@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   bool logoShown{false};
   auto showLogo = [&logoShown]() {
     if (!logoShown) {
-      std::cout << fmt::format("{} v{}\n\n", kLogo, kVersion);
+      std::cout << fmt::format("{} v{}\n", kLogo, kVersion);
       logoShown = true;
     }
   };
