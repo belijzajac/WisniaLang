@@ -118,26 +118,20 @@ class IProgramTestFixture : public testing::Test {
 
 using ProgramTest = IProgramTestFixture;
 
-TEST_F(ProgramTest, PrintStrings) {
-  constexpr auto program = R"(
-  fn main() {
-    print("hello world\n");
-    print("hahaha\n");
-    print("lole\n");
-  })"sv;
-  SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(
-    exec("./a.out"),
-    "hello world\n"
-    "hahaha\n"
-    "lole\n"
-  );
-}
-
-TEST_F(ProgramTest, DefaultNumberValue) {
+TEST_F(ProgramTest, DefaultIntValue) {
   constexpr auto program = R"(
   fn main() {
     int var;
+    print(var);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
+}
+
+TEST_F(ProgramTest, DefaultU32Value) {
+  constexpr auto program = R"(
+  fn main() {
+    u32 var;
     print(var);
   })"sv;
   SetUp(program);
@@ -162,6 +156,22 @@ TEST_F(ProgramTest, DefaultBooleanValue) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, PrintStrings) {
+  constexpr auto program = R"(
+  fn main() {
+    print("hello world\n");
+    print("hahaha\n");
+    print("lole\n");
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "hello world\n"
+    "hahaha\n"
+    "lole\n"
+  );
 }
 
 TEST_F(ProgramTest, PrintNumbers) {
@@ -194,13 +204,26 @@ TEST_F(ProgramTest, PrintStringVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE1234567890");
 }
 
-TEST_F(ProgramTest, PrintNumberVariables) {
+TEST_F(ProgramTest, PrintIntVariables) {
   constexpr auto program = R"(
   fn main() {
     int num1 = 123;
     int num2 = 456;
     int num3 = 789;
     int num4 = 101;
+    print(num1, num2, num3, num4);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+}
+
+TEST_F(ProgramTest, PrintU32Variables) {
+  constexpr auto program = R"(
+  fn main() {
+    u32 num1 = 123;
+    u32 num2 = 456;
+    u32 num3 = 789;
+    u32 num4 = 101;
     print(num1, num2, num3, num4);
   })"sv;
   SetUp(program);
@@ -468,13 +491,26 @@ TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
   );
 }
 
-TEST_F(ProgramTest, FunctionReturnNumber) {
+TEST_F(ProgramTest, FunctionReturnInt) {
   constexpr auto program = R"(
   fn foo() -> int {
     return 5;
   }
   fn main() {
     int result = foo();
+    print(result);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
+}
+
+TEST_F(ProgramTest, FunctionReturnU32) {
+  constexpr auto program = R"(
+  fn foo() -> u32 {
+    return 5;
+  }
+  fn main() {
+    u32 result = foo();
     print(result);
   })"sv;
   SetUp(program);
@@ -508,13 +544,26 @@ TEST_F(ProgramTest, FunctionReturnVariable) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
 }
 
-TEST_F(ProgramTest, FunctionReturnNumberExpression) {
+TEST_F(ProgramTest, FunctionReturnIntExpression) {
   constexpr auto program = R"(
   fn foo() -> int {
     return 10 - 2 * 3;
   }
   fn main() {
     int result = foo();
+    print(result);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
+}
+
+TEST_F(ProgramTest, FunctionReturnU32Expression) {
+  constexpr auto program = R"(
+  fn foo() -> u32 {
+    return 10 - 2 * 3;
+  }
+  fn main() {
+    u32 result = foo();
     print(result);
   })"sv;
   SetUp(program);
@@ -549,9 +598,21 @@ TEST_F(ProgramTest, FunctionReturnVariableWithArgumentExpression) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
 }
 
-TEST_F(ProgramTest, PrintFunctionReturnNumber) {
+TEST_F(ProgramTest, PrintFunctionReturnInt) {
   constexpr auto program = R"(
   fn foo() -> int {
+    return 5;
+  }
+  fn main() {
+    print(foo());
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnU32) {
+  constexpr auto program = R"(
+  fn foo() -> u32 {
     return 5;
   }
   fn main() {
@@ -586,9 +647,21 @@ TEST_F(ProgramTest, PrintFunctionReturnVariable) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
 }
 
-TEST_F(ProgramTest, PrintFunctionReturnNumberExpression) {
+TEST_F(ProgramTest, PrintFunctionReturnIntExpression) {
   constexpr auto program = R"(
   fn foo() -> int {
+    return 10 - 2 * 3;
+  }
+  fn main() {
+    print(foo());
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
+}
+
+TEST_F(ProgramTest, PrintFunctionReturnU32Expression) {
+  constexpr auto program = R"(
+  fn foo() -> u32 {
     return 10 - 2 * 3;
   }
   fn main() {
@@ -624,7 +697,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
 }
 
-TEST_F(ProgramTest, ConditionalNumberTrue) {
+TEST_F(ProgramTest, ConditionalIntTrue) {
   constexpr auto program = R"(
   fn main() {
     int value = 5;
@@ -638,7 +711,21 @@ TEST_F(ProgramTest, ConditionalNumberTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
-TEST_F(ProgramTest, ConditionalNumberFalse) {
+TEST_F(ProgramTest, ConditionalU32True) {
+  constexpr auto program = R"(
+  fn main() {
+    u32 value = 5;
+    if (value) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 0;
@@ -652,9 +739,39 @@ TEST_F(ProgramTest, ConditionalNumberFalse) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
 }
 
-TEST_F(ProgramTest, ConditionalInsideFunctionNumber) {
+TEST_F(ProgramTest, ConditionalU32False) {
+  constexpr auto program = R"(
+  fn main() {
+    u32 value = 0;
+    if (value) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalInsideFunctionInt) {
   constexpr auto program = R"(
   fn foo(base: int, number: int) {
+    if (number) {
+      print(base * number, " ");
+      foo(base, number - 1);
+    }
+  }
+  fn main() {
+    foo(3, 4);
+    print("1\n");
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12 9 6 3 1\n");
+}
+
+TEST_F(ProgramTest, ConditionalInsideFunctionU32) {
+  constexpr auto program = R"(
+  fn foo(base: u32, number: u32) {
     if (number) {
       print(base * number, " ");
       foo(base, number - 1);
