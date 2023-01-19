@@ -74,7 +74,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     int sum = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + r;
   })"sv;
   SetUp(program.data());
-  constexpr auto registers = RegisterAllocator::getAllocableRegisters();
+  constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
   const auto &instructions = m_generator.getInstructionsAfterInstructionOptimization();
 
   // 16 assigned registers

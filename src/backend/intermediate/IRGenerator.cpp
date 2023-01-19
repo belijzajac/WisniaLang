@@ -270,7 +270,7 @@ void IRGenerator::visit(AST::UnaryExpr &node) {
 
 void IRGenerator::visit(AST::FnCallExpr &node) {
   node.getVar()->accept(*this);
-  constexpr auto registers = RegisterAllocator::getAllocableRegisters();
+  constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
 
   // suboptimal approach to avoid overriding registers inside the called function
   for (auto reg : registers) {

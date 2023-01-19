@@ -76,16 +76,26 @@ class RegisterAllocator {
   void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
   void allocate(InstructionList &&instructions, bool allocateRegisters = true);
 
-  // All the registers for RegisterAllocator to work with excluding `RSP`
-  static constexpr std::array<Basic::register_t, 15> getAllocableRegisters() {
-    return {
-        Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
-        Basic::register_t::RBX, Basic::register_t::RBP, Basic::register_t::RSI,
-        Basic::register_t::RDI, Basic::register_t::R8,  Basic::register_t::R9,
-        Basic::register_t::R10, Basic::register_t::R11, Basic::register_t::R12,
-        Basic::register_t::R13, Basic::register_t::R14, Basic::register_t::R15,
-    };
+  // All the registers that the RegisterAllocator works with, except for `RSP`
+  static constexpr std::array<Basic::register_t, 15> getAllocatableRegisters {
+      Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
+      Basic::register_t::RBX, Basic::register_t::RBP, Basic::register_t::RSI,
+      Basic::register_t::RDI, Basic::register_t::R8,  Basic::register_t::R9,
+      Basic::register_t::R10, Basic::register_t::R11, Basic::register_t::R12,
+      Basic::register_t::R13, Basic::register_t::R14, Basic::register_t::R15,
   };
+
+  // All the registers that are not to be used by RegisterAllocator, including `RSP`
+  static constexpr std::array<Basic::register_t, 16> getAllRegisters {
+      Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
+      Basic::register_t::RBX, Basic::register_t::RSP, Basic::register_t::RBP,
+      Basic::register_t::RSI, Basic::register_t::RDI, Basic::register_t::R8,
+      Basic::register_t::R9,  Basic::register_t::R10, Basic::register_t::R11,
+      Basic::register_t::R12, Basic::register_t::R13, Basic::register_t::R14,
+      Basic::register_t::R15,
+  };
+
+  static constexpr auto kHalfRegisters{getAllRegisters.size() / 2};
 
  private:
   InstructionList m_instructions;
