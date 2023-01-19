@@ -33,7 +33,7 @@
 using namespace Wisnia;
 using namespace lyra;
 
-constexpr std::string_view kVersion{"1.0.0"};
+constexpr std::string_view kVersion{"1.0.0-dev"};
 constexpr std::string_view kLogo {
 " __        ___           _       _                      \n"
     " \\ \\      / (_)___ _ __ (_) __ _| |    __ _ _ __   __ _ \n"
