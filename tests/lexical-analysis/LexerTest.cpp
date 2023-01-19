@@ -126,7 +126,7 @@ TEST(LexerTest, Numbers) {
 
   EXPECT_EQ(tokens.size(), 3);
   EXPECT_EQ(tokens[0]->getType(), TType::LIT_INT);
-  EXPECT_EQ(tokens[0]->getValue<int>(), 12345);
+  EXPECT_EQ(tokens[0]->getValue<int64_t>(), 12345);
   EXPECT_EQ(tokens[1]->getType(), TType::LIT_FLT);
   EXPECT_EQ(tokens[1]->getValue<float>(), 123.45f);
   EXPECT_EQ(tokens[2]->getType(), TType::TOK_EOF);

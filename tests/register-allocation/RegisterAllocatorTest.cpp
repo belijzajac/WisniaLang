@@ -86,7 +86,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     EXPECT_EQ(var->getType(), TType::REGISTER);
     EXPECT_EQ(var->getValue<Basic::register_t>(), registers[i]);
     EXPECT_EQ(arg->getType(), TType::LIT_INT);
-    EXPECT_EQ(arg->getValue<int>(), i + 1);
+    EXPECT_EQ(arg->getValue<int64_t>(), i + 1);
   }
 
   // 2 spilled registers
@@ -95,13 +95,13 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   EXPECT_EQ(instructions[15]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[15]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::SPILLED);
   EXPECT_EQ(instructions[15]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[15]->getArg1()->getValue<int>(), 16);
+  EXPECT_EQ(instructions[15]->getArg1()->getValue<int64_t>(), 16);
 
   EXPECT_EQ(instructions[16]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[16]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[16]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::SPILLED);
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[16]->getArg1()->getValue<int>(), 17);
+  EXPECT_EQ(instructions[16]->getArg1()->getValue<int64_t>(), 17);
 
   // then goes the last 3 instructions marking the end of the program
 
@@ -116,7 +116,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   EXPECT_EQ(instructions[instructions.size() - 2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[instructions.size() - 2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getValue<int>(), 60);
+  EXPECT_EQ(instructions[instructions.size() - 2]->getArg1()->getValue<int64_t>(), 60);
   // syscall
   EXPECT_EQ(instructions[instructions.size() - 1]->getOperation(), Operation::SYSCALL);
 }

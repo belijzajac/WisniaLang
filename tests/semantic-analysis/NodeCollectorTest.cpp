@@ -128,7 +128,7 @@ TEST_F(NodeCollectorTest, IntExpr) {
   EXPECT_EQ(collector.getNodes().size(), 10);
   constexpr std::array<int, 10> kExpectedValues{123456, 0, 5, 1, 150000, 2, 5, 5, 7, 5};
   for (size_t i = 0; i < 10; i++) {
-    EXPECT_EQ(collectedNodes[i]->getToken()->getValue<int>(), kExpectedValues[i]);
+    EXPECT_EQ(collectedNodes[i]->getToken()->getValue<int64_t>(), kExpectedValues[i]);
   }
 }
 

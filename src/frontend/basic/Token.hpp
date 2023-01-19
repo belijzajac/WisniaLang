@@ -33,7 +33,7 @@
 namespace Wisnia::Basic {
 
 // Variant that holds all the possible values for token
-using TokenValue = std::variant<int, float, bool, std::string, nullptr_t, Basic::register_t>;
+using TokenValue = std::variant<int64_t, float, bool, std::string, nullptr_t, Basic::register_t>;
 
 // Helper type for the visitor
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -60,7 +60,7 @@ class Token {
     std::string strResult{};
     std::visit(overloaded {
       [&](const std::string &arg) { strResult = arg; },
-      [&](int arg)                { strResult = std::to_string(arg); },
+      [&](int64_t arg)            { strResult = std::to_string(arg); },
       [&](float arg)              { strResult = std::to_string(arg); },
       [&](bool arg)               { strResult = arg ? "true" : "false"; },
       [&](nullptr_t arg)          { strResult = "null"; },
@@ -94,7 +94,7 @@ class Token {
           strResult = arg;
         }
       },
-      [&](int arg)               { strResult = std::to_string(arg); },
+      [&](int64_t arg)           { strResult = std::to_string(arg); },
       [&](float arg)             { strResult = std::to_string(arg); },
       [&](bool arg)              { strResult = arg ? "true" : "false"; },
       [&](nullptr_t arg)         { strResult = "null"; },
