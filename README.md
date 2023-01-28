@@ -29,7 +29,7 @@ make -j$(nproc) wisnia
 
 ## Benchmarks
 
-[![benchmarks](https://belijzajac.dev/post-images/benchmark-results.png)](https://belijzajac.dev/wisnialang-compiler-project/)
+[![benchmarks](docs/benchmark-results.png)](https://belijzajac.dev/wisnialang-compiler-project/)
 
 ## License
 
