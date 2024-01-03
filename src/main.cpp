@@ -33,12 +33,11 @@
 using namespace Wisnia;
 using namespace lyra;
 
-constexpr std::string_view kVersion{"1.0.0-dev"};
 constexpr std::string_view kLogo {
-" __        ___           _       _                      \n"
-    " \\ \\      / (_)___ _ __ (_) __ _| |    __ _ _ __   __ _ \n"
+    " __        ___           _       _                           \n"
+    " \\ \\      / (_)___ _ __ (_) __ _| |    __ _ _ __   __ _    \n"
     "  \\ \\ /\\ / /| / __| '_ \\| |/ _` | |   / _` | '_ \\ / _` |\n"
-    "   \\ V  V / | \\__ \\ | | | | (_| | |__| (_| | | | | (_| |\n"
+    "   \\ V  V / | \\__ \\ | | | | (_| | |__| (_| | | | | (_| |  \n"
     "    \\_/\\_/  |_|___/_| |_|_|\\__,_|_____\\__,_|_| |_|\\__, |\n"
     "                                                  |___/ "
 };
@@ -64,7 +63,7 @@ int main(int argc, char *argv[]) {
   bool logoShown{false};
   auto showLogo = [&logoShown]() {
     if (!logoShown) {
-      std::cout << fmt::format("{} v{}\n", kLogo, kVersion);
+      std::cout << fmt::format("{} v{}\n", kLogo, WISNIA_VERSION);
       logoShown = true;
     }
   };

@@ -17,6 +17,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(WisniaLang)
 
+add_compile_definitions(WISNIA_VERSION="1.0.0-dev")
+
 option(UNIT_TESTS "Build unit tests" OFF)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
@@ -38,15 +40,12 @@ include(Dependencies)
 # In order to have shorter paths to header files
 # Defined here because unit tests need to access them too
 include_directories(
-# utilities
   src/utilities/
-# frontend
   src/frontend/basic/
   src/frontend/ast/
   src/frontend/lexer/
   src/frontend/parser/
   src/frontend/sema/
-# backend
   src/backend/intermediate/
   src/backend/register/
   src/backend/optimize/

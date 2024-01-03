@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install packages
+      run: |
+        sudo apt install gcc-12 g++-12
+        # remove old symlinks
+        sudo rm /usr/bin/gcc
+        sudo rm /usr/bin/g++
+        sudo rm /usr/bin/gcov
+        # create new symlinks
+        sudo ln -s /usr/bin/gcc-12 /usr/bin/gcc
+        sudo ln -s /usr/bin/g++-12 /usr/bin/g++
+        sudo ln -s /usr/bin/gcov-12 /usr/bin/gcov
+
+    - name: Build project
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make -j$(nproc) wisnia
+
+    - name: Extract version
+      run: |
+        VERSION=$(grep -oP 'WISNIA_VERSION="\K[^"]+' CMakeLists.txt)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Compress artifacts
+      run: |
+        mkdir -p staging
+        cp LICENSE staging/
+        cp build/src/wisnia staging/
+        cd staging && zip -r wisnia.zip *
+
+    - name: Upload artifacts
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "wisnia ${{ env.VERSION }}"
+        files: |
+          staging/wisnia.zip

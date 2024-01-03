@@ -1,6 +1,6 @@
-name: Ubuntu
+name: Tests
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   CTEST_OUTPUT_ON_FAILURE: ON
@@ -10,8 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: install packages
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install packages
       run: |
         sudo apt install gcc-12 g++-12 lcov
         # remove old symlinks
@@ -22,12 +25,14 @@ jobs:
         sudo ln -s /usr/bin/gcc-12 /usr/bin/gcc
         sudo ln -s /usr/bin/g++-12 /usr/bin/g++
         sudo ln -s /usr/bin/gcov-12 /usr/bin/gcov
-    - name: build
+
+    - name: Build project
       run: |
         mkdir build && cd build
         cmake -DCMAKE_BUILD_TYPE=Coverage ..
         make -j$(nproc) wisnia wisnia-tests wisnia-coverage
-    - name: collect code coverage
+
+    - name: Collect code coverage
       run: |
         curl -Os https://uploader.codecov.io/latest/linux/codecov
         chmod +x codecov

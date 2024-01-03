@@ -27,6 +27,10 @@ make -j$(nproc) wisnia
 (gdb) r
 ```
 
+## Example programs
+
+Can be found in [tests/programs/ProgramTest.cpp](tests/programs/ProgramTest.cpp) file.
+
 ## Benchmarks
 
 [![benchmarks](docs/benchmark-results.png)](https://belijzajac.dev/wisnialang-compiler-project/)
