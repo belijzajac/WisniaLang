@@ -178,7 +178,7 @@
 // Variables
 //----------------------------------------------------------------------
 
-<TYPE>             ::= "void" | "int" | "u32" | "bool" | "float" | "string"
+<TYPE>             ::= "void" | "int" | "u64" | "u32" | "u16" | "u8" | "bool" | "float" | "string"
 
 <VAR>              ::= <IDENT>
 <CONSTANT_LIT>     ::= <BOOL_CONSTANT> | <NUMERIC_CONSTANT> | <STRING>

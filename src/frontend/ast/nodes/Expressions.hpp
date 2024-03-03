@@ -89,8 +89,17 @@ class VarExpr : public BaseExpr {
       case Basic::TType::KW_INT:
         tokenType = Basic::TType::IDENT_INT;
         break;
+      case Basic::TType::KW_INT_U64:
+        tokenType = Basic::TType::IDENT_INT_U64;
+        break;
       case Basic::TType::KW_INT_U32:
         tokenType = Basic::TType::IDENT_INT_U32;
+        break;
+      case Basic::TType::KW_INT_U16:
+        tokenType = Basic::TType::IDENT_INT_U16;
+        break;
+      case Basic::TType::KW_INT_U8:
+        tokenType = Basic::TType::IDENT_INT_U8;
         break;
       case Basic::TType::KW_BOOL:
         tokenType = Basic::TType::IDENT_BOOL;
@@ -457,8 +466,14 @@ class IntExpr : public ConstExpr {
       switch (m_token->getType()) {
         case Basic::TType::LIT_INT:
           return "int";
+        case Basic::TType::LIT_INT_U64:
+          return "u64";
         case Basic::TType::LIT_INT_U32:
           return "u32";
+        case Basic::TType::LIT_INT_U16:
+          return "u16";
+        case Basic::TType::LIT_INT_U8:
+          return "u8";
         default:
           assert(0 && "Unknown integer type");
       }

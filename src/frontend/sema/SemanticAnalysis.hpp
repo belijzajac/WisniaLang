@@ -86,7 +86,7 @@ class SemanticAnalysis : public Visitor {
   } m_programChecks;
 
   struct FunctionSemanticChecks {
-    enum class ReturnType { NOT_FOUND, NONE, INT, INT_U32, FLOAT, STRING, BOOLEAN };
+    enum class ReturnType { NOT_FOUND, NONE, INT, INT_U64, INT_U32, INT_U16, INT_U8, FLOAT, STRING, BOOLEAN };
 
     void reset() {
       returnFound = false;

@@ -132,10 +132,11 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
   return paramsList;
 }
 
-// <TYPE> ::= "void" | "int" | "u32" | "bool" | "float" | "string"
+// <TYPE> ::= "void" | "int" | "u64" | "u32" | "u16" | "u8" | "bool" | "float" | "string"
 std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
-  constexpr std::array<TType, 6> kPrimitiveTypes {
-    TType::KW_VOID, TType::KW_INT, TType::KW_INT_U32, TType::KW_BOOL, TType::KW_FLOAT, TType::KW_STRING
+  constexpr std::array<TType, 9> kPrimitiveTypes {
+    TType::KW_VOID, TType::KW_INT, TType::KW_INT_U64, TType::KW_INT_U32, TType::KW_INT_U16,
+    TType::KW_INT_U8, TType::KW_BOOL, TType::KW_FLOAT, TType::KW_STRING
   };
   if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
@@ -172,7 +173,10 @@ std::unique_ptr<BaseStmt> Parser::parseStmt() {
     // <VAR_DECL>
     case TType::KW_VOID:
     case TType::KW_INT:
+    case TType::KW_INT_U64:
     case TType::KW_INT_U32:
+    case TType::KW_INT_U16:
+    case TType::KW_INT_U8:
     case TType::KW_BOOL:
     case TType::KW_FLOAT:
     case TType::KW_STRING:
@@ -530,8 +534,23 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
         varValue = std::make_unique<IntExpr>(std::move(intToken));
         break;
       }
+      case TType::KW_INT_U64: {
+        auto intToken = std::make_shared<Token>(TType::LIT_INT_U64, 0, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<IntExpr>(std::move(intToken));
+        break;
+      }
       case TType::KW_INT_U32: {
         auto intToken = std::make_shared<Token>(TType::LIT_INT_U32, 0, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<IntExpr>(std::move(intToken));
+        break;
+      }
+      case TType::KW_INT_U16: {
+        auto intToken = std::make_shared<Token>(TType::LIT_INT_U16, 0, varDeclPtr->getVar()->getToken()->getPosition());
+        varValue = std::make_unique<IntExpr>(std::move(intToken));
+        break;
+      }
+      case TType::KW_INT_U8: {
+        auto intToken = std::make_shared<Token>(TType::LIT_INT_U8, 0, varDeclPtr->getVar()->getToken()->getPosition());
         varValue = std::make_unique<IntExpr>(std::move(intToken));
         break;
       }
@@ -557,8 +576,14 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
 
   // Literal should have the same type as variable
   switch (varType->getType()) {
+    case TType::KW_INT_U64:
+      varValue->getToken()->setType(TType::LIT_INT_U64);
     case TType::KW_INT_U32:
       varValue->getToken()->setType(TType::LIT_INT_U32);
+    case TType::KW_INT_U16:
+      varValue->getToken()->setType(TType::LIT_INT_U16);
+    case TType::KW_INT_U8:
+      varValue->getToken()->setType(TType::LIT_INT_U8);
   }
 
   varDeclPtr->addType(std::move(varType));

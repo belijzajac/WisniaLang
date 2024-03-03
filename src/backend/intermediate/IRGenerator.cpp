@@ -87,7 +87,10 @@ constexpr Operation getOperationForBinaryExpression(Basic::TType exprType, bool 
 constexpr TType getIdentForLiteralType(TType type) {
   switch (type) {
     case TType::LIT_INT:     return TType::IDENT_INT;
+    case TType::LIT_INT_U64: return TType::IDENT_INT_U64;
     case TType::LIT_INT_U32: return TType::IDENT_INT_U32;
+    case TType::LIT_INT_U16: return TType::IDENT_INT_U16;
+    case TType::LIT_INT_U8:  return TType::IDENT_INT_U8;
     case TType::LIT_FLT:     return TType::IDENT_FLOAT;
     case TType::LIT_STR:     return TType::IDENT_STRING;
     case TType::LIT_BOOL:
@@ -439,7 +442,10 @@ void IRGenerator::visit(AST::WriteStmt &node) {
           Modules::markAsUsed(Module::CALCULATE_STRING_LENGTH);
           break;
         case TType::IDENT_INT:
+        case TType::IDENT_INT_U64:
         case TType::IDENT_INT_U32:
+        case TType::IDENT_INT_U16:
+        case TType::IDENT_INT_U8:
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::PUSH,
             nullptr,
