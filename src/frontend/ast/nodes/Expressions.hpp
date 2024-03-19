@@ -4,6 +4,7 @@
 #ifndef WISNIALANG_AST_EXPRESSIONS_HPP
 #define WISNIALANG_AST_EXPRESSIONS_HPP
 
+#include <cassert>
 #include "fmt/format.h"
 // Wisnia
 #include "Root.hpp"
@@ -432,9 +433,15 @@ class IntExpr : public ConstExpr {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "IntExpr" << " (" << m_token->getASTValueStr() << ")";
-    return ss.str();
+    const auto getType = [&]() {
+      switch (m_token->getType()) {
+        case Basic::TType::LIT_INT:
+          return "int";
+        default:
+          assert(0 && "Unknown integer type");
+      }
+    };
+    return fmt::format("IntExpr (value={}, type={})", m_token->getASTValueStr(), getType());
   }
 };
 
