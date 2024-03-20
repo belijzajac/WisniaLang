@@ -82,11 +82,11 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
       return false;
     });
     // Search for an unassigned register
-    const auto availableRegister = [&]() -> std::optional<std::string> {
+    const auto availableRegister = [&]() -> std::optional<Basic::register_t> {
       for (auto &r : availableRegisters.m_registers) {
         if (!r.m_assigned) {
           r.m_assigned = true;
-          return r.m_name;
+          return r.m_register;
         }
       }
       return {};
@@ -101,7 +101,7 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
     } else {
       // We ran out of registers - spill it
       auto node = liveIntervals.extract(interval);
-      node.value().m_register = "[spill]";
+      node.value().m_register = Basic::register_t::SPILLED;
       liveIntervals.insert(std::move(node));
     }
   }

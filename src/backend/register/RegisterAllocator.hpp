@@ -9,6 +9,7 @@
 #include <memory>
 // Wisnia
 #include "IRPrintHelper.hpp"
+#include "Register.hpp"
 
 namespace Wisnia {
 class Instruction;
@@ -17,27 +18,39 @@ class RegisterAllocator {
   using InstructionList = std::vector<std::shared_ptr<Instruction>>;
 
   struct Registers {
-    struct register_t {
-      std::string m_name;
+    struct RegisterState {
+      Basic::register_t m_register;
       bool m_assigned;
     };
 
-    register_t &operator[](std::string_view reg) {
-      auto it = std::find_if(m_registers.begin(), m_registers.end(), [&](const auto &r) { return r.m_name == reg; });
+    RegisterState &operator[](Basic::register_t reg) {
+      auto it = std::find_if(m_registers.begin(), m_registers.end(), [&](const auto &r) { return r.m_register == reg; });
       if (it != m_registers.end()) return *it;
       throw std::runtime_error{"Failed to look up register"};
     }
 
-    std::array<register_t, 15> m_registers {{
-      {"rax", false}, {"rcx", false}, {"rdx", false}, {"rbx", false}, {"rbp", false},
-      {"rsi", false}, {"rdi", false}, {"r8" , false}, {"r9",  false}, {"r10", false},
-      {"r11", false}, {"r12", false}, {"r13", false}, {"r14", false}, {"r15", false},
+    std::array<RegisterState, 15> m_registers {{
+      {Basic::register_t::RAX, false},
+      {Basic::register_t::RCX, false},
+      {Basic::register_t::RDX, false},
+      {Basic::register_t::RBX, false},
+      {Basic::register_t::RBP, false},
+      {Basic::register_t::RSI, false},
+      {Basic::register_t::RDI, false},
+      {Basic::register_t::R8,  false},
+      {Basic::register_t::R9,  false},
+      {Basic::register_t::R10, false},
+      {Basic::register_t::R11, false},
+      {Basic::register_t::R12, false},
+      {Basic::register_t::R13, false},
+      {Basic::register_t::R14, false},
+      {Basic::register_t::R15, false},
     }};
   };
 
   struct Live {
     std::string m_variable;
-    std::string m_register;
+    Basic::register_t m_register;
     size_t m_start, m_end;
   };
 
@@ -46,10 +59,26 @@ class RegisterAllocator {
   void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
   void allocate(InstructionList &&instructions, bool allocateRegisters = true);
 
-  static constexpr std::array<std::string_view, 15> getAllRegisters() {
-    return {"rax", "rcx", "rdx", "rbx", "rbp", "rsi", "rdi", "r8",
-            "r9",  "r10", "r11", "r12", "r13", "r14", "r15"};
+  // All the registers that the RegisterAllocator works with, except for `RSP`
+  static constexpr std::array<Basic::register_t, 15> getAllocatableRegisters {
+    Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
+    Basic::register_t::RBX, Basic::register_t::RBP, Basic::register_t::RSI,
+    Basic::register_t::RDI, Basic::register_t::R8,  Basic::register_t::R9,
+    Basic::register_t::R10, Basic::register_t::R11, Basic::register_t::R12,
+    Basic::register_t::R13, Basic::register_t::R14, Basic::register_t::R15,
   };
+
+  // All the registers that are not to be used by RegisterAllocator, including `RSP`
+  static constexpr std::array<Basic::register_t, 16> getAllRegisters {
+    Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
+    Basic::register_t::RBX, Basic::register_t::RSP, Basic::register_t::RBP,
+    Basic::register_t::RSI, Basic::register_t::RDI, Basic::register_t::R8,
+    Basic::register_t::R9,  Basic::register_t::R10, Basic::register_t::R11,
+    Basic::register_t::R12, Basic::register_t::R13, Basic::register_t::R14,
+    Basic::register_t::R15,
+  };
+
+  static constexpr auto kHalfRegisters{getAllRegisters.size() / 2};
 
  private:
   InstructionList m_instructions;
