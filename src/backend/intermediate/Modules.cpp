@@ -86,7 +86,7 @@ Modules::InstructionList Modules::moduleCalculateStringLength() {
     Operation::CMP_BYTE_PTR,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSI),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 0)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(0))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JE,
@@ -202,7 +202,7 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RCX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 10)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(10))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -212,7 +212,7 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::ISUB,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSP),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 16)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(16))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
@@ -233,7 +233,7 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::IADD,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::EDX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 48) // '0'
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(48)) // '0'
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::DEC,
@@ -259,17 +259,17 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(1))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(1))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LEA,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::EDX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 16)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(16))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::ISUB,
@@ -282,7 +282,7 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::IADD,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSP),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 16)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(16))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::POP,
@@ -381,7 +381,7 @@ Modules::InstructionList Modules::modulePrintBoolean() {
     Operation::CMP,
     nullptr,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 0)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(0))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JZ,
@@ -391,7 +391,7 @@ Modules::InstructionList Modules::modulePrintBoolean() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 4)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(4))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -411,7 +411,7 @@ Modules::InstructionList Modules::modulePrintBoolean() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 5)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(5))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -426,12 +426,12 @@ Modules::InstructionList Modules::modulePrintBoolean() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(1))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(1))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::SYSCALL
@@ -491,7 +491,7 @@ Modules::InstructionList Modules::moduleExit() {
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
     std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX),
-    std::make_shared<Basic::Token>(TType::LIT_INT, 60)
+    std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(60))
   ));
   instructions.emplace_back(std::make_unique<Instruction>(
     Operation::SYSCALL

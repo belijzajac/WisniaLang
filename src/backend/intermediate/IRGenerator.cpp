@@ -513,7 +513,7 @@ void IRGenerator::visit(AST::WriteStmt &node) {
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
         std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX),
-        std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(length))
+        std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint64_t>(length))
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
@@ -545,12 +545,12 @@ void IRGenerator::visit(AST::WriteStmt &node) {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
       std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX),
-      std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+      std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(1))
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
       std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-      std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+      std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<uint8_t>(1))
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::SYSCALL

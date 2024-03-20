@@ -51,7 +51,7 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type, bool backtrack) {
     switch (type) {
       // Integer
       case TType::LIT_INT:
-        return std::stoll(m_tokenState.m_buff);
+        return std::stoull(m_tokenState.m_buff);
       // Float
       case TType::LIT_FLT:
         return std::stof(m_tokenState.m_buff);

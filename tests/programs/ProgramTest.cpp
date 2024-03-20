@@ -242,81 +242,160 @@ TEST_F(ProgramTest, PrintStringVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE1234567890");
 }
 
-TEST_F(ProgramTest, PrintIntVariables) {
+TEST_F(ProgramTest, PrintMaxU8) {
   constexpr auto program = R"(
   fn main() {
-    int num1 = 123;
-    int num2 = 456;
-    int num3 = 789;
-    int num4 = 101;
-    print(num1, num2, num3, num4);
+    u8 max = 255; # 2^8 - 1
+    print(max);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "255");
 }
 
-TEST_F(ProgramTest, PrintU64Variables) {
+TEST_F(ProgramTest, PrintMaxU16) {
   constexpr auto program = R"(
   fn main() {
-    u64 num1 = 123;
-    u64 num2 = 456;
-    u64 num3 = 789;
-    u64 num4 = 101;
-    print(num1, num2, num3, num4);
+    u16 max = 65535; # 2^16 - 1
+    print(max);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "65535");
+}
+
+TEST_F(ProgramTest, PrintMaxU32) {
+  constexpr auto program = R"(
+  fn main() {
+    u32 max = 4294967295; # 2^32 - 1
+    print(max);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4294967295");
+}
+
+TEST_F(ProgramTest, PrintIntVariables) {
+  // int is typedef for u32
+  // trying to exhaust all 15 registers (rax - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int num1  = 4294967295;
+    int num2  = 2147483647;
+    int num3  = 1073741823;
+    int num4  = 536870911;
+    int num5  = 268435455;
+    int num6  = 134217727;
+    int num7  = 67108863;
+    int num8  = 33554431;
+    int num9  = 16777215;
+    int num10 = 8388607;
+    int num11 = 4194303;
+    int num12 = 2097151;
+    int num13 = 1048575;
+    int num14 = 524287;
+    int num15 = 262143;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4294967295214748364710737418235368709112684354551342177276710886333554431167772158388607419430320971511048575524287262143");
 }
 
 TEST_F(ProgramTest, PrintU32Variables) {
+  // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
-    u32 num1 = 123;
-    u32 num2 = 456;
-    u32 num3 = 789;
-    u32 num4 = 101;
-    print(num1, num2, num3, num4);
+    u32 num1  = 4294967295;
+    u32 num2  = 2147483647;
+    u32 num3  = 1073741823;
+    u32 num4  = 536870911;
+    u32 num5  = 268435455;
+    u32 num6  = 134217727;
+    u32 num7  = 67108863;
+    u32 num8  = 33554431;
+    u32 num9  = 16777215;
+    u32 num10 = 8388607;
+    u32 num11 = 4194303;
+    u32 num12 = 2097151;
+    u32 num13 = 1048575;
+    u32 num14 = 524287;
+    u32 num15 = 262143;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4294967295214748364710737418235368709112684354551342177276710886333554431167772158388607419430320971511048575524287262143");
 }
 
 TEST_F(ProgramTest, PrintU16Variables) {
+  // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
-    u16 num1 = 123;
-    u16 num2 = 456;
-    u16 num3 = 789;
-    u16 num4 = 101;
-    print(num1, num2, num3, num4);
+    u16 num1  = 65535;
+    u16 num2  = 32767;
+    u16 num3  = 16383;
+    u16 num4  = 8191;
+    u16 num5  = 4095;
+    u16 num6  = 2047;
+    u16 num7  = 1023;
+    u16 num8  = 511;
+    u16 num9  = 255;
+    u16 num10 = 127;
+    u16 num11 = 63;
+    u16 num12 = 31;
+    u16 num13 = 15;
+    u16 num14 = 7;
+    u16 num15 = 3;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "655353276716383819140952047102351125512763311573");
 }
 
 TEST_F(ProgramTest, PrintU8Variables) {
+  // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
-    u64 num1 = 123;
-    u64 num2 = 250;
-    u64 num3 = 254;
-    u64 num4 = 8;
-    print(num1, num2, num3, num4);
+    u8 num1  = 255;
+    u8 num2  = 127;
+    u8 num3  = 63;
+    u8 num4  = 31;
+    u8 num5  = 15;
+    u8 num6  = 7;
+    u8 num7  = 3;
+    u8 num8  = 1;
+    u8 num9  = 3;
+    u8 num10 = 7;
+    u8 num11 = 15;
+    u8 num12 = 31;
+    u8 num13 = 63;
+    u8 num14 = 127;
+    u8 num15 = 255;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1232502548");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "25512763311573137153163127255");
 }
 
 TEST_F(ProgramTest, PrintBooleanVariables) {
+  // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
-    bool aa = true;
-    bool bb = false;
-    bool cc = true;
-    print(aa, bb, cc);
+    bool num1  = true;
+    bool num2  = false;
+    bool num3  = true;
+    bool num4  = false;
+    bool num5  = true;
+    bool num6  = false;
+    bool num7  = true;
+    bool num8  = false;
+    bool num9  = true;
+    bool num10 = false;
+    bool num11 = true;
+    bool num12 = false;
+    bool num13 = true;
+    bool num14 = false;
+    bool num15 = true;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetruefalsetruefalsetruefalsetruefalsetruefalsetruefalsetrue");
 }
 
 // ----------------------------------------------------

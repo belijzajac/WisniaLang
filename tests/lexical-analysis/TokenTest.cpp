@@ -35,7 +35,7 @@ TEST(TokenTest, IntegerToken) {
 
   EXPECT_EQ(tokens.size(), 2);
   EXPECT_EQ(tokens[0]->getType(), TType::LIT_INT);
-  EXPECT_EQ(tokens[0]->getValue<int64_t>(), 5);
+  EXPECT_EQ(tokens[0]->getValue<uint64_t>(), 5);
   EXPECT_STREQ(tokens[0]->getValueStr().c_str(), "5");
   EXPECT_EQ(tokens[1]->getType(), TType::TOK_EOF);
 }
@@ -61,7 +61,7 @@ TEST(TokenTest, IllegalIntegerToken) {
 
   EXPECT_EQ(tokens.size(), 2);
   EXPECT_EQ(tokens[0]->getType(), TType::LIT_FLT);
-  EXPECT_THROW({ int integer = tokens[0]->getValue<int64_t>(); }, TokenError);
+  EXPECT_THROW({ int integer = tokens[0]->getValue<uint64_t>(); }, TokenError);
   EXPECT_EQ(tokens[1]->getType(), TType::TOK_EOF);
 }
 

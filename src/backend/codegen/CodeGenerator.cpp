@@ -174,7 +174,7 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) 
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
     const auto bytes = CodeFragment<uint32_t>::getLeaMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
-    m_textSection.putValue<uint32_t>(argOne->getValue<int64_t>());
+    m_textSection.putValue<uint32_t>(argOne->getValue<uint64_t>());
     return;
   }
 
@@ -187,26 +187,47 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
 
   // mov reg, number
   if (target->getType() == TType::REGISTER && (argOne->isLiteralIntegerType() || argOne->getType() == TType::LIT_BOOL)) {
-    const auto dataType = [&]() {
+
+
+
+
+
+
+
+
+
+
+    const auto instructionBytes = [&]() {
       switch (argOne->getType()) {
         case Basic::TType::LIT_INT:
         case Basic::TType::LIT_INT_U32:
-          return CodeFragment<uint32_t>::type;
+          return CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+        case Basic::TType::LIT_INT_U16:
+          return CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+        case Basic::TType::LIT_BOOL:
+        case Basic::TType::LIT_INT_U8:
+          return CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
         default: {
           assert(0 && "Unknown data type for mov instruction");
         }
       }
     };
 
-    using data_type = decltype(dataType());
-    const auto bytes = CodeFragment<data_type>::getMovMachineCode(target->getValue<Basic::register_t>());
-    m_textSection.putBytes(bytes);
+
+
+
+
+
+
+
+
+    m_textSection.putBytes(instructionBytes());
     if (label) {
-      m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<int64_t>())});
+      m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<uint64_t>())});
     }
-    const auto value = argOne->isLiteralIntegerType() ? argOne->getValue<int64_t>()
+    const auto value = argOne->isLiteralIntegerType() ? argOne->getValue<uint64_t>()
                                                       : (argOne->getValue<bool>() ? 1 : 0);
-    m_textSection.putValue<data_type>(value);
+    m_textSection.putValue<uint32_t>(value);
     return;
   }
 
@@ -224,8 +245,8 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     for (const auto ch : strVal) {
       m_dataSection.putBytes(std::byte(ch));
     }
-    argOne->setType(TType::LIT_INT); // todo: hmm
-    argOne->setValue(std::abs(static_cast<int>(m_dataSection.size() - strVal.size())));
+    argOne->setType(TType::LIT_INT);
+    argOne->setValue(static_cast<uint64_t>(std::abs(static_cast<int64_t>(m_dataSection.size() - strVal.size()))));
     emitMove(instruction, true);
     return;
   }
@@ -378,7 +399,7 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) 
   if (argOne->getType() == TType::REGISTER) {
     const auto bytes = CodeFragment<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
-    m_textSection.putValue<uint32_t>(argTwo->getValue<int64_t>());
+    m_textSection.putValue<uint32_t>(argTwo->getValue<uint64_t>());
     return;
   }
 
@@ -391,9 +412,10 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
 
   // cmp byte ptr [reg], number
   if (argOne->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint8_t>::getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
+    CodeFragment<uint8_t> obj{};
+    const auto bytes = obj.getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
-    m_textSection.putBytes(std::byte(argTwo->getValue<int64_t>()));
+    m_textSection.putBytes(std::byte(argTwo->getValue<uint64_t>()));
     return;
   }
 
@@ -514,7 +536,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     using data_type = decltype(dataType());
     const auto bytes = CodeFragment<data_type>::getAddMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
-    m_textSection.putValue<data_type>(argOne->getValue<int64_t>());
+    m_textSection.putValue<data_type>(argOne->getValue<uint64_t>());
     return;
   }
 
@@ -574,7 +596,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     using data_type = decltype(dataType());
     const auto bytes = CodeFragment<data_type>::getSubMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
-    m_textSection.putValue<data_type>(argOne->getValue<int64_t>());
+    m_textSection.putValue<data_type>(argOne->getValue<uint64_t>());
     return;
   }
 
@@ -642,7 +664,7 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     using data_type = decltype(dataType());
     const auto bytes = CodeFragment<data_type>::getMulMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
-    m_textSection.putValue<data_type>(argOne->getValue<int64_t>());
+    m_textSection.putValue<data_type>(argOne->getValue<uint64_t>());
     return;
   }
 

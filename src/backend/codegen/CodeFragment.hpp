@@ -28,19 +28,46 @@
 
 namespace Wisnia {
 
-// primary template
 template <typename T>
 class CodeFragment {};
 
-// forward declare specialization for uint8_t
-template <>
-class CodeFragment<uint8_t> {
-public:
-  // helper to get type
-  static uint8_t type;
+class BaseCodeFragment {
+ public:
+  virtual ByteArray getCmpPtrMachineCode(Basic::register_t reg) = 0;
 
-  // machine code for `cmp byte ptr` instruction
-  static constexpr ByteArray getCmpPtrMachineCode(Basic::register_t reg) {
+  virtual ByteArray getMovMachineCode(Basic::register_t reg) {
+    switch (reg) {
+      case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc0}};
+      case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc1}};
+      case Basic::register_t::RDX: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc2}};
+      case Basic::register_t::RBX: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc3}};
+      case Basic::register_t::RSP: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc4}};
+      case Basic::register_t::RBP: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc5}};
+      case Basic::register_t::RSI: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc6}};
+      case Basic::register_t::RDI: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc7}};
+      case Basic::register_t::R8:  return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc0}};
+      case Basic::register_t::R9:  return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc1}};
+      case Basic::register_t::R10: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc2}};
+      case Basic::register_t::R11: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc3}};
+      case Basic::register_t::R12: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc4}};
+      case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc5}};
+      case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc6}};
+      case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc7}};
+      default: { assert(0 && "Unknown register for mov instruction"); }
+    }
+  }
+
+  virtual ByteArray getLeaMachineCode(Basic::register_t reg) = 0;
+  virtual ByteArray getCmpMachineCode(Basic::register_t reg) = 0;
+  virtual ByteArray getAddMachineCode(Basic::register_t reg) = 0;
+  virtual ByteArray getSubMachineCode(Basic::register_t reg) = 0;
+  virtual ByteArray getMulMachineCode(Basic::register_t reg) = 0;
+};
+
+template <>
+class CodeFragment<uint8_t> : public BaseCodeFragment {
+ public:
+  ByteArray getCmpPtrMachineCode(Basic::register_t reg) override {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x80}, std::byte{0x38}};
       case Basic::register_t::RCX: return {std::byte{0x80}, std::byte{0x39}};
@@ -58,18 +85,35 @@ public:
       case Basic::register_t::R13: return {std::byte{0x41}, std::byte{0x80}, std::byte{0x7d}};
       case Basic::register_t::R14: return {std::byte{0x41}, std::byte{0x80}, std::byte{0x3e}};
       case Basic::register_t::R15: return {std::byte{0x41}, std::byte{0x80}, std::byte{0x3f}};
-      default: { assert(0 && "Unknown register for cmp byte ptr instruction"); }
+      default: { assert(0 && "Unknown register for cmp ptr instruction"); }
     }
+  }
+
+  ByteArray getMovMachineCode(Basic::register_t reg) override {
+    return BaseCodeFragment::getMovMachineCode(reg);
   }
 };
 
-// forward declare specialization for uint32_t
+template <>
+class CodeFragment<uint16_t> : public BaseCodeFragment {
+ public:
+  ByteArray getCmpPtrMachineCode(Basic::register_t reg) override {
+    assert(0 && "CodeFragment<uint16_t>::getCmpPtrMachineCode not implemented");
+  }
+  ByteArray getMovMachineCode(Basic::register_t reg) override {
+    return BaseCodeFragment::getMovMachineCode(reg);
+  }
+};
+
+
+
+
+
+
+
 template <>
 class CodeFragment<uint32_t> {
 public:
-  // helper to get type
-  static uint32_t type;
-
   // machine code for 32-bit mov instruction
   static constexpr ByteArray getMovMachineCode(Basic::register_t reg) {
     switch (reg) {

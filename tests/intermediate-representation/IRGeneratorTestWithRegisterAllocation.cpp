@@ -82,14 +82,14 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, InstructionsShouldBeOptimized) {
   EXPECT_EQ(unoptimizedInstructions[3]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(unoptimizedInstructions[3]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
-  EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getValue<int64_t>(), 3);
+  EXPECT_EQ(unoptimizedInstructions[3]->getArg1()->getValue<uint64_t>(), 3);
 
   // in its old place (`rax <- rax`) now should stand IR for `rax * 3`
   EXPECT_EQ(optimizedInstructions[2]->getOperation(), Operation::IMUL);
   EXPECT_EQ(optimizedInstructions[2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(optimizedInstructions[2]->getArg1()->getType(), TType::LIT_INT);
   EXPECT_EQ(optimizedInstructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
-  EXPECT_EQ(optimizedInstructions[2]->getArg1()->getValue<int64_t>(), 3);
+  EXPECT_EQ(optimizedInstructions[2]->getArg1()->getValue<uint64_t>(), 3);
 }
 
 TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertModules) {
@@ -114,7 +114,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   EXPECT_EQ(instructions[2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[2]->getArg1()->getValue<int64_t>(), 5);
+  EXPECT_EQ(instructions[2]->getArg1()->getValue<uint64_t>(), 5);
   // mov rsi, "12345"
   EXPECT_EQ(instructions[3]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[3]->getTarget()->getType(), TType::REGISTER);
@@ -142,13 +142,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   EXPECT_EQ(instructions[8]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[8]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[8]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[8]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[8]->getArg1()->getValue<uint64_t>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[9]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[9]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[9]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[9]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[9]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[9]->getArg1()->getValue<uint64_t>(), 1);
   // syscall
   EXPECT_EQ(instructions[10]->getOperation(), Operation::SYSCALL);
   // pop rdi
@@ -194,7 +194,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   EXPECT_EQ(instructions[20]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[20]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[20]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[20]->getArg1()->getValue<int64_t>(), 60);
+  EXPECT_EQ(instructions[20]->getArg1()->getValue<uint64_t>(), 60);
   // syscall
   EXPECT_EQ(instructions[21]->getOperation(), Operation::SYSCALL);
 }
@@ -221,7 +221,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   EXPECT_EQ(instructions[2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[2]->getArg1()->getValue<int64_t>(), 5);
+  EXPECT_EQ(instructions[2]->getArg1()->getValue<uint64_t>(), 5);
   // mov rsi, "12345"
   EXPECT_EQ(instructions[3]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[3]->getTarget()->getType(), TType::REGISTER);
@@ -249,13 +249,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   EXPECT_EQ(instructions[8]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[8]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[8]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[8]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[8]->getArg1()->getValue<uint64_t>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[9]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[9]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[9]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[9]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[9]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[9]->getArg1()->getValue<uint64_t>(), 1);
   // syscall
   EXPECT_EQ(instructions[10]->getOperation(), Operation::SYSCALL);
   // pop rdi
@@ -301,7 +301,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   EXPECT_EQ(instructions[20]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[20]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[20]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[20]->getArg1()->getValue<int64_t>(), 60);
+  EXPECT_EQ(instructions[20]->getArg1()->getValue<uint64_t>(), 60);
   // syscall
   EXPECT_EQ(instructions[21]->getOperation(), Operation::SYSCALL);
 }
@@ -328,7 +328,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   EXPECT_EQ(instructions[2]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[2]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[2]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[2]->getArg1()->getValue<int64_t>(), 4);
+  EXPECT_EQ(instructions[2]->getArg1()->getValue<uint64_t>(), 4);
   // mov rsi, "true"
   EXPECT_EQ(instructions[3]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[3]->getTarget()->getType(), TType::REGISTER);
@@ -356,13 +356,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   EXPECT_EQ(instructions[8]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[8]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[8]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[8]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[8]->getArg1()->getValue<uint64_t>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[9]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[9]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[9]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[9]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[9]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[9]->getArg1()->getValue<uint64_t>(), 1);
   // syscall
   EXPECT_EQ(instructions[10]->getOperation(), Operation::SYSCALL);
   // pop rdi
@@ -402,7 +402,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   EXPECT_EQ(instructions[19]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[19]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDX);
   EXPECT_EQ(instructions[19]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[19]->getArg1()->getValue<int64_t>(), 5);
+  EXPECT_EQ(instructions[19]->getArg1()->getValue<uint64_t>(), 5);
   // mov rsi, "false"
   EXPECT_EQ(instructions[20]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[20]->getTarget()->getType(), TType::REGISTER);
@@ -430,13 +430,13 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   EXPECT_EQ(instructions[25]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[25]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[25]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[25]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[25]->getArg1()->getValue<uint64_t>(), 1);
   // mov rdi, 1
   EXPECT_EQ(instructions[26]->getOperation(), Operation::MOV);
   EXPECT_EQ(instructions[26]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[26]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RDI);
   EXPECT_EQ(instructions[26]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[26]->getArg1()->getValue<int64_t>(), 1);
+  EXPECT_EQ(instructions[26]->getArg1()->getValue<uint64_t>(), 1);
   // syscall
   EXPECT_EQ(instructions[27]->getOperation(), Operation::SYSCALL);
   // pop rdi
@@ -482,7 +482,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   EXPECT_EQ(instructions[37]->getTarget()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[37]->getTarget()->getValue<Basic::register_t>(), Basic::register_t::RAX);
   EXPECT_EQ(instructions[37]->getArg1()->getType(), TType::LIT_INT);
-  EXPECT_EQ(instructions[37]->getArg1()->getValue<int64_t>(), 60);
+  EXPECT_EQ(instructions[37]->getArg1()->getValue<uint64_t>(), 60);
   // syscall
   EXPECT_EQ(instructions[38]->getOperation(), Operation::SYSCALL);
 }

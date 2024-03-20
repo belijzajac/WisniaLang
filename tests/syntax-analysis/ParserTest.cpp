@@ -152,7 +152,7 @@ TEST(ParserTest, Functions) {
     auto returnStmt = dynamic_cast<AST::ReturnStmt *>(&*stmtBlock->getStatements()[0]);
     EXPECT_NE(returnStmt, nullptr);
     EXPECT_EQ(returnStmt->getReturnValue()->getToken()->getType(), TType::LIT_INT);
-    EXPECT_EQ(returnStmt->getReturnValue()->getToken()->getValue<int64_t>(), 5);
+    EXPECT_EQ(returnStmt->getReturnValue()->getToken()->getValue<uint64_t>(), 5);
   }
 }
 
@@ -197,7 +197,7 @@ TEST(ParserTest, Loops) {
   auto whileLoopConditionIntConst = dynamic_cast<AST::IntExpr *>(&*whileLoopCondition->rhs());
   EXPECT_NE(whileLoopConditionIntConst, nullptr);
   EXPECT_EQ(whileLoopConditionIntConst->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(whileLoopConditionIntConst->getToken()->getValue<int64_t>(), 5);
+  EXPECT_EQ(whileLoopConditionIntConst->getToken()->getValue<uint64_t>(), 5);
   // {}
   auto whileLoopStmtBlock = dynamic_cast<AST::StmtBlock *>(&*whileLoopStmt->getBody());
   EXPECT_NE(whileLoopStmtBlock, nullptr);
@@ -220,7 +220,7 @@ TEST(ParserTest, Loops) {
   auto forLoopInitConstExpr = dynamic_cast<AST::IntExpr *>(&*forLoopInit->getValue());
   EXPECT_NE(forLoopInitConstExpr, nullptr);
   EXPECT_EQ(forLoopInitConstExpr->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(forLoopInitConstExpr->getToken()->getValue<int64_t>(), 0);
+  EXPECT_EQ(forLoopInitConstExpr->getToken()->getValue<uint64_t>(), 0);
   // six <= 6.59;
   auto forLoopComparisonExpr = dynamic_cast<AST::CompExpr *>(&*forLoopStmt->getCondition());
   EXPECT_NE(forLoopComparisonExpr, nullptr);
@@ -344,17 +344,17 @@ TEST(ParserTest, Conditionals) {
   auto ifFnCallSubArgFive = dynamic_cast<AST::IntExpr *>(&*ifFnCallSubArg->lhs());
   EXPECT_NE(ifFnCallSubArgFive, nullptr);
   EXPECT_EQ(ifFnCallSubArgFive->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(ifFnCallSubArgFive->getToken()->getValue<int64_t>(), 5);
+  EXPECT_EQ(ifFnCallSubArgFive->getToken()->getValue<uint64_t>(), 5);
   // 1
   auto ifFnCallSubArgOne = dynamic_cast<AST::IntExpr *>(&*ifFnCallSubArg->rhs());
   EXPECT_NE(ifFnCallSubArgOne, nullptr);
   EXPECT_EQ(ifFnCallSubArgOne->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(ifFnCallSubArgOne->getToken()->getValue<int64_t>(), 1);
+  EXPECT_EQ(ifFnCallSubArgOne->getToken()->getValue<uint64_t>(), 1);
   // 5);
   auto ifFnCallIntArg = dynamic_cast<AST::IntExpr *>(&*ifFnCall->getArgs()[1]);
   EXPECT_NE(ifFnCallIntArg, nullptr);
   EXPECT_EQ(ifFnCallIntArg->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(ifFnCallIntArg->getToken()->getValue<int64_t>(), 5);
+  EXPECT_EQ(ifFnCallIntArg->getToken()->getValue<uint64_t>(), 5);
   // elif (3 == "3")
   auto elifStmt = dynamic_cast<AST::ElseIfStmt *>(&*ifStmt->getElseStatements()[0]);
   EXPECT_NE(elifStmt, nullptr);
@@ -367,7 +367,7 @@ TEST(ParserTest, Conditionals) {
   auto elifCondExprThree = dynamic_cast<AST::IntExpr *>(&*elifCondExpr->lhs());
   EXPECT_NE(elifCondExprThree, nullptr);
   EXPECT_EQ(elifCondExprThree->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(elifCondExprThree->getToken()->getValue<int64_t>(), 3);
+  EXPECT_EQ(elifCondExprThree->getToken()->getValue<uint64_t>(), 3);
   // "3"
   auto elifCondExprStrThree = dynamic_cast<AST::StringExpr *>(&*elifCondExpr->rhs());
   EXPECT_NE(elifCondExprStrThree, nullptr);
@@ -389,7 +389,7 @@ TEST(ParserTest, Conditionals) {
   auto elifFnCallArg = dynamic_cast<AST::IntExpr *>(&*elifFnCall->getArgs()[0]);
   EXPECT_NE(elifFnCallArg, nullptr);
   EXPECT_EQ(elifFnCallArg->getToken()->getType(), TType::LIT_INT);
-  EXPECT_EQ(elifFnCallArg->getToken()->getValue<int64_t>(), 0);
+  EXPECT_EQ(elifFnCallArg->getToken()->getValue<uint64_t>(), 0);
   // elif (abc)
   auto elifSecondStmt = dynamic_cast<AST::ElseIfStmt *>(&*ifStmt->getElseStatements()[1]);
   EXPECT_NE(elifSecondStmt, nullptr);
@@ -670,7 +670,7 @@ TEST(ParserTest, FunctionAndMehtodCalls) {
     for (size_t i = 0; i < fnCallExpr->getArgs().size(); i++) {
       const auto &arg = fnCallExpr->getArgs()[i];
       EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
-      EXPECT_EQ(arg->getToken()->getValue<int64_t>(), arguments[i]);
+      EXPECT_EQ(arg->getToken()->getValue<uint64_t>(), arguments[i]);
     }
   }
   {
@@ -688,7 +688,7 @@ TEST(ParserTest, FunctionAndMehtodCalls) {
     for (size_t i = 0; i < fnCallExpr->getArgs().size(); i++) {
       const auto &arg = fnCallExpr->getArgs()[i];
       EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
-      EXPECT_EQ(arg->getToken()->getValue<int64_t>(), arguments[i]);
+      EXPECT_EQ(arg->getToken()->getValue<uint64_t>(), arguments[i]);
     }
   }
   {
@@ -708,7 +708,7 @@ TEST(ParserTest, FunctionAndMehtodCalls) {
     for (size_t i = 0; i < methodCallExpr->getArgs().size(); i++) {
       const auto &arg = methodCallExpr->getArgs()[i];
       EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
-      EXPECT_EQ(arg->getToken()->getValue<int64_t>(), arguments[i]);
+      EXPECT_EQ(arg->getToken()->getValue<uint64_t>(), arguments[i]);
     }
   }
   {
@@ -728,7 +728,7 @@ TEST(ParserTest, FunctionAndMehtodCalls) {
     for (size_t i = 0; i < methodCallExpr->getArgs().size(); i++) {
       const auto &arg = methodCallExpr->getArgs()[i];
       EXPECT_EQ(arg->getToken()->getType(), TType::LIT_INT);
-      EXPECT_EQ(arg->getToken()->getValue<int64_t>(), arguments[i]);
+      EXPECT_EQ(arg->getToken()->getValue<uint64_t>(), arguments[i]);
     }
   }
 }
