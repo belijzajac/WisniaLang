@@ -50,7 +50,7 @@ class CodeGenerator {
   void emitDiv(const InstructionValue &instruction);
   void emitXor(const InstructionValue &instruction);
   void emitTest(const InstructionValue &instruction);
-  void emitRet(const InstructionValue &instruction);
+  void emitRet();
 
  private:
   std::vector<InstructionValue> m_instructions;
