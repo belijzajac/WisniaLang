@@ -45,8 +45,8 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, InstructionsShouldBeOptimized) {
     print((1 + 2) * 3);
   })"sv;
   SetUp(program.data());
-  const auto &unoptimizedInstructions = m_generator.getInstructions();
-  const auto &optimizedInstructions   = m_generator.getInstructionsAfterInstructionOptimization();
+  const auto &unoptimizedInstructions = m_generator.getInstructions(IRGenerator::Transformation::NONE);
+  const auto &optimizedInstructions   = m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
 
   // since we add extra instructions from `_print_number_` module
   EXPECT_LT(unoptimizedInstructions.size(), optimizedInstructions.size());
@@ -81,7 +81,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
     print(12345);
   })"sv;
   SetUp(program.data());
-  const auto &instructions = m_generator.getInstructionsAfterInstructionOptimization();
+  const auto &instructions = m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
 
   EXPECT_EQ(instructions.size(), 22);
   // push rdx
@@ -188,7 +188,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
     print("haiii");
   })"sv;
   SetUp(program.data());
-  const auto &instructions = m_generator.getInstructionsAfterInstructionOptimization();
+  const auto &instructions = m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
 
   EXPECT_EQ(instructions.size(), 22);
   // push rdx
@@ -295,7 +295,7 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
     print(true, false);
   })"sv;
   SetUp(program.data());
-  const auto &instructions = m_generator.getInstructionsAfterInstructionOptimization();
+  const auto &instructions = m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
 
   EXPECT_EQ(instructions.size(), 39);
   // push rdx

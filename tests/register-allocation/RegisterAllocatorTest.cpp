@@ -58,7 +58,7 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
   })"sv;
   SetUp(program.data());
   constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
-  const auto &instructions = m_generator.getInstructionsAfterInstructionOptimization();
+  const auto &instructions = m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
 
   // 16 assigned registers
   for (size_t i = 0; i < registers.size(); i++) {

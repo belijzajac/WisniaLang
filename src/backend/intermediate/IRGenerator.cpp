@@ -193,7 +193,8 @@ void IRGenerator::visit(AST::Root &node) {
   if (moduleExitUsed) registerAllocator.allocate(std::move(moduleExit), false);
 
   // Instruction optimization
-  irOptimization.optimize(vec_slice(getInstructionsAfterRegisterAllocation(), 0, getInstructionsAfterRegisterAllocation().size()));
+  const auto &instructions = getInstructions(Transformation::REGISTER_ALLOCATION);
+  irOptimization.optimize(vec_slice(instructions, 0, instructions.size()));
 }
 
 void IRGenerator::visit(AST::PrimitiveType &) {

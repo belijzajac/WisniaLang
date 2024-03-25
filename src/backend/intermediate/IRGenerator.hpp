@@ -33,32 +33,43 @@ class IRGenerator : public Visitor {
   explicit IRGenerator(bool allocateRegisters = true)
       : m_allocateRegisters{allocateRegisters} {}
 
-  const InstructionList &getInstructions() const {
-    return m_instructions;
-  }
+  enum class Transformation {
+    NONE,
+    REGISTER_ALLOCATION,
+    INSTRUCTION_OPTIMIZATION
+  };
 
-  const InstructionList &getInstructionsAfterRegisterAllocation() const {
-    return registerAllocator.getInstructions();
-  }
-
-  const InstructionList &getInstructionsAfterInstructionOptimization() const {
-    return irOptimization.getInstructions();
+  const InstructionList &getInstructions(Transformation transform) const {
+    switch (transform) {
+      case Transformation::NONE:
+        return m_instructions;
+      case Transformation::REGISTER_ALLOCATION:
+        return registerAllocator.getInstructions();
+      case Transformation::INSTRUCTION_OPTIMIZATION:
+        return irOptimization.getInstructions();
+      default:
+        assert(0 && "Unknown transformation type");
+    }
   }
 
   const TemporaryVariableList &getTemporaryVars() const {
     return m_tempVars;
   }
 
-  void printInstructions(std::ostream &output) const {
-    IRPrintHelper::print(output, m_instructions);
-  }
-
-  void printInstructionsAfterRegisterAllocation(std::ostream &output) const {
-    IRPrintHelper::print(output, registerAllocator.getInstructions());
-  }
-
-  void printInstructionsAfterInstructionOptimization(std::ostream &output) const {
-    IRPrintHelper::print(output, irOptimization.getInstructions());
+  void printInstructions(std::ostream &output, Transformation transform) const {
+    switch (transform) {
+      case Transformation::NONE:
+        IRPrintHelper::print(output, m_instructions);
+        break;
+      case Transformation::REGISTER_ALLOCATION:
+        IRPrintHelper::print(output, registerAllocator.getInstructions());
+        break;
+      case Transformation::INSTRUCTION_OPTIMIZATION:
+        IRPrintHelper::print(output, irOptimization.getInstructions());
+        break;
+      default:
+        assert(0 && "Unknown transformation type");
+    }
   }
 
  private:

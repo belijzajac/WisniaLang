@@ -42,7 +42,7 @@ TEST_F(IRGeneratorTestWithoutRegisterAllocation, VariableDeclarationStatements) 
   })"sv;
   SetUp(program.data());
   const auto &temporaries = m_generator.getTemporaryVars();
-  const auto &instructions = m_generator.getInstructions();
+  const auto &instructions = m_generator.getInstructions(IRGenerator::Transformation::NONE);
 
   EXPECT_EQ(temporaries.size(), 4); // from _t0 to _t3
 
@@ -109,7 +109,7 @@ TEST_F(IRGeneratorTestWithoutRegisterAllocation, PrintIRForVariableDeclarationSt
   })"sv;
   SetUp(program.data());
   std::stringstream ss;
-  m_generator.printInstructions(ss);
+  m_generator.printInstructions(ss, IRGenerator::Transformation::NONE);
 
   EXPECT_STREQ(ss.str().c_str(),
     "              Target               |      Op      |          Arg1          |               Arg2               \n"
