@@ -158,14 +158,14 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintNumberLiteralShouldNotInsertM
   EXPECT_EQ(instructions[16]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[16]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
-  // call _exit_
+  // call __builtin_exit
   EXPECT_EQ(instructions[17]->getOperation(), Operation::CALL);
   EXPECT_EQ(instructions[17]->getTarget()->getType(), TType::IDENT_VOID);
-  EXPECT_STREQ(instructions[17]->getTarget()->getValue<std::string>().c_str(), "_exit_");
-  // label _exit_
+  EXPECT_STREQ(instructions[17]->getTarget()->getValue<std::string>().c_str(), "__builtin_exit");
+  // label __builtin_exit
   EXPECT_EQ(instructions[18]->getOperation(), Operation::LABEL);
   EXPECT_EQ(instructions[18]->getArg1()->getType(), TType::IDENT_VOID);
-  EXPECT_STREQ(instructions[18]->getArg1()->getValue<std::string>().c_str(), "_exit_");
+  EXPECT_STREQ(instructions[18]->getArg1()->getValue<std::string>().c_str(), "__builtin_exit");
   // xor rdi, rdi
   EXPECT_EQ(instructions[19]->getOperation(), Operation::XOR);
   EXPECT_EQ(instructions[19]->getArg1()->getType(), TType::REGISTER);
@@ -265,14 +265,14 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintStringLiteralShouldNotInsertM
   EXPECT_EQ(instructions[16]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[16]->getArg1()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[16]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
-  // call _exit_
+  // call __builtin_exit
   EXPECT_EQ(instructions[17]->getOperation(), Operation::CALL);
   EXPECT_EQ(instructions[17]->getTarget()->getType(), TType::IDENT_VOID);
-  EXPECT_STREQ(instructions[17]->getTarget()->getValue<std::string>().c_str(), "_exit_");
-  // label _exit_
+  EXPECT_STREQ(instructions[17]->getTarget()->getValue<std::string>().c_str(), "__builtin_exit");
+  // label __builtin_exit
   EXPECT_EQ(instructions[18]->getOperation(), Operation::LABEL);
   EXPECT_EQ(instructions[18]->getArg1()->getType(), TType::IDENT_VOID);
-  EXPECT_STREQ(instructions[18]->getArg1()->getValue<std::string>().c_str(), "_exit_");
+  EXPECT_STREQ(instructions[18]->getArg1()->getValue<std::string>().c_str(), "__builtin_exit");
   // xor rdi, rdi
   EXPECT_EQ(instructions[19]->getOperation(), Operation::XOR);
   EXPECT_EQ(instructions[19]->getArg1()->getType(), TType::REGISTER);
@@ -446,14 +446,14 @@ TEST_F(IRGeneratorTestWithRegisterAllocation, PrintBooleanLiteralShouldNotInsert
   EXPECT_EQ(instructions[33]->getOperation(), Operation::POP);
   EXPECT_EQ(instructions[33]->getArg1()->getType(), TType::REGISTER);
   EXPECT_EQ(instructions[33]->getArg1()->getValue<Basic::register_t>(), Basic::register_t::RDX);
-  // call _exit_
+  // call __builtin_exit
   EXPECT_EQ(instructions[34]->getOperation(), Operation::CALL);
   EXPECT_EQ(instructions[34]->getTarget()->getType(), TType::IDENT_VOID);
-  EXPECT_STREQ(instructions[34]->getTarget()->getValue<std::string>().c_str(), "_exit_");
-  // label _exit_
+  EXPECT_STREQ(instructions[34]->getTarget()->getValue<std::string>().c_str(), "__builtin_exit");
+  // label __builtin_exit
   EXPECT_EQ(instructions[35]->getOperation(), Operation::LABEL);
   EXPECT_EQ(instructions[35]->getArg1()->getType(), TType::IDENT_VOID);
-  EXPECT_STREQ(instructions[35]->getArg1()->getValue<std::string>().c_str(), "_exit_");
+  EXPECT_STREQ(instructions[35]->getArg1()->getValue<std::string>().c_str(), "__builtin_exit");
   // xor rdi, rdi
   EXPECT_EQ(instructions[36]->getOperation(), Operation::XOR);
   EXPECT_EQ(instructions[36]->getArg1()->getType(), TType::REGISTER);

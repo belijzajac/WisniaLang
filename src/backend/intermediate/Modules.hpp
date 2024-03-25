@@ -20,10 +20,10 @@ enum Module : uint8_t {
 };
 
 static inline std::unordered_map<Module, std::string_view> Module2Str {
-  {Module::CALCULATE_STRING_LENGTH, "_calculate_string_length_"},
-  {Module::PRINT_NUMBER,            "_print_number_"           },
-  {Module::PRINT_BOOLEAN,           "_print_boolean_"          },
-  {Module::EXIT,                    "_exit_"                   },
+  {Module::CALCULATE_STRING_LENGTH, "__builtin_calculate_string_length"},
+  {Module::PRINT_NUMBER,            "__builtin_print_number"           },
+  {Module::PRINT_BOOLEAN,           "__builtin_print_boolean"          },
+  {Module::EXIT,                    "__builtin_exit"                   },
 };
 
 class Modules {

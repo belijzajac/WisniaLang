@@ -28,7 +28,7 @@ std::tuple<Modules::InstructionList, bool> Modules::getModule(Module module) {
 }
 
 /*
-_calculate_string_length_:
+__builtin_calculate_string_length:
   push rsi                                          ; save the string
   xor rdx, rdx                                      ; zero out the length
 .calculate_string_length_loop:
@@ -109,7 +109,7 @@ Modules::InstructionList Modules::moduleCalculateStringLength() {
 }
 
 /*
-_print_number_:
+__builtin_print_number:
   push rax                            ;; save registers
   push rcx
   push r11
@@ -300,7 +300,7 @@ Modules::InstructionList Modules::modulePrintUintNumber() {
 }
 
 /*
-_print_boolean_:
+__builtin_print_boolean:
   push rax                            ;; save registers
   push rcx
   push r11
@@ -452,7 +452,7 @@ Modules::InstructionList Modules::modulePrintBoolean() {
 }
 
 /*
-_exit_:
+__builtin_exit:
   xor rdi, rdi       ;; exit code is 0
   mov rax, 0x3c      ;; exit
   syscall            ;; make the system call

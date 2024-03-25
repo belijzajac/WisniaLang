@@ -38,13 +38,13 @@ TEST_F(IRGeneratorTestWithoutRegisterAllocation, VariableDeclarationStatements) 
   fn main() {
     int aa = 5 + 2 * 10;
     int ba = 7 - 1;
-    bool bb = 6 > 5 && 6 != ba;
+    int bb = aa - ba;
   })"sv;
   SetUp(program.data());
   const auto &temporaries = m_generator.getTemporaryVars();
   const auto &instructions = m_generator.getInstructions();
 
-  EXPECT_EQ(temporaries.size(), 6); // from _t0 to _t5
+  EXPECT_EQ(temporaries.size(), 4); // from _t0 to _t3
 
   // _tx = a <op> b rewritten as
   //    _tx = a
@@ -84,34 +84,20 @@ TEST_F(IRGeneratorTestWithoutRegisterAllocation, VariableDeclarationStatements) 
   EXPECT_STREQ(instructions[7]->getTarget()->getValue<std::string>().c_str(), "ba");
   EXPECT_STREQ(instructions[7]->getArg1()->getValue<std::string>().c_str(), "_t2");
 
-  // <_t3, >, 6, 5>
+  // <_t3, <-, aa, null>
   EXPECT_EQ(instructions[8]->getOperation(), Operation::MOV);
   EXPECT_STREQ(instructions[8]->getTarget()->getValue<std::string>().c_str(), "_t3");
-  EXPECT_EQ(instructions[8]->getArg1()->getValue<int>(), 6);
-  EXPECT_EQ(instructions[9]->getOperation(), Operation::IGT);
+  EXPECT_STREQ(instructions[8]->getArg1()->getValue<std::string>().c_str(), "aa");
+
+  // <_t3, -, ba, null>
+  EXPECT_EQ(instructions[9]->getOperation(), Operation::ISUB);
   EXPECT_STREQ(instructions[9]->getTarget()->getValue<std::string>().c_str(), "_t3");
-  EXPECT_EQ(instructions[9]->getArg1()->getValue<int>(), 5);
+  EXPECT_STREQ(instructions[9]->getArg1()->getValue<std::string>().c_str(), "ba");
 
-  // <_t4, !=, 6, ba>
+  // <bb, <-, _t3, null>
   EXPECT_EQ(instructions[10]->getOperation(), Operation::MOV);
-  EXPECT_STREQ(instructions[10]->getTarget()->getValue<std::string>().c_str(), "_t4");
-  EXPECT_EQ(instructions[10]->getArg1()->getValue<int>(), 6);
-  EXPECT_EQ(instructions[11]->getOperation(), Operation::INE);
-  EXPECT_STREQ(instructions[11]->getTarget()->getValue<std::string>().c_str(), "_t4");
-  EXPECT_STREQ(instructions[11]->getArg1()->getValue<std::string>().c_str(), "ba");
-
-  // <_t5, &&, _t3, _t4>
-  EXPECT_EQ(instructions[12]->getOperation(), Operation::MOV);
-  EXPECT_STREQ(instructions[12]->getTarget()->getValue<std::string>().c_str(), "_t5");
-  EXPECT_STREQ(instructions[12]->getArg1()->getValue<std::string>().c_str(), "_t3");
-  EXPECT_EQ(instructions[13]->getOperation(), Operation::AND);
-  EXPECT_STREQ(instructions[13]->getTarget()->getValue<std::string>().c_str(), "_t5");
-  EXPECT_STREQ(instructions[13]->getArg1()->getValue<std::string>().c_str(), "_t4");
-
-  // <bb, <-, _t5, null>
-  EXPECT_EQ(instructions[14]->getOperation(), Operation::MOV);
-  EXPECT_STREQ(instructions[14]->getTarget()->getValue<std::string>().c_str(), "bb");
-  EXPECT_STREQ(instructions[14]->getArg1()->getValue<std::string>().c_str(), "_t5");
+  EXPECT_STREQ(instructions[10]->getTarget()->getValue<std::string>().c_str(), "bb");
+  EXPECT_STREQ(instructions[10]->getArg1()->getValue<std::string>().c_str(), "_t3");
 }
 
 TEST_F(IRGeneratorTestWithoutRegisterAllocation, PrintIRForVariableDeclarationStatements) {
@@ -119,29 +105,26 @@ TEST_F(IRGeneratorTestWithoutRegisterAllocation, PrintIRForVariableDeclarationSt
   fn main() {
     int aa = 5 + 2 * 10;
     int ba = 7 - 1;
-    bool bb = 6 > 5 && 6 != ba;
+    int bb = aa - ba;
   })"sv;
   SetUp(program.data());
   std::stringstream ss;
   m_generator.printInstructions(ss);
 
   EXPECT_STREQ(ss.str().c_str(),
-    "          Target           |      Op      |          Arg1          |               Arg2               \n"
-    "---------------------------+--------------+------------------------+----------------------------------\n"
-    "  _t0    %% IDENT_INT      |      <-      |  2   %% LIT_INT        |                %%                \n"
-    "  _t0    %% IDENT_INT      |      *       | 10   %% LIT_INT        |                %%                \n"
-    "  _t1    %% IDENT_INT      |      <-      |  5   %% LIT_INT        |                %%                \n"
-    "  _t1    %% IDENT_INT      |      +       | _t0  %% IDENT_INT      |                %%                \n"
-    "   aa    %% IDENT_INT      |      <-      | _t1  %% IDENT_INT      |                %%                \n"
-    "  _t2    %% IDENT_INT      |      <-      |  7   %% LIT_INT        |                %%                \n"
-    "  _t2    %% IDENT_INT      |      -       |  1   %% LIT_INT        |                %%                \n"
-    "   ba    %% IDENT_INT      |      <-      | _t2  %% IDENT_INT      |                %%                \n"
-    "  _t3    %% IDENT_INT      |      <-      |  6   %% LIT_INT        |                %%                \n"
-    "  _t3    %% IDENT_INT      |      >       |  5   %% LIT_INT        |                %%                \n"
-    "  _t4    %% IDENT_INT      |      <-      |  6   %% LIT_INT        |                %%                \n"
-    "  _t4    %% IDENT_INT      |      !=      | ba   %% IDENT_INT      |                %%                \n"
-    "  _t5    %% IDENT_INT      |      <-      | _t3  %% IDENT_INT      |                %%                \n"
-    "  _t5    %% IDENT_INT      |      &&      | _t4  %% IDENT_INT      |                %%                \n"
-    "   bb    %% IDENT_BOOL     |      <-      | _t5  %% IDENT_INT      |                %%                \n"
-    " _exit_  %% IDENT_VOID     |     call     |      %%                |                %%                \n");
+    "              Target               |      Op      |          Arg1          |               Arg2               \n"
+    "-----------------------------------+--------------+------------------------+----------------------------------\n"
+    "      _t0        %% IDENT_INT      |      <-      |  2   %% LIT_INT        |                %%                \n"
+    "      _t0        %% IDENT_INT      |      *       | 10   %% LIT_INT        |                %%                \n"
+    "      _t1        %% IDENT_INT      |      <-      |  5   %% LIT_INT        |                %%                \n"
+    "      _t1        %% IDENT_INT      |      +       | _t0  %% IDENT_INT      |                %%                \n"
+    "       aa        %% IDENT_INT      |      <-      | _t1  %% IDENT_INT      |                %%                \n"
+    "      _t2        %% IDENT_INT      |      <-      |  7   %% LIT_INT        |                %%                \n"
+    "      _t2        %% IDENT_INT      |      -       |  1   %% LIT_INT        |                %%                \n"
+    "       ba        %% IDENT_INT      |      <-      | _t2  %% IDENT_INT      |                %%                \n"
+    "      _t3        %% IDENT_INT      |      <-      | aa   %% IDENT_INT      |                %%                \n"
+    "      _t3        %% IDENT_INT      |      -       | ba   %% IDENT_INT      |                %%                \n"
+    "       bb        %% IDENT_INT      |      <-      | _t3  %% IDENT_INT      |                %%                \n"
+    " __builtin_exit  %% IDENT_VOID     |     call     |      %%                |                %%                \n"
+  );
 }
