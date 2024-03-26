@@ -88,12 +88,10 @@ int main(int argc, char *argv[]) {
     codeGenerator.generate(generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION));
     if (config.dump == "code") {
       if (const auto &data = codeGenerator.getDataSection(); data.size() > 0) {
-        std::cout << "Data section:\n";
-        std::cout << data.getString() << "\n\n";
+        std::cout << "Data section:\n" << data << "\n\n";
       }
       if (const auto &text = codeGenerator.getTextSection(); text.size() > 0) {
-        std::cout << "Text section:\n";
-        std::cout << text.getString() << "\n";
+        std::cout << "Text section:\n" << text << "\n";
       }
     }
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};

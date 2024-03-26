@@ -5,17 +5,11 @@
 #define WISNIALANG_BYTE_ARRAY_HPP
 
 #include <cassert>
-#include <cstddef>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 
 namespace Wisnia {
-
-namespace {
-  std::ostream &operator<<(std::ostream &os, std::byte b) {
-    return os << std::hex << std::to_integer<int>(b);
-  }
-}  // namespace
 
 class ByteArray {
   using Bytes = std::vector<std::byte>;
@@ -106,14 +100,13 @@ class ByteArray {
     m_byteData.insert(m_byteData.end(), other.begin(), other.end());
   }
 
-  std::string getString() const {
-    std::stringstream str{};
-    for (size_t i = 0; i < m_byteData.size(); i++) {
-      str << (((m_byteData[i] >> 4) == std::byte{0x0}) ? '0' : '\0') << m_byteData[i];
-      if ((i + 1) % 8 == 0) str << '\n';
-      else if (i + 1 < m_byteData.size()) str << ' ';
+  friend std::ostream& operator<<(std::ostream &os, const ByteArray &obj) {
+    for (size_t i = 0; i < obj.m_byteData.size(); i++) {
+      os << std::hex << std::setw(2) << std::setfill('0') << std::to_integer<int>(obj.m_byteData[i]);
+      if (i + 1 < obj.m_byteData.size()) os << ' ';
+      if ((i + 1) % 8 == 0) os << '\n';
     }
-    return str.str();
+    return os;
   }
 
  private:
