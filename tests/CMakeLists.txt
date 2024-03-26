@@ -23,6 +23,8 @@ if(UNIT_TESTS)
   add_subdirectory(register-allocation)
   # programs
   add_subdirectory(programs)
+  # utilities
+  add_subdirectory(utilities)
 
   modify_sources(WISNIA_SOURCES)
   add_executable(wisnia-tests
