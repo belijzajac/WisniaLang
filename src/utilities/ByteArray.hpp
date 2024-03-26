@@ -5,6 +5,7 @@
 #define WISNIALANG_BYTE_ARRAY_HPP
 
 #include <cassert>
+#include <cstddef>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -100,10 +101,10 @@ class ByteArray {
     m_byteData.insert(m_byteData.end(), other.begin(), other.end());
   }
 
-  friend std::ostream& operator<<(std::ostream &os, const ByteArray &obj) {
-    for (size_t i = 0; i < obj.m_byteData.size(); i++) {
-      os << std::hex << std::setw(2) << std::setfill('0') << std::to_integer<int>(obj.m_byteData[i]);
-      if (i + 1 < obj.m_byteData.size()) os << ' ';
+  friend std::ostream& operator<<(std::ostream &os, const ByteArray &array) {
+    for (size_t i = 0; i < array.m_byteData.size(); i++) {
+      os << std::hex << std::setw(2) << std::setfill('0') << std::to_integer<int>(array.m_byteData[i]);
+      if (i + 1 < array.m_byteData.size()) os << ' ';
       if ((i + 1) % 8 == 0) os << '\n';
     }
     return os;
