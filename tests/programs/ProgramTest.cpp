@@ -53,7 +53,8 @@ class IProgramTestFixture : public testing::Test {
   }
 
  private:
-  static std::string randomString(size_t length) {
+  static std::string generateFilename() {
+    constexpr auto length = 10;
     const auto randomChar = []() -> char {
       constexpr auto charset =
           "0123456789"
@@ -69,7 +70,7 @@ class IProgramTestFixture : public testing::Test {
 
   static std::string makeTemporaryFilename() {
     std::ostringstream ss;
-    ss << "/tmp/" << randomString(10);
+    ss << "/tmp/" << generateFilename();
     return ss.str();
   }
 
@@ -195,7 +196,11 @@ TEST_F(ProgramTest, PrintMaxInt) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "2147483647");
 }
 
-TEST_F(ProgramTest, PrintIntVariables) {
+// ----------------------------------------------------
+// Exhaust registers
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, ExhaustRegistersForMovInt) {
   // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
@@ -224,7 +229,7 @@ TEST_F(ProgramTest, PrintIntVariables) {
   );
 }
 
-TEST_F(ProgramTest, PrintBooleanVariables) {
+TEST_F(ProgramTest, ExhaustRegistersForMovBoolean) {
   // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
@@ -250,6 +255,90 @@ TEST_F(ProgramTest, PrintBooleanVariables) {
     exec("./a.out"),
     "true" "false" "true" "false" "true" "false" "true"
     "false" "true" "false" "true" "false" "true" "false" "true"
+  );
+}
+
+TEST_F(ProgramTest, ExhaustRegistersForAddInt) {
+  // trying to exhaust all 15 registers (rax - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int a = a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "143165576" "286331152" "429496728" "572662304" "715827880" "858993456" "1002159032"
+    "1145324608" "1288490185" "1431655762" "1574821339" "1717986916" "1861152493" "2004318070" "2147483647"
+  );
+}
+
+TEST_F(ProgramTest, ExhaustRegistersForSubInt) {
+  // trying to exhaust all 14 registers (rcx - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int a = 2147483647;
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "1994091958" "1840700269" "1687308580" "1533916891" "1380525202" "1227133513" "1073741824"
+    "920350135" "766958446" "613566757" "460175068" "306783379" "153391690" "1"
+  );
+}
+
+TEST_F(ProgramTest, ExhaustRegistersForMulInt) {
+  // trying to exhaust all 14 registers (rcx - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int a = 7;
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "28" "112" "448" "1792" "7168" "28672" "114688"
+    "458752" "1835008" "7340032" "29360128" "117440512" "469762048" "1879048192"
   );
 }
 
