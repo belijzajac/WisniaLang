@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 // Wisnia
 #include "AST.hpp"
@@ -49,15 +32,15 @@ TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
     "        ForLoop\n"
     "          VarDeclStmt\n"
     "            Var (name=i, type=int)\n"
-    "            IntExpr (0)\n"
+    "            IntExpr (value=0, type=int)\n"
     "          CompExpr (<)\n"
     "            Var (name=i, type=int)\n"
-    "            IntExpr (5)\n"
+    "            IntExpr (value=5, type=int)\n"
     "          VarAssignStmt\n"
     "            Var (name=i, type=int)\n"
     "            AddExpr (+)\n"
     "              Var (name=i, type=int)\n"
-    "              IntExpr (1)\n"
+    "              IntExpr (value=1, type=int)\n"
     "          StmtBlock\n"
     "            VarAssignStmt\n"
     "              Var (name=a, type=float)\n"
@@ -76,7 +59,7 @@ TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
     "        WhileLoop\n"
     "          CompExpr (<)\n"
     "            Var (name=digit, type=int)\n"
-    "            IntExpr (150000)\n"
+    "            IntExpr (value=150000, type=int)\n"
     "          StmtBlock\n"
     "            VarAssignStmt\n"
     "              Var (name=a, type=float)\n"
@@ -87,7 +70,7 @@ TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
     "              Var (name=digit, type=int)\n"
     "              MultExpr (*)\n"
     "                Var (name=digit, type=int)\n"
-    "                IntExpr (2)\n"
+    "                IntExpr (value=2, type=int)\n"
     "            WriteStmt\n"
     "              Var (name=a, type=float)\n"
     "              Var (name=digit, type=int)\n"
@@ -120,7 +103,7 @@ TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
     "        Var (name=correct, type=bool)\n"
     "        EqExpr (==)\n"
     "          Var (name=argc, type=int)\n"
-    "          IntExpr (5)\n"
+    "          IntExpr (value=5, type=int)\n"
     "      VarDeclStmt\n"
     "        Var (name=answer, type=string)\n"
     "        FnCallExpr\n"
@@ -147,7 +130,7 @@ TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
     "          ElseIfStmt\n"
     "            CompExpr (<)\n"
     "              Var (name=argc, type=int)\n"
-    "              IntExpr (5)\n"
+    "              IntExpr (value=5, type=int)\n"
     "            StmtBlock\n"
     "              VarAssignStmt\n"
     "                Var (name=answer, type=string)\n"
@@ -157,12 +140,12 @@ TEST_F(ASTPrinterTest, ASTIsCorrectlyIndented) {
     "          ElseIfStmt\n"
     "            CompExpr (>)\n"
     "              Var (name=argc, type=int)\n"
-    "              IntExpr (7)\n"
+    "              IntExpr (value=7, type=int)\n"
     "            StmtBlock\n"
     "              ContinueStmt\n"
     "          ElseStmt\n"
     "            StmtBlock\n"
     "              BreakStmt\n"
     "      ReturnStmt\n"
-    "        IntExpr (5)\n");
+    "        IntExpr (value=5, type=int)\n");
 }

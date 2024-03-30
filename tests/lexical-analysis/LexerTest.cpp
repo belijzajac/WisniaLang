@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #include <gtest/gtest.h>
 // Wisnia
@@ -279,4 +262,14 @@ TEST(LexerTest, PrettyPrinter) {
     "  9   |  3   |  OP_SEMICOLON   |        ;        \n"
     "  10  |  4   |   OP_BRACE_C    |        }        \n"
     "  11  |  6   |     TOK_EOF     |      [EOF]      \n");
+}
+
+TEST(LexerTest, OutOfRangeValueInt) {
+  EXPECT_THROW(
+      {
+        constexpr auto program = R"(int a = 2147483648;)"sv;
+        std::istringstream iss{program.data()};
+        Lexer lexer{iss};
+      },
+      TokenError);
 }

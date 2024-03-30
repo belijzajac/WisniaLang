@@ -1,26 +1,10 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #ifndef WISNIALANG_AST_EXPRESSIONS_HPP
 #define WISNIALANG_AST_EXPRESSIONS_HPP
 
+#include <cassert>
 #include "fmt/format.h"
 // Wisnia
 #include "Root.hpp"
@@ -449,9 +433,15 @@ class IntExpr : public ConstExpr {
   }
 
   std::string kind() const override {
-    std::stringstream ss;
-    ss << "IntExpr" << " (" << m_token->getASTValueStr() << ")";
-    return ss.str();
+    const auto getType = [&]() {
+      switch (m_token->getType()) {
+        case Basic::TType::LIT_INT:
+          return "int";
+        default:
+          assert(0 && "Unknown integer type");
+      }
+    };
+    return fmt::format("IntExpr (value={}, type={})", m_token->getASTValueStr(), getType());
   }
 };
 

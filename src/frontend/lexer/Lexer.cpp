@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #include <fmt/format.h>
 
@@ -28,8 +11,9 @@
 #include <iostream>
 #include <string>
 // Wisnia
-#include "Lexer.hpp"
 #include "Exceptions.hpp"
+#include "Lexer.hpp"
+#include "SemanticAnalysis.hpp"
 #include "Token.hpp"
 
 using namespace Wisnia;
@@ -51,7 +35,13 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type, bool backtrack) {
     switch (type) {
       // Integer
       case TType::LIT_INT:
-        return std::stoi(m_tokenState.m_buff);
+        int value;
+        try {
+          value = std::stoi(m_tokenState.m_buff);
+        } catch (const std::out_of_range &) {
+          throw TokenError{fmt::format("Value '{}' is out of supported range ('{}')", m_tokenState.m_buff, kMaxIntValue)};
+        }
+        return value;
       // Float
       case TType::LIT_FLT:
         return std::stof(m_tokenState.m_buff);

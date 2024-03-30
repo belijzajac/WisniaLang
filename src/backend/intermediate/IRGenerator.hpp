@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #ifndef WISNIALANG_IR_GENERATOR_HPP
 #define WISNIALANG_IR_GENERATOR_HPP
@@ -50,32 +33,43 @@ class IRGenerator : public Visitor {
   explicit IRGenerator(bool allocateRegisters = true)
       : m_allocateRegisters{allocateRegisters} {}
 
-  const InstructionList &getInstructions() const {
-    return m_instructions;
-  }
+  enum class Transformation {
+    NONE,
+    REGISTER_ALLOCATION,
+    INSTRUCTION_OPTIMIZATION
+  };
 
-  const InstructionList &getInstructionsAfterRegisterAllocation() const {
-    return registerAllocator.getInstructions();
-  }
-
-  const InstructionList &getInstructionsAfterInstructionOptimization() const {
-    return irOptimization.getInstructions();
+  const InstructionList &getInstructions(Transformation transform) const {
+    switch (transform) {
+      case Transformation::NONE:
+        return m_instructions;
+      case Transformation::REGISTER_ALLOCATION:
+        return registerAllocator.getInstructions();
+      case Transformation::INSTRUCTION_OPTIMIZATION:
+        return irOptimization.getInstructions();
+      default:
+        assert(0 && "Unknown transformation type");
+    }
   }
 
   const TemporaryVariableList &getTemporaryVars() const {
     return m_tempVars;
   }
 
-  void printInstructions(std::ostream &output) const {
-    IRPrintHelper::print(output, m_instructions);
-  }
-
-  void printInstructionsAfterRegisterAllocation(std::ostream &output) const {
-    IRPrintHelper::print(output, registerAllocator.getInstructions());
-  }
-
-  void printInstructionsAfterInstructionOptimization(std::ostream &output) const {
-    IRPrintHelper::print(output, irOptimization.getInstructions());
+  void printInstructions(std::ostream &output, Transformation transform) const {
+    switch (transform) {
+      case Transformation::NONE:
+        IRPrintHelper::print(output, m_instructions);
+        break;
+      case Transformation::REGISTER_ALLOCATION:
+        IRPrintHelper::print(output, registerAllocator.getInstructions());
+        break;
+      case Transformation::INSTRUCTION_OPTIMIZATION:
+        IRPrintHelper::print(output, irOptimization.getInstructions());
+        break;
+      default:
+        assert(0 && "Unknown transformation type");
+    }
   }
 
  private:

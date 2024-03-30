@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #include <optional>
 #include <set>
@@ -99,11 +82,11 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
       return false;
     });
     // Search for an unassigned register
-    const auto availableRegister = [&]() -> std::optional<std::string> {
+    const auto availableRegister = [&]() -> std::optional<Basic::register_t> {
       for (auto &r : availableRegisters.m_registers) {
         if (!r.m_assigned) {
           r.m_assigned = true;
-          return r.m_name;
+          return r.m_register;
         }
       }
       return {};
@@ -118,7 +101,7 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
     } else {
       // We ran out of registers - spill it
       auto node = liveIntervals.extract(interval);
-      node.value().m_register = "[spill]";
+      node.value().m_register = Basic::register_t::SPILLED;
       liveIntervals.insert(std::move(node));
     }
   }

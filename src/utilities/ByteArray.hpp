@@ -1,38 +1,16 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #ifndef WISNIALANG_BYTE_ARRAY_HPP
 #define WISNIALANG_BYTE_ARRAY_HPP
 
 #include <cassert>
 #include <cstddef>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 
 namespace Wisnia {
-
-namespace {
-  std::ostream &operator<<(std::ostream &os, std::byte b) {
-    return os << std::hex << std::to_integer<int>(b);
-  }
-}  // namespace
 
 class ByteArray {
   using Bytes = std::vector<std::byte>;
@@ -46,10 +24,14 @@ class ByteArray {
 
   template <typename T>
   constexpr explicit ByteArray(T value) {
-    if constexpr (std::is_same<T, uint32_t>()) {
-      putU32(value);
+    if constexpr (std::is_same<T, uint8_t>()) {
+      putValue<uint8_t>(value);
+    } else if constexpr (std::is_same<T, uint16_t>()) {
+      putValue<uint16_t>(value);
+    } else if constexpr (std::is_same<T, uint32_t>()) {
+      putValue<uint32_t>(value);
     } else if constexpr (std::is_same<T, uint64_t>()) {
-      putU64(value);
+      putValue<uint64_t>(value);
     } else if constexpr (std::is_same<T, std::byte>()) {
       putBytes(value);
     } else {
@@ -72,14 +54,32 @@ class ByteArray {
     m_byteData[index] = value;
   }
 
-  constexpr void putU32(uint32_t value) {
+  template <typename T>
+  constexpr void putValue(T) {
+    assert(0 && "Unsupported type T");
+  }
+
+  template <std::same_as<uint8_t> T>
+  constexpr void putValue(T value) {
+    m_byteData.emplace_back(static_cast<std::byte>(value));
+  }
+
+  template <std::same_as<uint16_t> T>
+  constexpr void putValue(T value) {
+    m_byteData.emplace_back(static_cast<std::byte>(value));
+    m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
+  }
+
+  template <std::same_as<uint32_t> T>
+  constexpr void putValue(T value) {
     m_byteData.emplace_back(static_cast<std::byte>(value));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 16));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 24));
   }
 
-  constexpr void putU64(uint64_t value) {
+  template <std::same_as<uint64_t> T>
+  constexpr void putValue(T value) {
     m_byteData.emplace_back(static_cast<std::byte>(value));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 8));
     m_byteData.emplace_back(static_cast<std::byte>(value >> 16));
@@ -101,14 +101,13 @@ class ByteArray {
     m_byteData.insert(m_byteData.end(), other.begin(), other.end());
   }
 
-  std::string getString() const {
-    std::stringstream str{};
-    for (size_t i = 0; i < m_byteData.size(); i++) {
-      str << (((m_byteData[i] >> 4) == std::byte{0x0}) ? '0' : '\0') << m_byteData[i];
-      if ((i + 1) % 8 == 0) str << '\n';
-      else if (i + 1 < m_byteData.size()) str << ' ';
+  friend std::ostream& operator<<(std::ostream &os, const ByteArray &array) {
+    for (size_t i = 0; i < array.m_byteData.size(); i++) {
+      os << std::hex << std::setw(2) << std::setfill('0') << std::to_integer<int>(array.m_byteData[i]);
+      if (i + 1 < array.m_byteData.size()) os << ' ';
+      if ((i + 1) % 8 == 0) os << '\n';
     }
-    return str.str();
+    return os;
   }
 
  private:

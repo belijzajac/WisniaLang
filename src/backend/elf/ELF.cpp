@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #include <cstddef>
 #include <cstdint>
@@ -59,7 +42,7 @@ ByteArray ELF::assembleELF() {
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}
   );
 
-  elf.putU64(kVirtualStartAddress + kTextOffset); // 64-bit virtual offset
+  elf.putValue<uint64_t>(kVirtualStartAddress + kTextOffset); // 64-bit virtual offset
 
   elf.putBytes(
       // Offset from file to program header
@@ -85,12 +68,12 @@ ByteArray ELF::assembleELF() {
       std::byte{0x07}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}  // Flags
   );
 
-  elf.putU64(0);                    // Offset from the beginning of the file
-  elf.putU64(kVirtualStartAddress); // Virtual address
-  elf.putU64(kVirtualStartAddress); // Physical address
-  elf.putU64(textSize);             // Number of bytes in file image of segment
-  elf.putU64(textSize);             // Number of bytes in memory image of segment
-  elf.putU64(kAlignment);           // Alignment
+  elf.putValue<uint64_t>(0);                    // Offset from the beginning of the file
+  elf.putValue<uint64_t>(kVirtualStartAddress); // Virtual address
+  elf.putValue<uint64_t>(kVirtualStartAddress); // Physical address
+  elf.putValue<uint64_t>(textSize);             // Number of bytes in file image of segment
+  elf.putValue<uint64_t>(textSize);             // Number of bytes in memory image of segment
+  elf.putValue<uint64_t>(kAlignment);           // Alignment
 
   // Build program header: data segment
   elf.putBytes(
@@ -98,12 +81,12 @@ ByteArray ELF::assembleELF() {
       std::byte{0x07}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}  // Flags
   );
 
-  elf.putU64(dataOffset);         // Offset address
-  elf.putU64(dataVirtualAddress); // Virtual address
-  elf.putU64(dataVirtualAddress); // Physical address
-  elf.putU64(dataSize);           // Number of bytes in file image
-  elf.putU64(dataSize);           // Number of bytes in memory image
-  elf.putU64(kAlignment);         // Alignment
+  elf.putValue<uint64_t>(dataOffset);         // Offset address
+  elf.putValue<uint64_t>(dataVirtualAddress); // Virtual address
+  elf.putValue<uint64_t>(dataVirtualAddress); // Physical address
+  elf.putValue<uint64_t>(dataSize);           // Number of bytes in file image
+  elf.putValue<uint64_t>(dataSize);           // Number of bytes in memory image
+  elf.putValue<uint64_t>(kAlignment);         // Alignment
 
   elf.putBytes(m_textSection); // Output the text segment
   elf.putBytes(m_dataSection); // Output the data segment

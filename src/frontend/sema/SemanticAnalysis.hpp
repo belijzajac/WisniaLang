@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #ifndef WISNIALANG_SEMANTIC_ANALYSIS_HPP
 #define WISNIALANG_SEMANTIC_ANALYSIS_HPP
@@ -26,6 +9,8 @@
 #include "Visitor.hpp"
 
 namespace Wisnia {
+
+constexpr auto kMaxIntValue{2147483647}; // mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
 
 class SemanticAnalysis : public Visitor {
  private:
@@ -67,35 +52,6 @@ class SemanticAnalysis : public Visitor {
   void visit(AST::IfStmt &) override;
   void visit(AST::ElseStmt &) override;
   void visit(AST::ElseIfStmt &) override;
-
- private:
-  struct ProgramSemanticChecks {
-    struct Function {
-      struct Parameter {
-        std::string name;
-        Basic::TType type;
-      };
-
-      std::string name;
-      std::vector<Parameter> parameters;
-    };
-
-    bool mainFunctionFound;
-    std::vector<Function> functionDefinitions;
-    std::vector<std::string> invokedFunctions;
-  } m_programChecks;
-
-  struct FunctionSemanticChecks {
-    enum class ReturnType { NOT_FOUND, NONE, INT, FLOAT, STRING, BOOLEAN };
-
-    void reset() {
-      returnFound = false;
-      returnType = ReturnType::NOT_FOUND;
-    }
-
-    bool returnFound;
-    ReturnType returnType{ReturnType::NOT_FOUND};
-  } m_functionChecks;
 
  private:
   SymbolTable m_table;

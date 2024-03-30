@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #include <algorithm>
 #include <array>
@@ -140,7 +123,7 @@ std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
   if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
   }
-  throw ParserError{"Function definition doesn't have any of the supported types"};
+  throw ParserError{"Use of unsupported type"};
 }
 
 // <STMT_BLOCK> ::= "{" "}" | "{" <STMTS> "}"
@@ -548,6 +531,13 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
         throw ParserError{"Failed to assign a default value for " + varDeclPtr->getVar()->getToken()->getASTValueStr()};
     }
   }
+
+  // Literal should have the same type as variable
+  //switch (varType->getType()) {
+  //  case TType::KW_INT_U32:
+  //    varValue->getToken()->setType(TType::LIT_INT_U32);
+  //}
+
   varDeclPtr->addType(std::move(varType));
   varDeclPtr->addValue(std::move(varValue));
   expect(TType::OP_SEMICOLON);

@@ -1,22 +1,5 @@
-/***
-
-  WisniaLang - A Compiler for an Experimental Programming Language
-  Copyright (C) 2022 Tautvydas Povilaitis (belijzajac) and contributors
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-***/
+// Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
+// SPDX-License-Identifier: GPL-3.0
 
 #include <gtest/gtest.h>
 #include <fstream>
@@ -48,7 +31,7 @@ class IProgramTestFixture : public testing::Test {
     root->accept(m_analysis);
     root->accept(m_generator);
     CodeGenerator codeGenerator{};
-    codeGenerator.generate(m_generator.getInstructionsAfterInstructionOptimization());
+    codeGenerator.generate(m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION));
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
     elf.compile();
   }
@@ -70,7 +53,8 @@ class IProgramTestFixture : public testing::Test {
   }
 
  private:
-  static std::string randomString(size_t length) {
+  static std::string generateFilename() {
+    constexpr auto length = 10;
     const auto randomChar = []() -> char {
       constexpr auto charset =
           "0123456789"
@@ -86,7 +70,7 @@ class IProgramTestFixture : public testing::Test {
 
   static std::string makeTemporaryFilename() {
     std::ostringstream ss;
-    ss << "/tmp/" << randomString(10);
+    ss << "/tmp/" << generateFilename();
     return ss.str();
   }
 
@@ -118,23 +102,11 @@ class IProgramTestFixture : public testing::Test {
 
 using ProgramTest = IProgramTestFixture;
 
-TEST_F(ProgramTest, PrintStrings) {
-  constexpr auto program = R"(
-  fn main() {
-    print("hello world\n");
-    print("hahaha\n");
-    print("lole\n");
-  })"sv;
-  SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(
-    exec("./a.out"),
-    "hello world\n"
-    "hahaha\n"
-    "lole\n"
-  );
-}
+// ----------------------------------------------------
+// Default values
+// ----------------------------------------------------
 
-TEST_F(ProgramTest, DefaultNumberValue) {
+TEST_F(ProgramTest, DefaultIntValue) {
   constexpr auto program = R"(
   fn main() {
     int var;
@@ -162,6 +134,26 @@ TEST_F(ProgramTest, DefaultBooleanValue) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+// ----------------------------------------------------
+// Print values
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, PrintStrings) {
+  constexpr auto program = R"(
+  fn main() {
+    print("hello world\n");
+    print("hahaha\n");
+    print("lole\n");
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "hello world\n"
+    "hahaha\n"
+    "lole\n"
+  );
 }
 
 TEST_F(ProgramTest, PrintNumbers) {
@@ -194,30 +186,165 @@ TEST_F(ProgramTest, PrintStringVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "ABCDE1234567890");
 }
 
-TEST_F(ProgramTest, PrintNumberVariables) {
+TEST_F(ProgramTest, PrintMaxInt) {
   constexpr auto program = R"(
   fn main() {
-    int num1 = 123;
-    int num2 = 456;
-    int num3 = 789;
-    int num4 = 101;
-    print(num1, num2, num3, num4);
+    int max = 2147483647; # mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
+    print(max);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "123456789101");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "2147483647");
 }
 
-TEST_F(ProgramTest, PrintBooleanVariables) {
+// ----------------------------------------------------
+// Exhaust registers
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, ExhaustRegistersForMovInt) {
+  // trying to exhaust all 15 registers (rax - r15)
   constexpr auto program = R"(
   fn main() {
-    bool aa = true;
-    bool bb = false;
-    bool cc = true;
-    print(aa, bb, cc);
+    int num1  = 2147483647;
+    int num2  = 1073741823;
+    int num3  = 536870911;
+    int num4  = 268435455;
+    int num5  = 134217727;
+    int num6  = 67108863;
+    int num7  = 33554431;
+    int num8  = 16777215;
+    int num9  = 8388607;
+    int num10 = 4194303;
+    int num11 = 2097151;
+    int num12 = 1048575;
+    int num13 = 524287;
+    int num14 = 262143;
+    int num15 = 131071;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truefalsetrue");
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "2147483647" "1073741823" "536870911" "268435455" "134217727" "67108863" "33554431"
+    "16777215" "8388607" "4194303" "2097151" "1048575" "524287" "262143" "131071"
+  );
 }
+
+TEST_F(ProgramTest, ExhaustRegistersForMovBoolean) {
+  // trying to exhaust all 15 registers (rax - r15)
+  constexpr auto program = R"(
+  fn main() {
+    bool num1  = true;
+    bool num2  = false;
+    bool num3  = true;
+    bool num4  = false;
+    bool num5  = true;
+    bool num6  = false;
+    bool num7  = true;
+    bool num8  = false;
+    bool num9  = true;
+    bool num10 = false;
+    bool num11 = true;
+    bool num12 = false;
+    bool num13 = true;
+    bool num14 = false;
+    bool num15 = true;
+    print(num1, num2, num3, num4, num5, num6, num7, num8, num9, num10, num11, num12, num13, num14, num15);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "true" "false" "true" "false" "true" "false" "true"
+    "false" "true" "false" "true" "false" "true" "false" "true"
+  );
+}
+
+TEST_F(ProgramTest, ExhaustRegistersForAddInt) {
+  // trying to exhaust all 15 registers (rax - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int a = a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165576; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+    a =     a + 143165577; print(a);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "143165576" "286331152" "429496728" "572662304" "715827880" "858993456" "1002159032"
+    "1145324608" "1288490185" "1431655762" "1574821339" "1717986916" "1861152493" "2004318070" "2147483647"
+  );
+}
+
+TEST_F(ProgramTest, ExhaustRegistersForSubInt) {
+  // trying to exhaust all 14 registers (rcx - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int a = 2147483647;
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+    a = a - 153391689; print(a);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "1994091958" "1840700269" "1687308580" "1533916891" "1380525202" "1227133513" "1073741824"
+    "920350135" "766958446" "613566757" "460175068" "306783379" "153391690" "1"
+  );
+}
+
+TEST_F(ProgramTest, ExhaustRegistersForMulInt) {
+  // trying to exhaust all 14 registers (rcx - r15)
+  constexpr auto program = R"(
+  fn main() {
+    int a = 7;
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+    int a = a * 4; print(a);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "28" "112" "448" "1792" "7168" "28672" "114688"
+    "458752" "1835008" "7340032" "29360128" "117440512" "469762048" "1879048192"
+  );
+}
+
+// ----------------------------------------------------
+// Calculate expressions
+// ----------------------------------------------------
 
 TEST_F(ProgramTest, CalculateSum) {
   constexpr auto program = R"(
@@ -354,6 +481,10 @@ TEST_F(ProgramTest, MultiplyVariables) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
+// ----------------------------------------------------
+// Variable assignment
+// ----------------------------------------------------
+
 TEST_F(ProgramTest, AssignVariables) {
   constexpr auto program = R"(
   fn main() {
@@ -366,6 +497,10 @@ TEST_F(ProgramTest, AssignVariables) {
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "10");
 }
+
+// ----------------------------------------------------
+// Function call
+// ----------------------------------------------------
 
 TEST_F(ProgramTest, CallFunction) {
   constexpr auto program = R"(
@@ -468,7 +603,11 @@ TEST_F(ProgramTest, CallFunctionShouldNotOverrideVariables) {
   );
 }
 
-TEST_F(ProgramTest, FunctionReturnNumber) {
+// ----------------------------------------------------
+// Function return
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, FunctionReturnInt) {
   constexpr auto program = R"(
   fn foo() -> int {
     return 5;
@@ -508,7 +647,7 @@ TEST_F(ProgramTest, FunctionReturnVariable) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
 }
 
-TEST_F(ProgramTest, FunctionReturnNumberExpression) {
+TEST_F(ProgramTest, FunctionReturnIntExpression) {
   constexpr auto program = R"(
   fn foo() -> int {
     return 10 - 2 * 3;
@@ -549,7 +688,7 @@ TEST_F(ProgramTest, FunctionReturnVariableWithArgumentExpression) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
 }
 
-TEST_F(ProgramTest, PrintFunctionReturnNumber) {
+TEST_F(ProgramTest, PrintFunctionReturnInt) {
   constexpr auto program = R"(
   fn foo() -> int {
     return 5;
@@ -586,7 +725,7 @@ TEST_F(ProgramTest, PrintFunctionReturnVariable) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "5");
 }
 
-TEST_F(ProgramTest, PrintFunctionReturnNumberExpression) {
+TEST_F(ProgramTest, PrintFunctionReturnIntExpression) {
   constexpr auto program = R"(
   fn foo() -> int {
     return 10 - 2 * 3;
@@ -624,7 +763,11 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "18");
 }
 
-TEST_F(ProgramTest, ConditionalNumberTrue) {
+// ----------------------------------------------------
+// Conditional expressions
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, ConditionalIntTrue) {
   constexpr auto program = R"(
   fn main() {
     int value = 5;
@@ -638,7 +781,7 @@ TEST_F(ProgramTest, ConditionalNumberTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
-TEST_F(ProgramTest, ConditionalNumberFalse) {
+TEST_F(ProgramTest, ConditionalIntFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 0;
@@ -652,7 +795,7 @@ TEST_F(ProgramTest, ConditionalNumberFalse) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
 }
 
-TEST_F(ProgramTest, ConditionalInsideFunctionNumber) {
+TEST_F(ProgramTest, ConditionalInsideFunctionInt) {
   constexpr auto program = R"(
   fn foo(base: int, number: int) {
     if (number) {
