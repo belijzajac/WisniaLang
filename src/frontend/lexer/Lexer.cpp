@@ -11,8 +11,9 @@
 #include <iostream>
 #include <string>
 // Wisnia
-#include "Lexer.hpp"
 #include "Exceptions.hpp"
+#include "Lexer.hpp"
+#include "SemanticAnalysis.hpp"
 #include "Token.hpp"
 
 using namespace Wisnia;
@@ -34,7 +35,13 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type, bool backtrack) {
     switch (type) {
       // Integer
       case TType::LIT_INT:
-        return std::stoi(m_tokenState.m_buff);
+        int value;
+        try {
+          value = std::stoi(m_tokenState.m_buff);
+        } catch (const std::out_of_range &) {
+          throw TokenError{fmt::format("Value '{}' is out of supported range ('{}')", m_tokenState.m_buff, kMaxIntValue)};
+        }
+        return value;
       // Float
       case TType::LIT_FLT:
         return std::stof(m_tokenState.m_buff);

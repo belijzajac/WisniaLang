@@ -263,3 +263,13 @@ TEST(LexerTest, PrettyPrinter) {
     "  10  |  4   |   OP_BRACE_C    |        }        \n"
     "  11  |  6   |     TOK_EOF     |      [EOF]      \n");
 }
+
+TEST(LexerTest, OutOfRangeValueInt) {
+  EXPECT_THROW(
+      {
+        constexpr auto program = R"(int a = 2147483648;)"sv;
+        std::istringstream iss{program.data()};
+        Lexer lexer{iss};
+      },
+      TokenError);
+}

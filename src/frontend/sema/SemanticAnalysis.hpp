@@ -10,6 +10,8 @@
 
 namespace Wisnia {
 
+constexpr auto kMaxIntValue{2147483647}; // mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
+
 class SemanticAnalysis : public Visitor {
  private:
   void visit(AST::Root &) override;
@@ -50,35 +52,6 @@ class SemanticAnalysis : public Visitor {
   void visit(AST::IfStmt &) override;
   void visit(AST::ElseStmt &) override;
   void visit(AST::ElseIfStmt &) override;
-
- private:
-  struct ProgramSemanticChecks {
-    struct Function {
-      struct Parameter {
-        std::string name;
-        Basic::TType type;
-      };
-
-      std::string name;
-      std::vector<Parameter> parameters;
-    };
-
-    bool mainFunctionFound;
-    std::vector<Function> functionDefinitions;
-    std::vector<std::string> invokedFunctions;
-  } m_programChecks;
-
-  struct FunctionSemanticChecks {
-    enum class ReturnType { NOT_FOUND, NONE, INT, FLOAT, STRING, BOOLEAN };
-
-    void reset() {
-      returnFound = false;
-      returnType = ReturnType::NOT_FOUND;
-    }
-
-    bool returnFound;
-    ReturnType returnType{ReturnType::NOT_FOUND};
-  } m_functionChecks;
 
  private:
   SymbolTable m_table;
