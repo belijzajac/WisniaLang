@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <fmt/format.h>
 // Wisnia
+#include "AST.hpp"
 #include "Exceptions.hpp"
 
 namespace Wisnia {
@@ -18,11 +19,11 @@ class VarExpr;
 
 class SymbolTable {
  public:
-  SymbolTable() {
-    m_table = std::make_unique<ScopedSymbolTable>();
-  };
+  SymbolTable() : m_table(std::make_unique<ScopedSymbolTable>()) {};
 
-  void addSymbol(AST::VarExpr *var);
+  void addSymbol(AST::VarExpr *var) {
+    m_table->addSymbol(var->getToken()->getValue<std::string>(), var);
+  }
 
   const AST::VarExpr *findSymbol(const std::string &name) const {
     return m_table->findSymbol(name);

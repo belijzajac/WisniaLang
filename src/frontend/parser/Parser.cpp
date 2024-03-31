@@ -671,13 +671,10 @@ std::unique_ptr<BaseIf> Parser::parseIfBlock() {
   ifStmtPtr->addCondition(ifCond());
   ifStmtPtr->addBody(parseStmtBlock());
 
-  // a vector of else statement blocks
-  std::vector<std::unique_ptr<BaseIf>> elseBlocks;
-
   // Parse else blocks
   // [<MULTIPLE_ELSE_IF_BLOCK>]
   if (hasAnyOf(TType::KW_ELIF, TType::KW_ELSE)) {
-    elseBlocks = parseMultipleElseBlock();
+    auto elseBlocks = parseMultipleElseBlock();
     ifStmtPtr->addElseBlocks(std::move(elseBlocks));
   }
 

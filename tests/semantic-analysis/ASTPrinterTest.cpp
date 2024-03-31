@@ -4,7 +4,6 @@
 // Wisnia
 #include "AST.hpp"
 #include "Lexer.hpp"
-#include "Parser.hpp"
 #include "SemanticAnalysis.hpp"
 #include "SemanticTestFixture.hpp"
 

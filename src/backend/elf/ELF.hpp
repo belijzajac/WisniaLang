@@ -17,7 +17,7 @@ constexpr uint64_t kTextOffset{0x40 + (2 * 0x38)};
 
 class ELF {
  public:
-  ELF(const ByteArray &textSection, const ByteArray &dataSection);
+  ELF(ByteArray textSection, ByteArray dataSection);
   void compile();
 
  private:

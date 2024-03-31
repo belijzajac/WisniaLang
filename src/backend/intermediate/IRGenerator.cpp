@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <ranges>
+#include <algorithm>
 // Wisnia
 #include "AST.hpp"
 #include "IRGenerator.hpp"
@@ -256,13 +257,13 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
   constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
 
   // suboptimal approach to avoid overriding registers inside the called function
-  for (auto reg : registers) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
+  std::transform(registers.begin(), registers.end(), std::back_inserter(m_instructions), [&](auto reg) {
+    return std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
       std::make_shared<Basic::Token>(TType::REGISTER, reg)
-    ));
-  }
+    );
+  });
 
   for (const auto &arg : node.getArgs()) {
     arg->accept(*this);
@@ -291,13 +292,13 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
   ));
 
   // following the function call, restore old register values
-  for (auto reg : std::ranges::reverse_view(registers)) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
+  std::transform(std::ranges::rbegin(registers), std::ranges::rend(registers), std::back_inserter(m_instructions), [](auto reg) {
+    return std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
       std::make_shared<Basic::Token>(TType::REGISTER, reg)
-    ));
-  }
+    );
+  });
 }
 
 void IRGenerator::visit(AST::ClassInitExpr &node) {
@@ -597,13 +598,13 @@ void IRGenerator::visit(AST::FnDef &node) {
     ));
   }
 
-  for (const auto &param : std::ranges::reverse_view(node.getParams())) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
+  std::transform(node.getParams().rbegin(), node.getParams().rend(), std::back_inserter(m_instructions), [](const auto &param) {
+    return std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
       param->getToken()
-    ));
-  }
+    );
+  });
 
   node.getBody()->accept(*this);
 

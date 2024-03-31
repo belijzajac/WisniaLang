@@ -296,7 +296,7 @@ class UnaryExpr : public BinaryExpr {
   }
 
   void print(std::ostream &output, size_t level) const override {
-    Root::print(output, level++);
+    BinaryExpr::print(output, level++);
     lhs()->print(output, level); // holds only the lhs value, that is m_children[0]
   }
 };

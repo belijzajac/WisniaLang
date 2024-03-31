@@ -3,7 +3,6 @@
 
 // Wisnia
 #include "Lexer.hpp"
-#include "Parser.hpp"
 #include "AST.hpp"
 #include "NodeCollector.hpp"
 #include "SemanticTestFixture.hpp"

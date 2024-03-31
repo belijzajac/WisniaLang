@@ -43,7 +43,7 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
         emitMoveMemory(instruction);
         break;
       case Operation::SYSCALL:
-        emitSysCall(instruction);
+        emitSysCall();
         break;
       case Operation::PUSH:
         emitPush(instruction);
@@ -251,7 +251,7 @@ void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instru
   throw CodeGenerationError{"Unknown mov memory instruction"};
 }
 
-void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitSysCall() {
   m_textSection.putBytes(std::byte{0x0f}, std::byte{0x05});
 }
 

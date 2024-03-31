@@ -6,12 +6,13 @@
 
 #include <exception>
 #include <string>
+#include <utility>
 
 namespace Wisnia {
 
 class WisniaError : public std::exception {
  public:
-  explicit WisniaError(const std::string &msg) : m_msg{msg} {}
+  explicit WisniaError(std::string msg) : m_msg{std::move(msg)} {}
   const char *what() const noexcept override { return m_msg.c_str(); }
  private:
   std::string m_msg;

@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include <cstddef>
-#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <utility>
 // Wisnia
 #include "ELF.hpp"
 
 using namespace Wisnia;
 
-ELF::ELF(const ByteArray &textSection, const ByteArray &dataSection)
-    : m_textSection{textSection}, m_dataSection{dataSection} {}
+ELF::ELF(ByteArray textSection, ByteArray dataSection)
+    : m_textSection{std::move(textSection)}, m_dataSection{std::move(dataSection)} {}
 
 ByteArray ELF::assembleELF() {
   ByteArray elf{};

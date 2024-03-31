@@ -5,6 +5,7 @@
 #define WISNIALANG_INSTRUCTION_HPP
 
 #include <memory>
+#include <utility>
 // Wisnia
 #include "Operation.hpp"
 
@@ -22,10 +23,10 @@ class Instruction {
  public:
   explicit Instruction(
     Operation op,
-    const TokenValue &target = nullptr,
-    const TokenValue &arg1   = nullptr,
-    const TokenValue &arg2   = nullptr
-  ) : m_operation{op}, m_target{target}, m_arg1{arg1}, m_arg2{arg2} {}
+    TokenValue target = nullptr,
+    TokenValue arg1   = nullptr,
+    TokenValue arg2   = nullptr
+  ) : m_operation{op}, m_target{std::move(target)}, m_arg1{std::move(arg1)}, m_arg2{std::move(arg2)} {}
 
   const Operation &getOperation() const { return m_operation; }
   TokenValue &getTarget() { return m_target; }

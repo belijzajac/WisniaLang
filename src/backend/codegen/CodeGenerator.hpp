@@ -34,7 +34,7 @@ class CodeGenerator {
   void emitLea(const InstructionValue &instruction);
   void emitMove(const InstructionValue &instruction, bool label = false);
   void emitMoveMemory(const InstructionValue &instruction);
-  void emitSysCall(const InstructionValue &instruction);
+  void emitSysCall();
   void emitPush(const InstructionValue &instruction);
   void emitPop(const InstructionValue &instruction);
   void emitCall(const InstructionValue &instruction);

@@ -244,12 +244,12 @@ void SemanticAnalysis::visit(AST::FnDef &node) {
   }
 
   std::vector<Parameter> parameters;
-  for (const auto &param : node.getParams()) {
-    parameters.push_back({
-      param->getToken()->getValue<std::string>(),
+  std::transform(node.getParams().begin(), node.getParams().end(), std::back_inserter(parameters), [](const auto &param) {
+    return Parameter {
+      param->getToken()->template getValue<std::string>(),
       param->getToken()->getType()
-    });
-  }
+    };
+  });
 
   programChecks.functionDefinitions.emplace_back(Function{
     .name = functionName,

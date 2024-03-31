@@ -5,7 +5,6 @@
 #include "AST.hpp"
 #include "Lexer.hpp"
 #include "NodeCollector.hpp"
-#include "Parser.hpp"
 #include "SemanticAnalysis.hpp"
 #include "SemanticTestFixture.hpp"
 
