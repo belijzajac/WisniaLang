@@ -244,19 +244,12 @@
 
 <UNDERSCORE>       ::= "_"
 <STMT_END>         ::= ";"
-<L_CURLY_BRACKET>  ::= "{"
-<R_CURLY_BRACKET>  ::= "}"
-<L_BRACKET>        ::= "("
-<R_BRACKET>        ::= ")"
-<L_SQUARE_BRACKET> ::= "["
-<R_SQUARE_BRACKET> ::= "]"
 <OR_SYMB>          ::= "||"
 <AND_SYMB>         ::= "&&"
 <ADD_OP>           ::= "+" | "-"
 <EQUALITY_SYMB>    ::= "!=" | "=="
 <COMPARISON_SYMB>  ::= ">" | "<" | ">=" | "<="
 <UNARY_SYM>        ::= "!" | "--" | "++"
-<ASSIGNMENT_OP>    ::= "="
 <BREAK_SYMB>       ::= "break"
 <CONTINUE_SYMB>    ::= "continue"
 <RETURN_SYMB>      ::= "return"
@@ -281,6 +274,5 @@
 <ESCAPED_SYM>      ::= "b" | "t" | "n" | "f" | "r" | "\"" | "'" | "\\"
 
 <SLASH>            ::= "\\"
-<NEWLINE>          ::= "\n"
 
 //----------------------------------------------------------------------
