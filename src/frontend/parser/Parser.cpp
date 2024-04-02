@@ -43,11 +43,11 @@ std::unique_ptr<Root> Parser::parse() {
     switch (peek()->getType()) {
       // <FN_DECL>
       case TType::KW_FN:
-        root->addGlobalFnDef(parseFnDef());
+        root->addGlobalFunction(parseFnDef());
         break;
         // <CLASS_DECL>
       case TType::KW_CLASS:
-        root->addGlobalClassDef(parseClassDef());
+        root->addGlobalClass(parseClassDef());
         break;
       default:
         throw ParserError{"Not a global definition of either a class, or a function"};
@@ -68,21 +68,21 @@ std::unique_ptr<BaseExpr> Parser::parseVar() {
 //
 // <FN_PREAMBLE>       ::= "fn" <IDENT> <PARAMS>
 std::unique_ptr<BaseDef> Parser::parseFnDef() {
-  expect(TType::KW_FN);                 // expect "fn"
+  expect(TType::KW_FN);                     // expect "fn"
   auto var = parseVar();
   auto fnDef = std::make_unique<FnDef>(var->getToken());
-  fnDef->addVar(std::move(var));
-  fnDef->addParams(parseParamsList());  // parse <PARAMS>
+  fnDef->addVariable(std::move(var));
+  fnDef->addParameters(parseParamsList());  // parse <PARAMS>
 
   if (has(TType::OP_FN_ARROW)) {
-    consume();                            // eat "->"
-    fnDef->addType(parsePrimitiveType()); // <TYPE>
+    consume();                              // eat "->"
+    fnDef->addType(parsePrimitiveType());   // <TYPE>
   } else {
     auto voidFunctionToken = std::make_shared<Token>(TType::KW_VOID, "void");
     fnDef->addType(std::make_unique<PrimitiveType>(std::move(voidFunctionToken)));
   }
 
-  fnDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
+  fnDef->addBody(parseStmtBlock());         // <STMT_BLOCK>
   return fnDef;
 }
 
@@ -94,7 +94,7 @@ std::unique_ptr<Param> Parser::parseParam() {
   // expect ":"
   expect(TType::OP_COL);
   // parse <TYPE>
-  param->addVar(std::move(var));
+  param->addVariable(std::move(var));
   param->addType(parsePrimitiveType());
   return param;
 }
@@ -130,7 +130,7 @@ std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
 std::unique_ptr<BaseStmt> Parser::parseStmtBlock() {
   expect(TType::OP_BRACE_O);  // expect "{"
   auto stmtBlock = std::make_unique<StmtBlock>();
-  while (hasNext() && !has(TType::OP_BRACE_C)) stmtBlock->addStmt(parseStmt());
+  while (hasNext() && !has(TType::OP_BRACE_C)) stmtBlock->addStatement(parseStmt());
   expect(TType::OP_BRACE_C);  // expect "}"
   return stmtBlock;
 }
@@ -382,8 +382,8 @@ std::unique_ptr<BaseExpr> Parser::parseVarExp() {
 std::unique_ptr<BaseExpr> Parser::parseFnCall() {
   auto var = parseVar();
   auto fnCallPtr = std::make_unique<FnCallExpr>(var->getToken());
-  fnCallPtr->addVar(std::move(var));
-  fnCallPtr->addArgs(parseArgsList());
+  fnCallPtr->addVariable(std::move(var));
+  fnCallPtr->addArguments(parseArgsList());
   return fnCallPtr;
 }
 
@@ -405,9 +405,9 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
 
   auto lhsVar = methodVarExpr();
   auto methodCallPtr = std::make_unique<FnCallExpr>(lhsVar->getToken());
-  methodCallPtr->addVar(std::move(lhsVar));
+  methodCallPtr->addVariable(std::move(lhsVar));
   methodCallPtr->addClassName(className);
-  methodCallPtr->addArgs(parseArgsList());
+  methodCallPtr->addArguments(parseArgsList());
   return methodCallPtr;
 }
 
@@ -442,8 +442,8 @@ std::unique_ptr<BaseExpr> Parser::parseClassInit() {
   expect(TType::KW_CLASS_INIT);  // expect "new"
   auto var = parseVar();
   auto classInitPtr = std::make_unique<ClassInitExpr>(var->getToken());
-  classInitPtr->addVar(std::move(var));
-  classInitPtr->addArgs(parseArgsList());
+  classInitPtr->addVariable(std::move(var));
+  classInitPtr->addArguments(parseArgsList());
   return classInitPtr;
 }
 
@@ -489,7 +489,7 @@ std::unique_ptr<BaseStmt> Parser::parseLoopBrkStmt() {
 std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
   auto varType = parsePrimitiveType();
-  varDeclPtr->addVar(parseVar());
+  varDeclPtr->addVariable(parseVar());
   std::unique_ptr<BaseExpr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -499,36 +499,36 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   }
   // <TYPE> <VAR> "{" <EXPRESSION> "}"
   else if (has(TType::OP_BRACE_O)) {
-    consume();  // eat "{"
+    consume(); // eat "{"
     varValue = parseExpr();
-    consume();  // eat "}"
+    consume(); // eat "}"
   }
   // <TYPE> <VAR>
   else {
     // add default values
     switch (varType->getType()) {
       case TType::KW_INT: {
-        auto intToken = std::make_shared<Token>(TType::LIT_INT, 0, varDeclPtr->getVar()->getToken()->getPosition());
+        auto intToken = std::make_shared<Token>(TType::LIT_INT, 0, varDeclPtr->getVariable()->getToken()->getPosition());
         varValue = std::make_unique<IntExpr>(std::move(intToken));
         break;
       }
       case TType::KW_FLOAT: {
-        auto floatToken = std::make_shared<Token>(TType::LIT_FLT, 0.0f, varDeclPtr->getVar()->getToken()->getPosition());
+        auto floatToken = std::make_shared<Token>(TType::LIT_FLT, 0.0f, varDeclPtr->getVariable()->getToken()->getPosition());
         varValue = std::make_unique<FloatExpr>(std::move(floatToken));
         break;
       }
       case TType::KW_STRING: {
-        auto stringToken = std::make_shared<Token>(TType::LIT_STR, "", varDeclPtr->getVar()->getToken()->getPosition());
+        auto stringToken = std::make_shared<Token>(TType::LIT_STR, "", varDeclPtr->getVariable()->getToken()->getPosition());
         varValue = std::make_unique<StringExpr>(std::move(stringToken));
         break;
       }
       case TType::KW_BOOL: {
-        auto boolToken = std::make_shared<Token>(TType::LIT_BOOL, false, varDeclPtr->getVar()->getToken()->getPosition());
+        auto boolToken = std::make_shared<Token>(TType::LIT_BOOL, false, varDeclPtr->getVariable()->getToken()->getPosition());
         varValue = std::make_unique<BoolExpr>(std::move(boolToken));
         break;
       }
       default:
-        throw ParserError{"Failed to assign a default value for " + varDeclPtr->getVar()->getToken()->getASTValueStr()};
+        throw ParserError{"Failed to assign a default value for " + varDeclPtr->getVariable()->getToken()->getASTValueStr()};
     }
   }
 
@@ -548,7 +548,7 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
 // <ASSIGNMENT_STMT> ::= <VAR> {"=" | "+=" | "-=" | "*=" | "/="} <EXPRESSION>
 std::unique_ptr<BaseStmt> Parser::parseVarAssignStmt(bool expectSemicolon) {
   auto varAssignPtr = std::make_unique<VarAssignStmt>();
-  varAssignPtr->addVar(parseVar());
+  varAssignPtr->addVariable(parseVar());
   expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=
   varAssignPtr->addValue(parseExpr());
   if (expectSemicolon) expect(TType::OP_SEMICOLON);
@@ -558,7 +558,7 @@ std::unique_ptr<BaseStmt> Parser::parseVarAssignStmt(bool expectSemicolon) {
 // <EXPRESSION> <STMT_END>
 std::unique_ptr<BaseStmt> Parser::parseExprStmt() {
   auto exprStmtPtr = std::make_unique<ExprStmt>();
-  exprStmtPtr->addExpr(parseExpr());
+  exprStmtPtr->addExpression(parseExpr());
   expect(TType::OP_SEMICOLON);
   return exprStmtPtr;
 }
@@ -576,7 +576,7 @@ std::unique_ptr<BaseStmt> Parser::parseReadIOStmt() {
   expect(TType::OP_PAREN_O);        // expect "("
   // <INPUT_SEQ>
   while (hasNext()) {               // a, b, c
-    readIO->addVar(parseVar());
+    readIO->addVariable(parseVar());
     if (has(TType::OP_COMMA))
       consume();                    // eat ","
     else
@@ -595,7 +595,7 @@ std::unique_ptr<BaseStmt> Parser::parseWriteIOStmt() {
   expect(TType::OP_PAREN_O);        // expect "("
   // <OUTPUT_SEQ>
   while (hasNext()) {               // a, b, c
-    writeIO->addExpr(parseExpr());
+    writeIO->addExpression(parseExpr());
     if (has(TType::OP_COMMA))
       consume();                    // eat ","
     else
@@ -623,7 +623,7 @@ std::unique_ptr<BaseLoop> Parser::parseLoops() {
 std::unique_ptr<BaseLoop> Parser::parseWhileLoop() {
   auto whileLoopPtr = std::make_unique<WhileLoop>(getNextToken());
   expect(TType::OP_PAREN_O);                // expect "("
-  whileLoopPtr->addCond(parseExpr());       // <EXPRESSION>
+  whileLoopPtr->addCondition(parseExpr());  // <EXPRESSION>
   expect(TType::OP_PAREN_C);                // expect ")"
   whileLoopPtr->addBody(parseStmtBlock());  // { ... }
   return whileLoopPtr;
@@ -675,7 +675,7 @@ std::unique_ptr<BaseIf> Parser::parseIfBlock() {
   // [<MULTIPLE_ELSE_IF_BLOCK>]
   if (hasAnyOf(TType::KW_ELIF, TType::KW_ELSE)) {
     auto elseBlocks = parseMultipleElseBlock();
-    ifStmtPtr->addElseBlocks(std::move(elseBlocks));
+    ifStmtPtr->addElseStatements(std::move(elseBlocks));
   }
 
   return ifStmtPtr;
@@ -735,7 +735,7 @@ std::unique_ptr<BaseDef> Parser::parseClassDef() {
       var->getToken()->getPosition()
   );
 
-  classDef->addVar(std::move(var));
+  classDef->addVariable(std::move(var));
   classDef->addType(std::make_unique<PrimitiveType>(std::move(classTypeTok)));
 
   // Parse <CLASS_BODY>
@@ -748,11 +748,11 @@ std::unique_ptr<BaseDef> Parser::parseClassDef() {
       switch (peek()->getType()) {
         // <CONSTRUCTOR_DECL>
         case TType::KW_CLASS_DEF:
-          classDef->addCtor(parseClassCtorDef());
+          classDef->addConstructor(parseClassCtorDef());
           break;
         // <DESTRUCTOR_DECL>
         case TType::KW_CLASS_REM:
-          classDef->addDtor(parseClassDtorDef());
+          classDef->addDestructor(parseClassDtorDef());
           break;
         // <FN_DECL>
         case TType::KW_FN:
@@ -772,12 +772,12 @@ std::unique_ptr<BaseDef> Parser::parseClassDef() {
 
 // <CONSTRUCTOR_DECL> ::= <CONSTRUCTOR_DEF> <IDENT> <PARAMS> <STMT_BLOCK>
 std::unique_ptr<BaseDef> Parser::parseClassCtorDef() {
-  expect(TType::KW_CLASS_DEF);            // expect "def"
+  expect(TType::KW_CLASS_DEF);               // expect "def"
   auto var = parseVar();
   auto ctorDef = std::make_unique<CtorDef>(var->getToken());
-  ctorDef->addVar(std::move(var));
-  ctorDef->addParams(parseParamsList());  // parse <PARAMS>
-  ctorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
+  ctorDef->addVariable(std::move(var));
+  ctorDef->addParameters(parseParamsList()); // parse <PARAMS>
+  ctorDef->addBody(parseStmtBlock());        // <STMT_BLOCK>
   return ctorDef;
 }
 
@@ -786,7 +786,7 @@ std::unique_ptr<BaseDef> Parser::parseClassDtorDef() {
   expect(TType::KW_CLASS_REM);            // expect "rem"
   auto var = parseVar();
   auto dtorDef = std::make_unique<DtorDef>(var->getToken());
-  dtorDef->addVar(std::move(var));
+  dtorDef->addVariable(std::move(var));
   dtorDef->addBody(parseStmtBlock());     // <STMT_BLOCK>
   return dtorDef;
 }
@@ -795,7 +795,7 @@ std::unique_ptr<BaseDef> Parser::parseClassDtorDef() {
 std::unique_ptr<Field> Parser::parseClassField() {
   auto varDeclPtr = std::make_unique<Field>();
   auto varType = parsePrimitiveType();
-  varDeclPtr->addVar(parseVar());
+  varDeclPtr->addVariable(parseVar());
   varDeclPtr->addType(std::move(varType));
   std::unique_ptr<BaseExpr> varValue;
 

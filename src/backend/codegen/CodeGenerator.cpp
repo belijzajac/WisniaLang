@@ -22,7 +22,7 @@ struct RegisterContext {
 
 constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::register_t destination) {
   RegisterContext assigned{};
-  for (auto i = 0; i < RegisterAllocator::kHalfRegisters * 2; i++) {
+  for (auto i = 0; i < RegisterAllocator::getFullRegisters(); i++) {
     if (RegisterAllocator::getAllRegisters[i] == source) assigned.source = i;
     if (RegisterAllocator::getAllRegisters[i] == destination) assigned.destination = i;
     if (assigned.source > -1 && assigned.destination > -1) break;
@@ -209,16 +209,16 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x89});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x89});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x89});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x89});
     } else {
@@ -226,8 +226,8 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     }
 
     const auto result =
-        0xc0 + (RegisterAllocator::kHalfRegisters * (src % RegisterAllocator::kHalfRegisters)) +
-        (dst % RegisterAllocator::kHalfRegisters);
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -485,16 +485,16 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x01});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x01});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x01});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x01});
     } else {
@@ -502,8 +502,8 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     }
 
     const auto result =
-        0xc0 + (RegisterAllocator::kHalfRegisters * (src % RegisterAllocator::kHalfRegisters)) +
-        (dst % RegisterAllocator::kHalfRegisters);
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -541,16 +541,16 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x29});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x29});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x29});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x29});
     } else {
@@ -558,8 +558,8 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     }
 
     const auto result =
-        0xc0 + (RegisterAllocator::kHalfRegisters * (src % RegisterAllocator::kHalfRegisters)) +
-        (dst % RegisterAllocator::kHalfRegisters);
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -589,16 +589,16 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x0f}, std::byte{0xaf});
     } else {
@@ -606,8 +606,8 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     }
 
     const auto result =
-        0xc0 + (src % RegisterAllocator::kHalfRegisters) +
-        (RegisterAllocator::kHalfRegisters * (dst % RegisterAllocator::kHalfRegisters));
+        0xc0 + (src % RegisterAllocator::getHalfRegisters()) +
+        (RegisterAllocator::getHalfRegisters() * (dst % RegisterAllocator::getHalfRegisters()));
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;

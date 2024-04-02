@@ -5,6 +5,7 @@
 #define WISNIALANG_AST_STATEMENTS_HPP
 
 #include <string>
+#include <utility>
 // Wisnia
 #include "Root.hpp"
 #include "Types.hpp"
@@ -27,14 +28,16 @@ class BaseStmt : public Root {
   }
 
  protected:
-  explicit BaseStmt(const std::shared_ptr<Basic::Token> &tok)
-      : Root(tok) {}
+  explicit BaseStmt(TokenPtr token)
+      : Root(std::move(token)) {}
 };
 
 class StmtBlock : public BaseStmt {
+  using StatementPtr = std::unique_ptr<BaseStmt>;
+
  public:
-  explicit StmtBlock(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit StmtBlock(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   StmtBlock() = default;
 
@@ -53,22 +56,24 @@ class StmtBlock : public BaseStmt {
     }
   }
 
-  void addStmt(std::unique_ptr<BaseStmt> stmt) {
-    m_statements.push_back(std::move(stmt));
+  void addStatement(StatementPtr statement) {
+    m_statements.push_back(std::move(statement));
   }
 
-  const std::vector<std::unique_ptr<BaseStmt>> &getStatements() const {
+  const std::vector<StatementPtr> &getStatements() const {
     return m_statements;
   }
 
  private:
-  std::vector<std::unique_ptr<BaseStmt>> m_statements;
+  std::vector<StatementPtr> m_statements;
 };
 
 class ReturnStmt : public BaseStmt {
+  using ReturnValuePtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit ReturnStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit ReturnStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   ReturnStmt() = default;
 
@@ -85,22 +90,22 @@ class ReturnStmt : public BaseStmt {
     m_returnValue->print(output, level);
   }
 
-  void addReturnValue(std::unique_ptr<BaseExpr> returnVal) {
-    m_returnValue = std::move(returnVal);
+  void addReturnValue(ReturnValuePtr returnValue) {
+    m_returnValue = std::move(returnValue);
   }
 
-  const std::unique_ptr<BaseExpr> &getReturnValue() const {
+  const ReturnValuePtr &getReturnValue() const {
     return m_returnValue;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_returnValue;
+  ReturnValuePtr m_returnValue;
 };
 
 class BreakStmt : public BaseStmt {
  public:
-  explicit BreakStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit BreakStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -113,8 +118,8 @@ class BreakStmt : public BaseStmt {
 
 class ContinueStmt : public BaseStmt {
  public:
-  explicit ContinueStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit ContinueStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -126,9 +131,13 @@ class ContinueStmt : public BaseStmt {
 };
 
 class VarDeclStmt : public BaseStmt {
+  using TypePtr     = std::unique_ptr<BaseType>;
+  using VariablePtr = std::unique_ptr<BaseExpr>;
+  using ValuePtr    = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit VarDeclStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit VarDeclStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   VarDeclStmt() = default;
 
@@ -142,41 +151,45 @@ class VarDeclStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    m_var->print(output, level);
+    m_variable->print(output, level);
     m_value->print(output, level);
   }
 
-  void addType(std::unique_ptr<BaseType> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
+  void addType(TypePtr type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
       varPtr->addType(std::move(type));
     }
   }
 
-  void addVar(std::unique_ptr<BaseExpr> var) {
-    m_var = std::move(var);
+  void addVariable(VariablePtr variable) {
+    m_variable = std::move(variable);
   }
 
-  void addValue(std::unique_ptr<BaseExpr> varValue) {
+  void addValue(ValuePtr varValue) {
     m_value = std::move(varValue);
   }
 
-  const std::unique_ptr<BaseExpr> &getVar() const {
-    return m_var;
+  const VariablePtr &getVariable() const {
+    return m_variable;
   }
 
-  const std::unique_ptr<BaseExpr> &getValue() const {
+  const ValuePtr &getValue() const {
     return m_value;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_var;
-  std::unique_ptr<BaseExpr> m_value;
+  VariablePtr m_variable;
+  ValuePtr m_value;
 };
 
 class VarAssignStmt : public BaseStmt {
+  using TypePtr     = std::unique_ptr<BaseType>;
+  using VariablePtr = std::unique_ptr<BaseExpr>;
+  using ValuePtr    = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit VarAssignStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit VarAssignStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   VarAssignStmt() = default;
 
@@ -190,41 +203,43 @@ class VarAssignStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    m_var->print(output, level);
-    m_val->print(output, level);
+    m_variable->print(output, level);
+    m_value->print(output, level);
   }
 
-  void addType(std::unique_ptr<BaseType> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
+  void addType(TypePtr type) const {
+    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
       varPtr->addType(std::move(type));
     }
   }
 
-  void addVar(std::unique_ptr<BaseExpr> var) {
-    m_var = std::move(var);
+  void addVariable(VariablePtr variable) {
+    m_variable = std::move(variable);
   }
 
-  void addValue(std::unique_ptr<BaseExpr> varValue) {
-    m_val = std::move(varValue);
+  void addValue(ValuePtr value) {
+    m_value = std::move(value);
   }
 
-  const std::unique_ptr<BaseExpr> &getVar() const {
-    return m_var;
+  const VariablePtr &getVariable() const {
+    return m_variable;
   }
 
-  const std::unique_ptr<BaseExpr> &getValue() const {
-    return m_val;
+  const ValuePtr &getValue() const {
+    return m_value;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_var;
-  std::unique_ptr<BaseExpr> m_val;
+  VariablePtr m_variable;
+  ValuePtr m_value;
 };
 
 class ExprStmt : public BaseStmt {
+  using ExpressionPtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit ExprStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit ExprStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   ExprStmt() = default;
 
@@ -238,25 +253,27 @@ class ExprStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    m_expr->print(output, level);
+    m_expression->print(output, level);
   }
 
-  void addExpr(std::unique_ptr<BaseExpr> expr) {
-    m_expr = std::move(expr);
+  void addExpression(ExpressionPtr expression) {
+    m_expression = std::move(expression);
   }
 
-  const std::unique_ptr<BaseExpr> &getExpr() const {
-    return m_expr;
+  const ExpressionPtr &getExpression() const {
+    return m_expression;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_expr;
+  ExpressionPtr m_expression;
 };
 
 class ReadStmt : public BaseStmt {
+  using VariablePtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit ReadStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit ReadStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   ReadStmt() = default;
 
@@ -270,27 +287,29 @@ class ReadStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    for (const auto &var : m_vars) {
+    for (const auto &var : m_variables) {
       var->print(output, level);
     }
   }
 
-  void addVar(std::unique_ptr<BaseExpr> var) {
-    m_vars.push_back(std::move(var));
+  void addVariable(VariablePtr variable) {
+    m_variables.push_back(std::move(variable));
   }
 
-  const std::vector<std::unique_ptr<BaseExpr>> &getVars() const {
-    return m_vars;
+  const std::vector<VariablePtr> &getVariables() const {
+    return m_variables;
   }
 
  private:
-  std::vector<std::unique_ptr<BaseExpr>> m_vars;
+  std::vector<VariablePtr> m_variables;
 };
 
 class WriteStmt : public BaseStmt {
+  using ExpressionPtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit WriteStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit WriteStmt(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
   WriteStmt() = default;
 
@@ -304,21 +323,21 @@ class WriteStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    for (const auto &expr : m_exprs) {
+    for (const auto &expr : m_expressions) {
       expr->print(output, level);
     }
   }
 
-  void addExpr(std::unique_ptr<BaseExpr> expr) {
-    m_exprs.push_back(std::move(expr));
+  void addExpression(ExpressionPtr expression) {
+    m_expressions.push_back(std::move(expression));
   }
 
-  const std::vector<std::unique_ptr<BaseExpr>> &getExprs() const {
-    return m_exprs;
+  const std::vector<ExpressionPtr> &getExpressions() const {
+    return m_expressions;
   }
 
  private:
-  std::vector<std::unique_ptr<BaseExpr>> m_exprs;
+  std::vector<ExpressionPtr> m_expressions;
 };
 
 }  // namespace AST

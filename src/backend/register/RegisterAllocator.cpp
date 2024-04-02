@@ -12,8 +12,10 @@
 using namespace Wisnia;
 using namespace Basic;
 
+using TokenPtr = std::shared_ptr<Basic::Token>;
+
 template <typename T>
-bool checkVariable(const std::shared_ptr<Basic::Token> &token, const T &variable) {
+bool checkVariable(const TokenPtr &token, const T &variable) {
   using VariableType = std::decay_t<decltype(variable)>;
   if (!token) return false;
   return token->isIdentifierType() && token->getValue<VariableType>() == variable;

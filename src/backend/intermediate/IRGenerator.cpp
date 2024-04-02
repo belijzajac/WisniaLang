@@ -111,9 +111,8 @@ void IRGenerator::createBinaryExpression(Basic::TType expressionType) {
   ));
 }
 
-std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(
-    Root &node, bool createVariableForLiteral) {
-  std::shared_ptr<Basic::Token> token;
+std::tuple<IRGenerator::TokenPtr, Basic::TType> IRGenerator::getExpression(Root &node, bool createVariableForLiteral) {
+  IRGenerator::TokenPtr token;
   TType type;
 
   if (dynamic_cast<AST::BinaryExpr *>(&node)) {
@@ -253,7 +252,7 @@ void IRGenerator::visit(AST::UnaryExpr &node) {
 }
 
 void IRGenerator::visit(AST::FnCallExpr &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
 
   // suboptimal approach to avoid overriding registers inside the called function
@@ -265,7 +264,7 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
     );
   });
 
-  for (const auto &arg : node.getArgs()) {
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
     const auto &[argToken, _] = getExpression(*arg);
     auto varToken = std::make_shared<Basic::Token>(
@@ -285,7 +284,7 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
     ));
   }
 
-  const auto &functionName = node.getFnName();
+  const auto &functionName = node.getFunctionName();
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::CALL,
     std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getValue<std::string>())
@@ -302,8 +301,8 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
 }
 
 void IRGenerator::visit(AST::ClassInitExpr &node) {
-  node.getVar()->accept(*this);
-  for (const auto &arg : node.getArgs()) {
+  node.getVariable()->accept(*this);
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
   throw NotImplementedError{"Class initialization expressions are not supported"};
@@ -354,29 +353,29 @@ void IRGenerator::visit(AST::VarDeclStmt &node) {
   const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    node.getVar()->getToken(), // int a
-    token                      // _tx
+    node.getVariable()->getToken(), // int a
+    token                           // _tx
   ));
 }
 
 void IRGenerator::visit(AST::VarAssignStmt &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 
   const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    node.getVar()->getToken(),
+    node.getVariable()->getToken(),
     token
   ));
 }
 
 void IRGenerator::visit(AST::ExprStmt &node) {
-  node.getExpr()->accept(*this);
+  node.getExpression()->accept(*this);
 }
 
 void IRGenerator::visit(AST::ReadStmt &node) {
-  for (const auto &var : node.getVars()) {
+  for (const auto &var : node.getVariables()) {
     var->accept(*this);
   }
   throw NotImplementedError{"Read statements are not supported"};
@@ -390,11 +389,11 @@ void IRGenerator::visit(AST::ReadStmt &node) {
   syscall            ;; make the system call
 */
 void IRGenerator::visit(AST::WriteStmt &node) {
-  for (const auto &expr : node.getExprs()) {
+  for (const auto &expr : node.getExpressions()) {
     expr->accept(*this);
   }
 
-  for (const auto &expr : node.getExprs()) {
+  for (const auto &expr : node.getExpressions()) {
     const auto &[token, type] = getExpression(*expr, false);
 
     if (token->isIdentifierType()) {
@@ -566,15 +565,15 @@ void IRGenerator::visit(AST::WriteStmt &node) {
 }
 
 void IRGenerator::visit(AST::Param &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   throw NotImplementedError{"Function parameters are not supported"};
 }
 
 void IRGenerator::visit(AST::FnDef &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   const auto &functionName = popNode();
   const auto functionNameStr = functionName.getToken()->getValue<std::string>();
-  std::shared_ptr<Basic::Token> returnAddressToken;
+  IRGenerator::TokenPtr returnAddressToken;
 
   if (functionNameStr != "main") {
     // the main function doesn't require a label indicating where it begins
@@ -598,7 +597,7 @@ void IRGenerator::visit(AST::FnDef &node) {
     ));
   }
 
-  std::transform(node.getParams().rbegin(), node.getParams().rend(), std::back_inserter(m_instructions), [](const auto &param) {
+  std::transform(node.getParameters().rbegin(), node.getParameters().rend(), std::back_inserter(m_instructions), [](const auto &param) {
     return std::make_unique<Instruction>(
       Operation::POP,
       nullptr,

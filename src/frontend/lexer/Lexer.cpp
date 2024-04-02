@@ -21,8 +21,7 @@ using namespace Basic;
 
 constexpr std::array<char, 9> kSimpleOperands{'.', '*', '(', ')', '{', '}', ',', ':', ';'};
 
-// Finish tokenizing a token
-std::shared_ptr<Token> Lexer::finishTok(const TType &type, bool backtrack) {
+Lexer::TokenPtr Lexer::finishTok(const TType &type, bool backtrack) {
   // We've over-gone by 1 character further by returning the token earlier, so step back
   if (backtrack) --m_tokenState.m_iterator;
 
@@ -30,7 +29,6 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type, bool backtrack) {
   size_t lineNo = (type == TType::LIT_STR) ? m_tokenState.m_strStart : m_tokenState.m_lineNo;
   auto pif = std::make_unique<Position>(m_tokenState.m_fileName, lineNo);
 
-  // Convert token's buffer to appropriate type
   auto TokValue = [&]() -> TokenValue {
     switch (type) {
       // Integer
@@ -59,17 +57,13 @@ std::shared_ptr<Token> Lexer::finishTok(const TType &type, bool backtrack) {
   return token;
 }
 
-// Finish tokenize identifier
-std::shared_ptr<Token> Lexer::finishIdent() {
-  // It's either a known keyword
+Lexer::TokenPtr Lexer::finishIdent() {
   if (auto search = Str2TokenKw.find(m_tokenState.m_buff); search != Str2TokenKw.end())
     return finishTok(search->second, true);
-  // Or simply an identifier
   return finishTok(TType::IDENT, true);
 }
 
-// Tokenize the following character
-std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
+std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
   switch (m_tokenState.m_state) {
     /* ~~~ CASE: START ~~~ */
     case State::START:
@@ -324,7 +318,6 @@ std::optional<std::shared_ptr<Token>> Lexer::tokNext(const char ch) {
 }
 
 void Lexer::tokenize(std::string_view filename) {
-  // Opens the `input` file and copies its content into `data`
   std::ifstream sourceFile{filename.data()};
   m_tokenState.m_data = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
   m_tokenState.m_fileName = filename;

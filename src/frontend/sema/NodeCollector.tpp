@@ -107,8 +107,8 @@ void NodeCollector<T>::visit(AST::FnCallExpr &node) {
   if constexpr (std::is_same_v<T, AST::FnCallExpr>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
-  for (const auto &arg : node.getArgs()) {
+  node.getVariable()->accept(*this);
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
 }
@@ -118,8 +118,8 @@ void NodeCollector<T>::visit(AST::ClassInitExpr &node) {
   if constexpr (std::is_same_v<T, AST::ClassInitExpr>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
-  for (const auto &arg : node.getArgs()) {
+  node.getVariable()->accept(*this);
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
 }
@@ -189,7 +189,7 @@ void NodeCollector<T>::visit(AST::VarDeclStmt &node) {
   if constexpr (std::is_same_v<T, AST::VarDeclStmt>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
@@ -198,7 +198,7 @@ void NodeCollector<T>::visit(AST::VarAssignStmt &node) {
   if constexpr (std::is_same_v<T, AST::VarAssignStmt>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
@@ -207,7 +207,7 @@ void NodeCollector<T>::visit(AST::ExprStmt &node) {
   if constexpr (std::is_same_v<T, AST::ExprStmt>) {
     m_nodes.push_back(&node);
   }
-  node.getExpr()->accept(*this);
+  node.getExpression()->accept(*this);
 }
 
 template <typename T>
@@ -215,7 +215,7 @@ void NodeCollector<T>::visit(AST::ReadStmt &node) {
   if constexpr (std::is_same_v<T, AST::ReadStmt>) {
     m_nodes.push_back(&node);
   }
-  for (const auto &var : node.getVars()) {
+  for (const auto &var : node.getVariables()) {
     var->accept(*this);
   }
 }
@@ -225,7 +225,7 @@ void NodeCollector<T>::visit(AST::WriteStmt &node) {
   if constexpr (std::is_same_v<T, AST::WriteStmt>) {
     m_nodes.push_back(&node);
   }
-  for (const auto &expr : node.getExprs()) {
+  for (const auto &expr : node.getExpressions()) {
     expr->accept(*this);
   }
 }
@@ -235,7 +235,7 @@ void NodeCollector<T>::visit(AST::Param &node) {
   if constexpr (std::is_same_v<T, AST::Param>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
 }
 
 template <typename T>
@@ -243,8 +243,8 @@ void NodeCollector<T>::visit(AST::FnDef &node) {
   if constexpr (std::is_same_v<T, AST::FnDef>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
-  for (const auto &param : node.getParams()) {
+  node.getVariable()->accept(*this);
+  for (const auto &param : node.getParameters()) {
     param->accept(*this);
   }
   node.getBody()->accept(*this);
@@ -269,7 +269,7 @@ void NodeCollector<T>::visit(AST::Field &node) {
   if constexpr (std::is_same_v<T, AST::Field>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
@@ -278,12 +278,12 @@ void NodeCollector<T>::visit(AST::ClassDef &node) {
   if constexpr (std::is_same_v<T, AST::ClassDef>) {
     m_nodes.push_back(&node);
   }
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   for (const auto &field : node.getFields()) {
     field->accept(*this);
   }
-  if (node.getCtor()) node.getCtor()->accept(*this);
-  if (node.getDtor()) node.getDtor()->accept(*this);
+  if (node.getConstructor()) node.getConstructor()->accept(*this);
+  if (node.getDestructor()) node.getDestructor()->accept(*this);
   for (const auto &method : node.getMethods()) {
     method->accept(*this);
   }

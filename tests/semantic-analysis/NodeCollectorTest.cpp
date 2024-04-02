@@ -57,7 +57,7 @@ TEST_F(NodeCollectorTest, CompExpr) {
   EXPECT_EQ(collector.getNodes().size(), 4);
   constexpr std::array<char, 4> kExpectedValues{'<', '<', '<', '>'};
   for (size_t i = 0; i < 4; i++) {
-    EXPECT_TRUE(collectedNodes[i]->getStrOperand() == std::string{kExpectedValues[i]});
+    EXPECT_TRUE(collectedNodes[i]->getStringOperand() == std::string{kExpectedValues[i]});
   }
 }
 
@@ -68,7 +68,7 @@ TEST_F(NodeCollectorTest, AddExpr) {
   EXPECT_EQ(collector.getNodes().size(), 3);
   constexpr std::array<char, 3> kExpectedValues{'+', '+', '+'};
   for (size_t i = 0; i < 3; i++) {
-    EXPECT_TRUE(collectedNodes[i]->getStrOperand() == std::string{kExpectedValues[i]});
+    EXPECT_TRUE(collectedNodes[i]->getStringOperand() == std::string{kExpectedValues[i]});
   }
 }
 

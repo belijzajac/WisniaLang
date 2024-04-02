@@ -5,6 +5,7 @@
 #define WISNIALANG_AST_TYPES_HPP
 
 #include <sstream>
+#include <utility>
 // Wisnia
 #include "Root.hpp"
 #include "TType.hpp"
@@ -16,8 +17,8 @@ namespace AST {
 
 class BaseType : public Root {
  public:
-  explicit BaseType(const std::shared_ptr<Basic::Token> &tok)
-      : Root(tok) { m_strType = typeToStr(getType()); }
+  explicit BaseType(TokenPtr token)
+      : Root(std::move(token)) { m_type = typeToString(getType()); }
 
   void accept(Visitor &) override = 0;
 
@@ -29,13 +30,12 @@ class BaseType : public Root {
     return m_token->getType();
   }
 
-  const std::string &getStrType() const {
-    return m_strType;
+  const std::string &getStringType() const {
+    return m_type;
   }
 
  private:
-  // Returns a string representation of the enum
-  std::string typeToStr(Basic::TType type) {
+  std::string typeToString(Basic::TType type) {
       switch (type) {
         case Basic::TType::KW_CLASS:
           return "class";
@@ -55,13 +55,13 @@ class BaseType : public Root {
   }
 
  private:
-  std::string m_strType;
+  std::string m_type;
 };
 
 class PrimitiveType : public BaseType {
  public:
-  explicit PrimitiveType(const std::shared_ptr<Basic::Token> &tok)
-      : BaseType(tok) {}
+  explicit PrimitiveType(TokenPtr token)
+      : BaseType(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -69,7 +69,7 @@ class PrimitiveType : public BaseType {
 
   std::string kind() const override {
     std::stringstream ss;
-    ss << "PrimitiveType" << " (" << getStrType() << ")";
+    ss << "PrimitiveType" << " (" << getStringType() << ")";
     return ss.str();
   }
 

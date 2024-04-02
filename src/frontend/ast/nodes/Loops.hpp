@@ -4,6 +4,7 @@
 #ifndef WISNIALANG_AST_LOOPS_HPP
 #define WISNIALANG_AST_LOOPS_HPP
 
+#include <utility>
 // Wisnia
 #include "Root.hpp"
 #include "Statements.hpp"
@@ -16,6 +17,8 @@ class Token;
 namespace AST {
 
 class BaseLoop : public BaseStmt {
+  using BodyPtr = std::unique_ptr<BaseStmt>;
+
  public:
   void accept(Visitor &) override = 0;
 
@@ -23,26 +26,28 @@ class BaseLoop : public BaseStmt {
     BaseStmt::print(output, level);
   }
 
-  void addBody(std::unique_ptr<BaseStmt> body) {
+  void addBody(BodyPtr body) {
     m_body = std::move(body);
   }
 
-  const std::unique_ptr<BaseStmt> &getBody() const {
+  const BodyPtr &getBody() const {
     return m_body;
   }
 
  protected:
-  explicit BaseLoop(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit BaseLoop(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
  protected:
-  std::unique_ptr<BaseStmt> m_body;
+  BodyPtr m_body;
 };
 
 class WhileLoop : public BaseLoop {
+  using ConditionPtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit WhileLoop(const std::shared_ptr<Basic::Token> &tok)
-      : BaseLoop(tok) {}
+  explicit WhileLoop(TokenPtr token)
+      : BaseLoop(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -54,26 +59,30 @@ class WhileLoop : public BaseLoop {
 
   void print(std::ostream &output, size_t level) const override {
     BaseLoop::print(output, level++);
-    m_cond->print(output, level);
+    m_condition->print(output, level);
     m_body->print(output, level);
   }
 
-  void addCond(std::unique_ptr<BaseExpr> expr) {
-    m_cond = std::move(expr);
+  void addCondition(ConditionPtr condition) {
+    m_condition = std::move(condition);
   }
 
-  const std::unique_ptr<BaseExpr> &getCondition() const {
-    return m_cond;
+  const ConditionPtr &getCondition() const {
+    return m_condition;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_cond;
+  ConditionPtr m_condition;
 };
 
 class ForLoop : public BaseLoop {
+  using InitialPtr   = std::unique_ptr<BaseStmt>; // e.g. int i = 0
+  using ConditionPtr = std::unique_ptr<BaseExpr>; // e.g. i < 10
+  using IncrementPtr = std::unique_ptr<BaseStmt>; // e.g. i++
+
  public:
-  explicit ForLoop(const std::shared_ptr<Basic::Token> &tok)
-      : BaseLoop(tok) {}
+  explicit ForLoop(TokenPtr token)
+      : BaseLoop(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -91,40 +100,43 @@ class ForLoop : public BaseLoop {
     m_body->print(output, level);
   }
 
-  void addInitial(std::unique_ptr<BaseStmt> expr) {
-    m_initial = std::move(expr);
+  void addInitial(InitialPtr initial) {
+    m_initial = std::move(initial);
   }
 
-  void addCondition(std::unique_ptr<BaseExpr> expr) {
-    m_condition = std::move(expr);
+  void addCondition(ConditionPtr condition) {
+    m_condition = std::move(condition);
   }
 
-  void addIncrement(std::unique_ptr<BaseStmt> stmt) {
-    m_increment = std::move(stmt);
+  void addIncrement(IncrementPtr increment) {
+    m_increment = std::move(increment);
   }
 
-  const std::unique_ptr<BaseStmt> &getInitial() const {
+  const InitialPtr &getInitial() const {
     return m_initial;
   }
 
-  const std::unique_ptr<BaseExpr> &getCondition() const {
+  const ConditionPtr &getCondition() const {
     return m_condition;
   }
 
-  const std::unique_ptr<BaseStmt> &getIncrement() const {
+  const IncrementPtr &getIncrement() const {
     return m_increment;
   }
 
  private:
-  std::unique_ptr<BaseStmt> m_initial;
-  std::unique_ptr<BaseExpr> m_condition;
-  std::unique_ptr<BaseStmt> m_increment;
+  InitialPtr m_initial;
+  ConditionPtr m_condition;
+  IncrementPtr m_increment;
 };
 
 class ForEachLoop : public BaseLoop {
+  using ElementPtr    = std::unique_ptr<BaseExpr>;
+  using CollectionPtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit ForEachLoop(const std::shared_ptr<Basic::Token> &tok)
-      : BaseLoop(tok) {}
+  explicit ForEachLoop(TokenPtr token)
+      : BaseLoop(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -141,25 +153,25 @@ class ForEachLoop : public BaseLoop {
     m_body->print(output, level);
   }
 
-  void addElement(std::unique_ptr<BaseExpr> expr) {
-    m_element = std::move(expr);
+  void addElement(ElementPtr element) {
+    m_element = std::move(element);
   }
 
-  void addCollection(std::unique_ptr<BaseExpr> expr) {
-    m_collection = std::move(expr);
+  void addCollection(CollectionPtr collection) {
+    m_collection = std::move(collection);
   }
 
-  const std::unique_ptr<BaseExpr> &getElement() const {
+  const ElementPtr &getElement() const {
     return m_element;
   }
 
-  const std::unique_ptr<BaseExpr> &getCollection() const {
+  const CollectionPtr &getCollection() const {
     return m_collection;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_element;
-  std::unique_ptr<BaseExpr> m_collection;
+  ElementPtr m_element;
+  CollectionPtr m_collection;
 };
 
 }  // namespace AST

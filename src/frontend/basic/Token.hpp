@@ -68,7 +68,7 @@ class Token {
               case '\t': temp += "\\t"; break;
               case '\v': temp += "\\v"; break;
               case '\n': temp += "\\n"; break;
-              case '\"': temp += "\\"; break;
+              case '\"': temp += "\\";  break;
               case '\0': temp += "\\0"; break;
               default  : temp += ch;
             }

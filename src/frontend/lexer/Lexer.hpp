@@ -16,6 +16,8 @@ enum class TType;
 }  // namespace Basic
 
 class Lexer {
+  using TokenPtr = std::shared_ptr<Basic::Token>;
+
   enum class State {
     START,             // Start state
     IDENT,             // Identifier
@@ -56,14 +58,14 @@ class Lexer {
   };
 
   // Having provided the TType, it constructs and returns a token
-  std::shared_ptr<Basic::Token> finishTok(const Basic::TType &type, bool backtrack = false);
+  TokenPtr finishTok(const Basic::TType &type, bool backtrack = false);
 
   // From an existing token buffer constructs and returns a token of identifier
   // (or keyword) type
-  std::shared_ptr<Basic::Token> finishIdent();
+  TokenPtr finishIdent();
 
   // Continues to tokenize the next letter
-  std::optional<std::shared_ptr<Basic::Token>> tokNext(char ch);
+  std::optional<TokenPtr> tokNext(char ch);
 
   // Tokenizes whatever was passed to the tokenize function
   void tokenizeInput();
@@ -77,13 +79,13 @@ class Lexer {
   explicit Lexer(std::istringstream &sstream);
 
   // Returns tokens
-  const std::vector<std::shared_ptr<Basic::Token>> &getTokens() const { return m_tokens; }
+  const std::vector<TokenPtr> &getTokens() const { return m_tokens; }
 
   // Prints out tokens in a pretty table
   void print(std::ostream &output) const;
 
  private:
-  std::vector<std::shared_ptr<Basic::Token>> m_tokens;
+  std::vector<TokenPtr> m_tokens;
   TokenState m_tokenState;
 };
 

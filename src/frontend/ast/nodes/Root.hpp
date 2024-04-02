@@ -5,6 +5,7 @@
 #define WISNIALANG_AST_ROOT_HPP
 
 #include <memory>
+#include <utility>
 #include <vector>
 // Wisnia
 #include "Visitor.hpp"
@@ -16,12 +17,16 @@ class Token;
 
 namespace AST {
 
+using TokenPtr = std::shared_ptr<Basic::Token>;
+
 class IVisitable {
  public:
   virtual void accept(Visitor &) = 0;
 };
 
 class Root : public IVisitable {
+  using RootPtr = std::unique_ptr<Root>;
+
  public:
   Root() = default;
   virtual ~Root() = default;
@@ -44,36 +49,36 @@ class Root : public IVisitable {
     }
   }
 
-  void addGlobalClassDef(std::unique_ptr<Root> classDef) {
-    m_globalClasses.push_back(std::move(classDef));
+  void addGlobalClass(RootPtr klass) {
+    m_globalClasses.push_back(std::move(klass));
   }
 
-  void addGlobalFnDef(std::unique_ptr<Root> fnDef) {
-    m_globalFunctions.push_back(std::move(fnDef));
+  void addGlobalFunction(RootPtr function) {
+    m_globalFunctions.push_back(std::move(function));
   }
 
-  const std::shared_ptr<Basic::Token> &getToken() const {
+  const TokenPtr &getToken() const {
     return m_token;
   }
 
-  const std::vector<std::unique_ptr<Root>> &getGlobalClasses() const {
+  const std::vector<RootPtr> &getGlobalClasses() const {
     return m_globalClasses;
   }
 
-  const std::vector<std::unique_ptr<Root>> &getGlobalFunctions() const {
+  const std::vector<RootPtr> &getGlobalFunctions() const {
     return m_globalFunctions;
   }
 
  protected:
-  explicit Root(const std::shared_ptr<Basic::Token> &tok)
-      : m_token{tok} {}
+  explicit Root(TokenPtr token)
+      : m_token{std::move(token)} {}
 
  protected:
-  std::shared_ptr<Basic::Token> m_token;
+  TokenPtr m_token;
 
  private:
-  std::vector<std::unique_ptr<Root>> m_globalClasses;
-  std::vector<std::unique_ptr<Root>> m_globalFunctions;
+  std::vector<RootPtr> m_globalClasses;
+  std::vector<RootPtr> m_globalFunctions;
 };
 
 }  // namespace AST

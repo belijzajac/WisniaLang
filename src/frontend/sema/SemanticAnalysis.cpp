@@ -138,7 +138,7 @@ void SemanticAnalysis::visit(AST::UnaryExpr &node) {
 }
 
 void SemanticAnalysis::visit(AST::FnCallExpr &node) {
-  const auto functionName = node.getVar()->getToken()->getValue<std::string>();
+  const auto functionName = node.getVariable()->getToken()->getValue<std::string>();
   programChecks.invokedFunctions.emplace_back(functionName);
 
   const auto fnDefinition = std::find_if(
@@ -148,22 +148,22 @@ void SemanticAnalysis::visit(AST::FnCallExpr &node) {
     throw SemanticError{fmt::format("Failed to find function '{}' definition", functionName)};
   }
 
-  if (node.getArgs().size() != fnDefinition->parameters.size()) {
+  if (node.getArguments().size() != fnDefinition->parameters.size()) {
     throw SemanticError{fmt::format("Function '{}' expects {} arguments but only {} were provided",
                                     fnDefinition->name,
                                     fnDefinition->parameters.size(),
-                                    node.getArgs().size())};
+                                    node.getArguments().size())};
   }
 
-  node.getVar()->accept(*this);
-  for (const auto &arg : node.getArgs()) {
+  node.getVariable()->accept(*this);
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
 }
 
 void SemanticAnalysis::visit(AST::ClassInitExpr &node) {
-  node.getVar()->accept(*this);
-  for (const auto &arg : node.getArgs()) {
+  node.getVariable()->accept(*this);
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
 }
@@ -206,45 +206,45 @@ void SemanticAnalysis::visit(AST::ContinueStmt &) {
 }
 
 void SemanticAnalysis::visit(AST::VarDeclStmt &node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
-  node.getVar()->accept(*this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
 void SemanticAnalysis::visit(AST::VarAssignStmt &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
 void SemanticAnalysis::visit(AST::ExprStmt &node) {
-  node.getExpr()->accept(*this);
+  node.getExpression()->accept(*this);
 }
 
 void SemanticAnalysis::visit(AST::ReadStmt &node) {
-  for (const auto &var : node.getVars()) {
+  for (const auto &var : node.getVariables()) {
     var->accept(*this);
   }
 }
 
 void SemanticAnalysis::visit(AST::WriteStmt &node) {
-  for (const auto &expr : node.getExprs()) {
+  for (const auto &expr : node.getExpressions()) {
     expr->accept(*this);
   }
 }
 
 void SemanticAnalysis::visit(AST::Param &node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
-  node.getVar()->accept(*this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
+  node.getVariable()->accept(*this);
 }
 
 void SemanticAnalysis::visit(AST::FnDef &node) {
-  const auto functionName = node.getVar()->getToken()->getValue<std::string>();
+  const auto functionName = node.getVariable()->getToken()->getValue<std::string>();
   if (functionName == "main") {
     programChecks.mainFunctionFound = true;
   }
 
   std::vector<Parameter> parameters;
-  std::transform(node.getParams().begin(), node.getParams().end(), std::back_inserter(parameters), [](const auto &param) {
+  std::transform(node.getParameters().begin(), node.getParameters().end(), std::back_inserter(parameters), [](const auto &param) {
     return Parameter {
       param->getToken()->template getValue<std::string>(),
       param->getToken()->getType()
@@ -256,14 +256,14 @@ void SemanticAnalysis::visit(AST::FnDef &node) {
     .parameters = std::move(parameters)
   });
 
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
-  node.getVar()->accept(*this);
-  for (const auto &param : node.getParams()) {
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
+  node.getVariable()->accept(*this);
+  for (const auto &param : node.getParameters()) {
     param->accept(*this);
   }
   node.getBody()->accept(*this);
 
-  if (node.getVar()->getToken()->getType() != TType::IDENT_VOID && !functionChecks.returnFound) {
+  if (node.getVariable()->getToken()->getType() != TType::IDENT_VOID && !functionChecks.returnFound) {
     throw SemanticError{fmt::format("Non-void function '{}' is not returning", functionName)};
   }
 }
@@ -277,19 +277,19 @@ void SemanticAnalysis::visit(AST::DtorDef &) {
 }
 
 void SemanticAnalysis::visit(AST::Field &node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
-  node.getVar()->accept(*this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
 void SemanticAnalysis::visit(AST::ClassDef &node) {
-  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVar().get()));
-  node.getVar()->accept(*this);
+  m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
+  node.getVariable()->accept(*this);
   for (const auto &field : node.getFields()) {
     field->accept(*this);
   }
-  if (node.getCtor()) node.getCtor()->accept(*this);
-  if (node.getDtor()) node.getDtor()->accept(*this);
+  if (node.getConstructor()) node.getConstructor()->accept(*this);
+  if (node.getDestructor()) node.getDestructor()->accept(*this);
   for (const auto &method : node.getMethods()) {
     method->accept(*this);
   }

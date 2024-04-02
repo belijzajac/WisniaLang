@@ -4,6 +4,7 @@
 #ifndef WISNIALANG_AST_CONDITIONALS_HPP
 #define WISNIALANG_AST_CONDITIONALS_HPP
 
+#include <utility>
 // Wisnia
 #include "Root.hpp"
 #include "Statements.hpp"
@@ -16,6 +17,8 @@ class Token;
 namespace AST {
 
 class BaseIf : public BaseStmt {
+  using StatementPtr = std::unique_ptr<BaseStmt>;
+
  public:
   void accept(Visitor &) override = 0;
 
@@ -23,26 +26,29 @@ class BaseIf : public BaseStmt {
     BaseStmt::print(output, level);
   }
 
-  void addBody(std::unique_ptr<BaseStmt> body) {
+  void addBody(StatementPtr body) {
     m_body = std::move(body);
   }
 
-  const std::unique_ptr<BaseStmt> &getBody() const {
+  const StatementPtr &getBody() const {
     return m_body;
   }
 
  protected:
-  explicit BaseIf(const std::shared_ptr<Basic::Token> &tok)
-      : BaseStmt(tok) {}
+  explicit BaseIf(TokenPtr token)
+      : BaseStmt(std::move(token)) {}
 
  protected:
-  std::unique_ptr<BaseStmt> m_body;
+  StatementPtr m_body;
 };
 
 class IfStmt : public BaseIf {
+  using ElseStatementPtr = std::unique_ptr<BaseIf>;
+  using ConditionPtr     = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit IfStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseIf(tok) {}
+  explicit IfStmt(TokenPtr token)
+      : BaseIf(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -57,36 +63,36 @@ class IfStmt : public BaseIf {
     m_condition->print(output, level);
     m_body->print(output, level);
     level--; // reset for else statements
-    for (const auto &stmt : m_elseStmts) {
+    for (const auto &stmt : m_statements) {
       stmt->print(output, level);
     }
   }
 
-  void addCondition(std::unique_ptr<BaseExpr> expr) {
-    m_condition = std::move(expr);
+  void addCondition(ConditionPtr condition) {
+    m_condition = std::move(condition);
   }
 
-  void addElseBlocks(std::vector<std::unique_ptr<BaseIf>> expr) {
-    m_elseStmts = std::move(expr);
+  void addElseStatements(std::vector<ElseStatementPtr> statements) {
+    m_statements = std::move(statements);
   }
 
-  const std::unique_ptr<BaseExpr> &getCondition() const {
+  const ConditionPtr &getCondition() const {
     return m_condition;
   }
 
-  const std::vector<std::unique_ptr<BaseIf>> &getElseStatements() const {
-    return m_elseStmts;
+  const std::vector<ElseStatementPtr> &getElseStatements() const {
+    return m_statements;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_condition;
-  std::vector<std::unique_ptr<BaseIf>> m_elseStmts;
+  ConditionPtr m_condition;
+  std::vector<ElseStatementPtr> m_statements;
 };
 
 class ElseStmt : public BaseIf {
  public:
-  explicit ElseStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseIf(tok) {}
+  explicit ElseStmt(TokenPtr token)
+      : BaseIf(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -103,9 +109,11 @@ class ElseStmt : public BaseIf {
 };
 
 class ElseIfStmt : public BaseIf {
+  using ConditionPtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit ElseIfStmt(const std::shared_ptr<Basic::Token> &tok)
-      : BaseIf(tok) {}
+  explicit ElseIfStmt(TokenPtr token)
+      : BaseIf(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -121,16 +129,16 @@ class ElseIfStmt : public BaseIf {
     m_body->print(output, level);
   }
 
-  void addCondition(std::unique_ptr<BaseExpr> expr) {
+  void addCondition(ConditionPtr expr) {
     m_condition = std::move(expr);
   }
 
-  const std::unique_ptr<BaseExpr> &getCondition() const {
+  const ConditionPtr &getCondition() const {
     return m_condition;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_condition;
+  ConditionPtr m_condition;
 };
 
 }  // namespace AST

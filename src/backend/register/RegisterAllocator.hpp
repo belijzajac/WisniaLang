@@ -59,7 +59,7 @@ class RegisterAllocator {
   void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
   void allocate(InstructionList &&instructions, bool allocateRegisters = true);
 
-  // All the registers that the RegisterAllocator works with, except for `RSP`
+  // All the allocatable registers excluding `RSP`
   static constexpr std::array<Basic::register_t, 15> getAllocatableRegisters {
     Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
     Basic::register_t::RBX, Basic::register_t::RBP, Basic::register_t::RSI,
@@ -68,7 +68,7 @@ class RegisterAllocator {
     Basic::register_t::R13, Basic::register_t::R14, Basic::register_t::R15,
   };
 
-  // All the registers that are not to be used by RegisterAllocator, including `RSP`
+  // All the registers including `RSP`
   static constexpr std::array<Basic::register_t, 16> getAllRegisters {
     Basic::register_t::RAX, Basic::register_t::RCX, Basic::register_t::RDX,
     Basic::register_t::RBX, Basic::register_t::RSP, Basic::register_t::RBP,
@@ -78,7 +78,8 @@ class RegisterAllocator {
     Basic::register_t::R15,
   };
 
-  static constexpr auto kHalfRegisters{getAllRegisters.size() / 2};
+  static constexpr auto getFullRegisters() { return getAllRegisters.size(); }
+  static constexpr auto getHalfRegisters() { return getAllRegisters.size() / 2; }
 
  private:
   InstructionList m_instructions;
