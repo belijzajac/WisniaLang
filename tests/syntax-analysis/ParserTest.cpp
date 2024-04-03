@@ -600,10 +600,10 @@ TEST(ParserTest, IOStatements) {
   // read(var3, var4)
   auto readStmt = dynamic_cast<AST::ReadStmt *>(&*stmtBlock->getStatements()[1]);
   EXPECT_NE(readStmt, nullptr);
-  EXPECT_EQ(readStmt->getVariables().size(), 2);
+  EXPECT_EQ(readStmt->getVariableList().size(), 2);
   constexpr std::array<std::string_view, 2> readVariables{"var3", "var4"};
-  for (size_t i = 0; i < readStmt->getVariables().size(); i++) {
-    const auto &var = readStmt->getVariables()[i];
+  for (size_t i = 0; i < readStmt->getVariableList().size(); i++) {
+    const auto &var = readStmt->getVariableList()[i];
     EXPECT_EQ(var->getToken()->getType(), TType::IDENT);
     EXPECT_STREQ(var->getToken()->getValue<std::string>().c_str(), readVariables[i].data());
   }

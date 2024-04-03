@@ -13,10 +13,7 @@ class Token;
 
 namespace AST {
 
-class Param : public Root {
-  using TypePtr     = std::unique_ptr<BaseType>;
-  using VariablePtr = std::unique_ptr<BaseExpr>;
-
+class Param : public Root, public VariableMixin {
  public:
   explicit Param(TokenPtr token)
       : Root(std::move(token)) {}
@@ -31,30 +28,11 @@ class Param : public Root {
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
-    m_variable->print(output, level);
+    getVariable()->print(output, level);
   }
-
-  void addType(TypePtr type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr variable) {
-    m_variable = std::move(variable);
-  }
-
-  const VariablePtr &getVariable() const {
-    return m_variable;
-  }
-
- private:
-  VariablePtr m_variable;
 };
 
-class BaseDef : public Root {
-  using VariablePtr = std::unique_ptr<BaseExpr>;
-
+class BaseDef : public Root, public VariableMixin {
  public:
   explicit BaseDef(TokenPtr token)
       : Root(std::move(token)) {}
@@ -63,29 +41,11 @@ class BaseDef : public Root {
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
-    m_variable->print(output, level);
+    getVariable()->print(output, level);
   }
-
-  void addType(std::unique_ptr<BaseType> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr variable) {
-    m_variable = std::move(variable);
-  }
-
-  const VariablePtr &getVariable() const {
-    return m_variable;
-  }
-
- protected:
-  VariablePtr m_variable;
 };
 
 class MethodDef : public BaseDef {
-  using TypePtr      = std::unique_ptr<BaseType>;
   using ParameterPtr = std::unique_ptr<Param>;
   using BodyPtr      = std::unique_ptr<BaseStmt>;
 
@@ -99,12 +59,6 @@ class MethodDef : public BaseDef {
     BaseDef::print(output, level++);
     for (const auto &param : m_parameters) {
       param->print(output, level);
-    }
-  }
-
-  void addReturnType(TypePtr type) {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
     }
   }
 
@@ -188,10 +142,8 @@ class DtorDef : public MethodDef {
   }
 };
 
-class Field : public Root {
-  using TypePtr     = std::unique_ptr<BaseType>;
-  using VariablePtr = std::unique_ptr<BaseExpr>;
-  using ValuePtr    = std::unique_ptr<BaseExpr>;
+class Field : public Root, public VariableMixin {
+  using ValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
   explicit Field(TokenPtr token)
@@ -209,25 +161,11 @@ class Field : public Root {
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
-    m_variable->print(output, level);
-  }
-
-  void addType(TypePtr type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr variable) {
-    m_variable = std::move(variable);
+    getVariable()->print(output, level);
   }
 
   void addValue(ValuePtr varValue) {
     m_value = std::move(varValue);
-  }
-
-  const VariablePtr &getVariable() const {
-    return m_variable;
   }
 
   const ValuePtr &getValue() const {
@@ -235,7 +173,6 @@ class Field : public Root {
   }
 
  private:
-  VariablePtr m_variable;
   ValuePtr m_value;
 };
 

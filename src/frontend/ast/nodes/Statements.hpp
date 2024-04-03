@@ -9,6 +9,7 @@
 // Wisnia
 #include "Root.hpp"
 #include "Types.hpp"
+#include "Variable.hpp"
 
 namespace Wisnia {
 namespace Basic {
@@ -130,10 +131,8 @@ class ContinueStmt : public BaseStmt {
   }
 };
 
-class VarDeclStmt : public BaseStmt {
-  using TypePtr     = std::unique_ptr<BaseType>;
-  using VariablePtr = std::unique_ptr<BaseExpr>;
-  using ValuePtr    = std::unique_ptr<BaseExpr>;
+class VarDeclStmt : public BaseStmt, public VariableMixin {
+  using ValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
   explicit VarDeclStmt(TokenPtr token)
@@ -151,26 +150,12 @@ class VarDeclStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    m_variable->print(output, level);
+    getVariable()->print(output, level);
     m_value->print(output, level);
-  }
-
-  void addType(TypePtr type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr variable) {
-    m_variable = std::move(variable);
   }
 
   void addValue(ValuePtr varValue) {
     m_value = std::move(varValue);
-  }
-
-  const VariablePtr &getVariable() const {
-    return m_variable;
   }
 
   const ValuePtr &getValue() const {
@@ -178,14 +163,11 @@ class VarDeclStmt : public BaseStmt {
   }
 
  private:
-  VariablePtr m_variable;
   ValuePtr m_value;
 };
 
-class VarAssignStmt : public BaseStmt {
-  using TypePtr     = std::unique_ptr<BaseType>;
-  using VariablePtr = std::unique_ptr<BaseExpr>;
-  using ValuePtr    = std::unique_ptr<BaseExpr>;
+class VarAssignStmt : public BaseStmt, public VariableMixin {
+  using ValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
   explicit VarAssignStmt(TokenPtr token)
@@ -203,26 +185,12 @@ class VarAssignStmt : public BaseStmt {
 
   void print(std::ostream &output, size_t level) const override {
     BaseStmt::print(output, level++);
-    m_variable->print(output, level);
+    getVariable()->print(output, level);
     m_value->print(output, level);
-  }
-
-  void addType(TypePtr type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr variable) {
-    m_variable = std::move(variable);
   }
 
   void addValue(ValuePtr value) {
     m_value = std::move(value);
-  }
-
-  const VariablePtr &getVariable() const {
-    return m_variable;
   }
 
   const ValuePtr &getValue() const {
@@ -230,7 +198,6 @@ class VarAssignStmt : public BaseStmt {
   }
 
  private:
-  VariablePtr m_variable;
   ValuePtr m_value;
 };
 
@@ -268,9 +235,7 @@ class ExprStmt : public BaseStmt {
   ExpressionPtr m_expression;
 };
 
-class ReadStmt : public BaseStmt {
-  using VariablePtr = std::unique_ptr<BaseExpr>;
-
+class ReadStmt : public BaseStmt, public VariableMixin {
  public:
   explicit ReadStmt(TokenPtr token)
       : BaseStmt(std::move(token)) {}
@@ -291,17 +256,6 @@ class ReadStmt : public BaseStmt {
       var->print(output, level);
     }
   }
-
-  void addVariable(VariablePtr variable) {
-    m_variables.push_back(std::move(variable));
-  }
-
-  const std::vector<VariablePtr> &getVariables() const {
-    return m_variables;
-  }
-
- private:
-  std::vector<VariablePtr> m_variables;
 };
 
 class WriteStmt : public BaseStmt {

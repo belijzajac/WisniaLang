@@ -215,7 +215,7 @@ void NodeCollector<T>::visit(AST::ReadStmt &node) {
   if constexpr (std::is_same_v<T, AST::ReadStmt>) {
     m_nodes.push_back(&node);
   }
-  for (const auto &var : node.getVariables()) {
+  for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
 }

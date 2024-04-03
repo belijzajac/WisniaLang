@@ -11,6 +11,7 @@
 #include "Root.hpp"
 #include "TType.hpp"
 #include "Types.hpp"
+#include "Variable.hpp"
 
 namespace Wisnia {
 namespace Basic {
@@ -305,10 +306,8 @@ class UnaryExpr : public BinaryExpr {
   }
 };
 
-class FnCallExpr : public BaseExpr {
-  using TypePtr     = std::unique_ptr<BaseType>;
+class FnCallExpr : public BaseExpr, public VariableMixin {
   using ArgumentPtr = std::unique_ptr<BaseExpr>;
-  using VariablePtr = std::unique_ptr<BaseExpr>;
 
  public:
   explicit FnCallExpr(TokenPtr token)
@@ -326,7 +325,7 @@ class FnCallExpr : public BaseExpr {
 
   void print(std::ostream &output, size_t level) const override {
     BaseExpr::print(output, level++);
-    m_variable->print(output, level);
+    getVariable()->print(output, level);
     for (const auto &arg : m_arguments) {
       arg->print(output, level);
     }
@@ -338,16 +337,6 @@ class FnCallExpr : public BaseExpr {
 
   void addArguments(std::vector<ArgumentPtr> arguments) {
     m_arguments = std::move(arguments);
-  }
-
-  void addType(TypePtr type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr var) {
-    m_variable = std::move(var);
   }
 
   const TokenPtr &getFunctionName() const {
@@ -362,19 +351,13 @@ class FnCallExpr : public BaseExpr {
     return m_arguments;
   }
 
-  const VariablePtr &getVariable() const {
-    return m_variable;
-  }
-
  private:
   TokenPtr m_className;
   std::vector<ArgumentPtr> m_arguments;
-  VariablePtr m_variable;
 };
 
-class ClassInitExpr : public BaseExpr {
+class ClassInitExpr : public BaseExpr, public VariableMixin {
   using ArgumentPtr = std::unique_ptr<BaseExpr>;
-  using VariablePtr = std::unique_ptr<BaseExpr>;
 
  public:
   explicit ClassInitExpr(TokenPtr token)
@@ -390,7 +373,7 @@ class ClassInitExpr : public BaseExpr {
 
   void print(std::ostream &output, size_t level) const override {
     BaseExpr::print(output, level++);
-    m_variable->print(output, level);
+    getVariable()->print(output, level);
     for (const auto &arg : m_arguments) {
       arg->print(output, level);
     }
@@ -400,27 +383,12 @@ class ClassInitExpr : public BaseExpr {
     m_arguments = std::move(arguments);
   }
 
-  void addType(std::unique_ptr<BaseType> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_variable.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVariable(VariablePtr variable) {
-    m_variable = std::move(variable);
-  }
-
   const std::vector<ArgumentPtr> &getArguments() const {
     return m_arguments;
   }
 
-  const VariablePtr &getVariable() const {
-    return m_variable;
-  }
-
  private:
   std::vector<ArgumentPtr> m_arguments;
-  VariablePtr m_variable;
 };
 
 class ConstExpr : public BaseExpr {

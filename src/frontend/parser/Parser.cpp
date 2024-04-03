@@ -36,6 +36,12 @@ void Parser::expect(const TType &token) {
   };
 }
 
+void addTypeToVariable(BaseExpr *variable, std::unique_ptr<BaseType> type) {
+  if (auto varPtr = dynamic_cast<AST::VarExpr*>(variable)) {
+    varPtr->addType(std::move(type));
+  }
+}
+
 std::unique_ptr<Root> Parser::parse() {
   auto root = std::make_unique<Root>();
   // continue parsing as long as there are tokens
@@ -71,18 +77,18 @@ std::unique_ptr<BaseDef> Parser::parseFnDef() {
   expect(TType::KW_FN);                     // expect "fn"
   auto var = parseVar();
   auto fnDef = std::make_unique<FnDef>(var->getToken());
-  fnDef->addVariable(std::move(var));
   fnDef->addParameters(parseParamsList());  // parse <PARAMS>
 
   if (has(TType::OP_FN_ARROW)) {
-    consume();                              // eat "->"
-    fnDef->addType(parsePrimitiveType());   // <TYPE>
+    consume();                                          // eat "->"
+    addTypeToVariable(var.get(), parsePrimitiveType()); // <TYPE>
   } else {
     auto voidFunctionToken = std::make_shared<Token>(TType::KW_VOID, "void");
-    fnDef->addType(std::make_unique<PrimitiveType>(std::move(voidFunctionToken)));
+    addTypeToVariable(var.get(), std::make_unique<PrimitiveType>(std::move(voidFunctionToken)));
   }
 
-  fnDef->addBody(parseStmtBlock());         // <STMT_BLOCK>
+  fnDef->addVariable(std::move(var));
+  fnDef->addBody(parseStmtBlock());               // <STMT_BLOCK>
   return fnDef;
 }
 
@@ -94,8 +100,8 @@ std::unique_ptr<Param> Parser::parseParam() {
   // expect ":"
   expect(TType::OP_COL);
   // parse <TYPE>
+  addTypeToVariable(var.get(), parsePrimitiveType());
   param->addVariable(std::move(var));
-  param->addType(parsePrimitiveType());
   return param;
 }
 
@@ -489,7 +495,10 @@ std::unique_ptr<BaseStmt> Parser::parseLoopBrkStmt() {
 std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
   auto varType = parsePrimitiveType();
-  varDeclPtr->addVariable(parseVar());
+  auto tokenType = varType->getType();
+  auto var = parseVar();
+  addTypeToVariable(var.get(), std::move(varType));
+  varDeclPtr->addVariable(std::move(var));
   std::unique_ptr<BaseExpr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>
@@ -506,7 +515,7 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   // <TYPE> <VAR>
   else {
     // add default values
-    switch (varType->getType()) {
+    switch (tokenType) {
       case TType::KW_INT: {
         auto intToken = std::make_shared<Token>(TType::LIT_INT, 0, varDeclPtr->getVariable()->getToken()->getPosition());
         varValue = std::make_unique<IntExpr>(std::move(intToken));
@@ -538,7 +547,6 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   //    varValue->getToken()->setType(TType::LIT_INT_U32);
   //}
 
-  varDeclPtr->addType(std::move(varType));
   varDeclPtr->addValue(std::move(varValue));
   expect(TType::OP_SEMICOLON);
   return varDeclPtr;
@@ -735,8 +743,8 @@ std::unique_ptr<BaseDef> Parser::parseClassDef() {
       var->getToken()->getPosition()
   );
 
+  addTypeToVariable(var.get(), std::make_unique<PrimitiveType>(std::move(classTypeTok)));
   classDef->addVariable(std::move(var));
-  classDef->addType(std::make_unique<PrimitiveType>(std::move(classTypeTok)));
 
   // Parse <CLASS_BODY>
   // <CLASS_BODY> ::= "{" "}" | "{" <CLASS_STMTS> "}"
@@ -795,8 +803,9 @@ std::unique_ptr<BaseDef> Parser::parseClassDtorDef() {
 std::unique_ptr<Field> Parser::parseClassField() {
   auto varDeclPtr = std::make_unique<Field>();
   auto varType = parsePrimitiveType();
-  varDeclPtr->addVariable(parseVar());
-  varDeclPtr->addType(std::move(varType));
+  auto var = parseVar();
+  addTypeToVariable(var.get(), std::move(varType));
+  varDeclPtr->addVariable(std::move(var));
   std::unique_ptr<BaseExpr> varValue;
 
   // <TYPE> <VAR> "=" <EXPRESSION>

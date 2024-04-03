@@ -375,7 +375,7 @@ void IRGenerator::visit(AST::ExprStmt &node) {
 }
 
 void IRGenerator::visit(AST::ReadStmt &node) {
-  for (const auto &var : node.getVariables()) {
+  for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
   throw NotImplementedError{"Read statements are not supported"};

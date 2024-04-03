@@ -221,7 +221,7 @@ void SemanticAnalysis::visit(AST::ExprStmt &node) {
 }
 
 void SemanticAnalysis::visit(AST::ReadStmt &node) {
-  for (const auto &var : node.getVariables()) {
+  for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
 }
