@@ -248,7 +248,9 @@ void IRGenerator::visit(AST::DivExpr &node) {
 
 void IRGenerator::visit(AST::UnaryExpr &node) {
   node.lhs()->accept(*this);
-  throw NotImplementedError{"Unary expressions are not supported"};
+  throw NotImplementedError{fmt::format("Unary expressions are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::FnCallExpr &node) {
@@ -305,7 +307,9 @@ void IRGenerator::visit(AST::ClassInitExpr &node) {
   for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
-  throw NotImplementedError{"Class initialization expressions are not supported"};
+  throw NotImplementedError{fmt::format("Class initialization expressions are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::IntExpr &node) {
@@ -340,12 +344,16 @@ void IRGenerator::visit(AST::ReturnStmt &node) {
   ));
 }
 
-void IRGenerator::visit(AST::BreakStmt &) {
-  throw NotImplementedError{"Break statements are not supported"};
+void IRGenerator::visit(AST::BreakStmt &node) {
+  throw NotImplementedError{fmt::format("Break statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ContinueStmt &) {
-  throw NotImplementedError{"Continue statements are not supported"};
+void IRGenerator::visit(AST::ContinueStmt &node) {
+  throw NotImplementedError{fmt::format("Continue statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::VarDeclStmt &node) {
@@ -378,7 +386,9 @@ void IRGenerator::visit(AST::ReadStmt &node) {
   for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
-  throw NotImplementedError{"Read statements are not supported"};
+  throw NotImplementedError{fmt::format("Read statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 /*
@@ -466,9 +476,13 @@ void IRGenerator::visit(AST::WriteStmt &node) {
           Modules::markAsUsed(Module::PRINT_BOOLEAN);
           continue;
         case TType::IDENT_FLOAT:
-          throw InstructionError{"Float variables are not supported"};
+          throw InstructionError{fmt::format("Float variables are not supported in print statements in {}:{}",
+                                             token->getPosition().getFileName(),
+                                             token->getPosition().getLineNo())};
         default:
-          throw InstructionError{"Unknown variable type"};
+          throw InstructionError{fmt::format("Unknown variable type for print statement in {}:{}",
+                                             token->getPosition().getFileName(),
+                                             token->getPosition().getLineNo())};
       }
     }
 
@@ -566,7 +580,9 @@ void IRGenerator::visit(AST::WriteStmt &node) {
 
 void IRGenerator::visit(AST::Param &node) {
   node.getVariable()->accept(*this);
-  throw NotImplementedError{"Function parameters are not supported"};
+  throw NotImplementedError{fmt::format("Function parameters are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::FnDef &node) {
@@ -632,26 +648,36 @@ void IRGenerator::visit(AST::FnDef &node) {
   }
 }
 
-void IRGenerator::visit(AST::CtorDef &) {
-  throw NotImplementedError{"Constructors are not supported"};
+void IRGenerator::visit(AST::CtorDef &node) {
+  throw NotImplementedError{fmt::format("Constructors are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::DtorDef &) {
-  throw NotImplementedError{"Destructors are not supported"};
+void IRGenerator::visit(AST::DtorDef &node) {
+  throw NotImplementedError{fmt::format("Destructors are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::Field &) {
-  throw NotImplementedError{"Class fields are not supported"};
+void IRGenerator::visit(AST::Field &node) {
+  throw NotImplementedError{fmt::format("Class fields are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ClassDef &) {
-  throw NotImplementedError{"Classes are not supported"};
+void IRGenerator::visit(AST::ClassDef &node) {
+  throw NotImplementedError{fmt::format("Classes are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::WhileLoop &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"While loops are not supported"};
+  throw NotImplementedError{fmt::format("While loops are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::ForLoop &node) {
@@ -659,14 +685,18 @@ void IRGenerator::visit(AST::ForLoop &node) {
   node.getCondition()->accept(*this);
   node.getIncrement()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"For loops are not supported"};
+  throw NotImplementedError{fmt::format("For loops are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::ForEachLoop &node) {
   node.getElement()->accept(*this);
   node.getCollection()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"For-each loops are not supported"};
+  throw NotImplementedError{fmt::format("For-each loops are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::IfStmt &node) {
@@ -729,5 +759,7 @@ void IRGenerator::visit(AST::ElseStmt &node) {
 void IRGenerator::visit(AST::ElseIfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"Else-if statements are not supported"};
+  throw NotImplementedError{fmt::format("Else-if statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }

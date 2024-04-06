@@ -165,7 +165,9 @@ class BinaryExpr : public BaseExpr {
         case Basic::TType::OP_NE:
           return "!=";
         default:
-          throw ParserError{"Invalid operand type"};
+          throw ParserError{fmt::format("Invalid operand type in {}:{}",
+                                        m_token->getPosition().getFileName(),
+                                        m_token->getPosition().getLineNo())};
       }
     };
 

@@ -149,10 +149,12 @@ void SemanticAnalysis::visit(AST::FnCallExpr &node) {
   }
 
   if (node.getArguments().size() != fnDefinition->parameters.size()) {
-    throw SemanticError{fmt::format("Function '{}' expects {} arguments but only {} were provided",
+    throw SemanticError{fmt::format("Function '{}' expects {} arguments but {} were provided in {}:{}",
                                     fnDefinition->name,
                                     fnDefinition->parameters.size(),
-                                    node.getArguments().size())};
+                                    node.getArguments().size(),
+                                    node.getVariable()->getToken()->getPosition().getFileName(),
+                                    node.getVariable()->getToken()->getPosition().getLineNo())};
   }
 
   node.getVariable()->accept(*this);
@@ -264,16 +266,23 @@ void SemanticAnalysis::visit(AST::FnDef &node) {
   node.getBody()->accept(*this);
 
   if (node.getVariable()->getToken()->getType() != TType::IDENT_VOID && !functionChecks.returnFound) {
-    throw SemanticError{fmt::format("Non-void function '{}' is not returning", functionName)};
+    throw SemanticError{fmt::format("Non-void function '{}' is not returning in {}:{}",
+                                    functionName,
+                                    node.getVariable()->getToken()->getPosition().getFileName(),
+                                    node.getVariable()->getToken()->getPosition().getLineNo())};
   }
 }
 
-void SemanticAnalysis::visit(AST::CtorDef &) {
-  throw NotImplementedError{"Constructors are not supported"};
+void SemanticAnalysis::visit(AST::CtorDef &node) {
+  throw NotImplementedError{fmt::format("Constructors are not supported in {}:{}",
+                                        node.getVariable()->getToken()->getPosition().getFileName(),
+                                        node.getVariable()->getToken()->getPosition().getLineNo())};
 }
 
-void SemanticAnalysis::visit(AST::DtorDef &) {
-  throw NotImplementedError{"Destructors are not supported"};
+void SemanticAnalysis::visit(AST::DtorDef &node) {
+  throw NotImplementedError{fmt::format("Destructors are not supported in {}:{}",
+                                        node.getVariable()->getToken()->getPosition().getFileName(),
+                                        node.getVariable()->getToken()->getPosition().getLineNo())};
 }
 
 void SemanticAnalysis::visit(AST::Field &node) {

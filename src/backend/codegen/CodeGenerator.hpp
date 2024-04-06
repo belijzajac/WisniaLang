@@ -13,7 +13,7 @@ namespace Wisnia {
 class Instruction;
 
 class CodeGenerator {
-  using InstructionValue = std::shared_ptr<Instruction>;
+  using InstructionPtr = std::shared_ptr<Instruction>;
 
   struct Data {
     size_t m_start;
@@ -28,32 +28,32 @@ class CodeGenerator {
  public:
   const ByteArray &getTextSection() const { return m_textSection; }
   const ByteArray &getDataSection() const { return m_dataSection; }
-  void generate(const std::vector<InstructionValue> &instructions);
+  void generate(const std::vector<InstructionPtr> &instructions);
 
  private:
-  void emitLea(const InstructionValue &instruction);
-  void emitMove(const InstructionValue &instruction, bool label = false);
-  void emitMoveMemory(const InstructionValue &instruction);
+  void emitLea(const InstructionPtr &instruction);
+  void emitMove(const InstructionPtr &instruction, bool label = false);
+  void emitMoveMemory(const InstructionPtr &instruction);
   void emitSysCall();
-  void emitPush(const InstructionValue &instruction);
-  void emitPop(const InstructionValue &instruction);
-  void emitCall(const InstructionValue &instruction);
-  void emitLabel(const InstructionValue &instruction);
-  void emitCmp(const InstructionValue &instruction);
-  void emitCmpBytePtr(const InstructionValue &instruction);
-  void emitJmp(const InstructionValue &instruction);
-  void emitInc(const InstructionValue &instruction);
-  void emitDec(const InstructionValue &instruction);
-  void emitAdd(const InstructionValue &instruction);
-  void emitSub(const InstructionValue &instruction);
-  void emitMul(const InstructionValue &instruction);
-  void emitDiv(const InstructionValue &instruction);
-  void emitXor(const InstructionValue &instruction);
-  void emitTest(const InstructionValue &instruction);
+  void emitPush(const InstructionPtr &instruction);
+  void emitPop(const InstructionPtr &instruction);
+  void emitCall(const InstructionPtr &instruction);
+  void emitLabel(const InstructionPtr &instruction);
+  void emitCmp(const InstructionPtr &instruction);
+  void emitCmpBytePtr(const InstructionPtr &instruction);
+  void emitJmp(const InstructionPtr &instruction);
+  void emitInc(const InstructionPtr &instruction);
+  void emitDec(const InstructionPtr &instruction);
+  void emitAdd(const InstructionPtr &instruction);
+  void emitSub(const InstructionPtr &instruction);
+  void emitMul(const InstructionPtr &instruction);
+  void emitDiv(const InstructionPtr &instruction);
+  void emitXor(const InstructionPtr &instruction);
+  void emitTest(const InstructionPtr &instruction);
   void emitRet();
 
  private:
-  std::vector<InstructionValue> m_instructions;
+  std::vector<InstructionPtr> m_instructions;
   ByteArray m_textSection;
   ByteArray m_dataSection;
   std::vector<size_t> m_dataOffsets;

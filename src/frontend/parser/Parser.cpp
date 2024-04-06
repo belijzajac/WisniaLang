@@ -30,10 +30,11 @@ void Parser::expect(const TType &token) {
     consume();
     return;
   }
-  throw ParserError{
-    "Expected " + TokenType2Str[token] +
-    " but found " + TokenType2Str[peek()->getType()]
-  };
+  throw ParserError{fmt::format("Expected {} but found {} in {}:{}",
+                                TokenType2Str[token],
+                                TokenType2Str[peek()->getType()],
+                                peek()->getPosition().getFileName(),
+                                peek()->getPosition().getLineNo())};
 }
 
 void addTypeToVariable(BaseExpr *variable, std::unique_ptr<BaseType> type) {
@@ -56,7 +57,9 @@ std::unique_ptr<Root> Parser::parse() {
         root->addGlobalClass(parseClassDef());
         break;
       default:
-        throw ParserError{"Not a global definition of either a class, or a function"};
+        throw ParserError{fmt::format("Not a global definition of either a class or function in {}:{}",
+                                      peek()->getPosition().getFileName(),
+                                      peek()->getPosition().getLineNo())};
     }
   }
   return root;
@@ -66,7 +69,10 @@ std::unique_ptr<BaseExpr> Parser::parseVar() {
   if (has(TType::IDENT)) {
     return std::make_unique<VarExpr>(getNextToken());
   }
-  throw ParserError{"Not a variable name"};
+  throw ParserError{fmt::format("Invalid variable name '{}' in {}:{}",
+                                peek()->getValueStr(),
+                                peek()->getPosition().getFileName(),
+                                peek()->getPosition().getLineNo())};
 }
 
 // <FN_DECL>           ::= <FN_PREAMBLE> "->" <TYPE> <STMT_BLOCK>
@@ -129,7 +135,10 @@ std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
   if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
   }
-  throw ParserError{"Use of unsupported type"};
+  throw ParserError{fmt::format("Type '{}' is not supported in {}:{}",
+                                peek()->getValueStr(),
+                                peek()->getPosition().getFileName(),
+                                peek()->getPosition().getLineNo())};
 }
 
 // <STMT_BLOCK> ::= "{" "}" | "{" <STMTS> "}"
@@ -473,7 +482,9 @@ std::unique_ptr<BaseExpr> Parser::parseConstExpr() {
       return std::make_unique<StringExpr>(token);
     }
     default:
-      throw ParserError{"Unknown constant expression"};
+      throw ParserError{fmt::format("Unknown constant expression in {}:{}",
+                                    peek()->getPosition().getFileName(),
+                                    peek()->getPosition().getLineNo())};
   }
 }
 
@@ -537,7 +548,10 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
         break;
       }
       default:
-        throw ParserError{"Failed to assign a default value for " + varDeclPtr->getVariable()->getToken()->getASTValueStr()};
+        throw ParserError{fmt::format("Failed to assign a default value for '{}' in {}:{}",
+                                      varDeclPtr->getVariable()->getToken()->getASTValueStr(),
+                                      varDeclPtr->getVariable()->getToken()->getPosition().getFileName(),
+                                      varDeclPtr->getVariable()->getToken()->getPosition().getLineNo())};
     }
   }
 

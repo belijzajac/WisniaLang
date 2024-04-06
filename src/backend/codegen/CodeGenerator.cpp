@@ -30,7 +30,7 @@ constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::regis
   return assigned;
 }
 
-void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> &instructions) {
+void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionPtr> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
       case Operation::LEA:
@@ -108,9 +108,8 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
     const auto start{data.m_start};
     const auto offset{data.m_offset};
 
-    const uint32_t newAddress{
-        static_cast<uint32_t>(kVirtualStartAddress + offset + m_textSection.size() + kTextOffset)};
-    const ByteArray bytes{newAddress};
+    const auto address{static_cast<uint32_t>(kVirtualStartAddress + offset + m_textSection.size() + kTextOffset)};
+    const ByteArray bytes{address};
 
     // Overwrite the instruction
     for (size_t i = 0; i < bytes.size(); i++) {
@@ -149,7 +148,7 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
   }
 }
 
-void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitLea(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -164,7 +163,7 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown lea instruction"};
 }
 
-void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
+void CodeGenerator::emitMove(const CodeGenerator::InstructionPtr &instruction, bool label) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -236,7 +235,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
   throw CodeGenerationError{"Unknown mov instruction"};
 }
 
-void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -255,7 +254,7 @@ void CodeGenerator::emitSysCall() {
   m_textSection.putBytes(std::byte{0x0f}, std::byte{0x05});
 }
 
-void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitPush(const CodeGenerator::InstructionPtr &instruction) {
   // push reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -289,7 +288,7 @@ void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction)
   throw CodeGenerationError{"Unknown push instruction"};
 }
 
-void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitPop(const CodeGenerator::InstructionPtr &instruction) {
   // pop reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -323,7 +322,7 @@ void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown pop instruction"};
 }
 
-void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitCall(const CodeGenerator::InstructionPtr &instruction) {
   m_textSection.putBytes(std::byte{0xe8});
 
   // call label
@@ -334,13 +333,13 @@ void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction)
   m_textSection.putValue<uint32_t>(0);
 }
 
-void CodeGenerator::emitLabel(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitLabel(const CodeGenerator::InstructionPtr &instruction) {
   const auto &label = instruction->getArg1()->getValue<std::string>();
   const auto offset = m_textSection.size();
   m_labels.emplace_back(Label{label, offset});
 }
 
-void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitCmp(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -355,7 +354,7 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown cmp instruction"};
 }
 
-void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -370,7 +369,7 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
   throw CodeGenerationError{"Unknown cmp byte ptr instruction"};
 }
 
-void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitJmp(const CodeGenerator::InstructionPtr &instruction) {
   const auto getOperandByte = [&]() -> std::byte {
     switch (instruction->getOperation()) {
       case Operation::JMP:
@@ -396,7 +395,7 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
   m_textSection.putBytes(std::byte{0x00});
 }
 
-void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitInc(const CodeGenerator::InstructionPtr &instruction) {
   // inc reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -430,7 +429,7 @@ void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown inc instruction"};
 }
 
-void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitDec(const CodeGenerator::InstructionPtr &instruction) {
   // dec reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -464,7 +463,7 @@ void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown dec instruction"};
 }
 
-void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitAdd(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -512,7 +511,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown add instruction"};
 }
 
-void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitSub(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -568,7 +567,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown sub instruction"};
 }
 
-void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitMul(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -616,7 +615,7 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown imul instruction"};
 }
 
-void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitDiv(const CodeGenerator::InstructionPtr &instruction) {
   // div reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -650,7 +649,7 @@ void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown div instruction"};
 }
 
-void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitXor(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -689,7 +688,7 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown xor instruction"};
 }
 
-void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitTest(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 

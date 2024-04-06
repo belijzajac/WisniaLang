@@ -76,7 +76,7 @@ class Lexer {
 
  public:
   explicit Lexer(std::string_view filename);
-  explicit Lexer(std::istringstream &sstream);
+  explicit Lexer(std::istringstream &stream);
 
   // Returns tokens
   const std::vector<TokenPtr> &getTokens() const { return m_tokens; }
