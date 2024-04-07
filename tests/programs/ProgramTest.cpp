@@ -33,7 +33,7 @@ class IProgramTestFixture : public testing::Test {
     CodeGenerator codeGenerator{};
     codeGenerator.generate(m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION));
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
-    elf.compile();
+    elf.writeELF();
   }
 
   void exec(std::string_view cmd) {

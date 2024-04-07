@@ -5,10 +5,10 @@
 #include <cassert>
 #include <iostream>
 // Wisnia
-#include "CodeFragment.hpp"
 #include "CodeGenerator.hpp"
 #include "ELF.hpp"
 #include "Instruction.hpp"
+#include "MachineCodeTable.hpp"
 #include "RegisterAllocator.hpp"
 #include "Token.hpp"
 
@@ -154,7 +154,7 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionPtr &instruction) {
 
   // lea reg, [rsp + number]
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getLeaMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getLeaMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -169,7 +169,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionPtr &instruction, b
 
   // mov reg, number
   if (target->getType() == TType::REGISTER && (argOne->isLiteralIntegerType() || argOne->getType() == TType::LIT_BOOL)) {
-    const auto bytes = CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     if (label) {
       m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<int>())});
@@ -181,7 +181,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionPtr &instruction, b
 
   // mov reg, bool
   if (target->getType() == TType::REGISTER && (argOne->getType() == TType::KW_TRUE || argOne->getType() == TType::KW_FALSE)) {
-    const auto bytes = CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<bool>() ? 1 : 0);
     return;
@@ -345,7 +345,7 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionPtr &instruction) {
 
   // cmp reg, number
   if (argOne->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argTwo->getValue<int>());
     return;
@@ -360,7 +360,7 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionPtr &instruct
 
   // cmp byte ptr [reg], number
   if (argOne->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint8_t>::getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint8_t>::getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
     return;
@@ -469,7 +469,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionPtr &instruction) {
 
   // add reg, number
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getAddMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getAddMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -517,7 +517,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionPtr &instruction) {
 
   // sub reg, number
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getSubMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getSubMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -573,7 +573,7 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionPtr &instruction) {
 
   // imul reg, number
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getMulMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getMulMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;

@@ -18,10 +18,10 @@ constexpr uint64_t kTextOffset{0x40 + (2 * 0x38)};
 class ELF {
  public:
   ELF(ByteArray textSection, ByteArray dataSection);
-  void compile();
+  void writeELF(std::string_view filename = "a.out");
 
  private:
-  ByteArray assembleELF();
+  ByteArray generateELF();
 
  private:
   ByteArray m_textSection{};

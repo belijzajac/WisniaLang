@@ -74,18 +74,18 @@ int main(int argc, char *argv[]) {
     if (config.dump == "tokens") {
       lexer.print(std::cout);
     }
-    SemanticAnalysis analysis;
+    SemanticAnalysis analysis{};
     root->accept(analysis);
     if (config.dump == "ast") {
       root->print(std::cout);
     }
-    IRGenerator generator;
-    root->accept(generator);
+    IRGenerator irGenerator{};
+    root->accept(irGenerator);
     if (config.dump == "ir") {
-      generator.printInstructions(std::cout, IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
+      irGenerator.printInstructions(std::cout, IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION);
     }
     CodeGenerator codeGenerator{};
-    codeGenerator.generate(generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION));
+    codeGenerator.generate(irGenerator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION));
     if (config.dump == "code") {
       if (const auto &data = codeGenerator.getDataSection(); data.size() > 0) {
         std::cout << "Data section:\n" << data << "\n\n";
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
       }
     }
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
-    elf.compile();
+    elf.writeELF();
   } catch (const WisniaError &ex) {
     std::cerr << ex.what() << "\n";
     return -1;
