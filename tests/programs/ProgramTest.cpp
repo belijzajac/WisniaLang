@@ -189,7 +189,7 @@ TEST_F(ProgramTest, PrintStringVariables) {
 TEST_F(ProgramTest, PrintMaxInt) {
   constexpr auto program = R"(
   fn main() {
-    int max = 2147483647; # mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
+    int max = 2147483647; // mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
     print(max);
   })"sv;
   SetUp(program);

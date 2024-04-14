@@ -106,9 +106,6 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
       else if (ch == '/') {
         m_tokenState.m_state = State::CMT_I;
       }
-      else if (ch == '#') {
-        m_tokenState.m_state = State::CMT_SINGLE;
-      }
       else if (std::any_of(kSimpleOperands.begin(), kSimpleOperands.end(), [&](char op) { return ch == op; })) {
         m_tokenState.m_buff = ch;
         return finishTok(Str2TokenOp[m_tokenState.m_buff]);
@@ -267,8 +264,10 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
     /* ~~~ CASE: CMT_I ~~~ */
     case State::CMT_I:
       if (ch == '*') {
-        // It's indeed a multi-line comment
         m_tokenState.m_state = State::CMT_II;
+        return {};
+      } else if (ch == '/') {
+        m_tokenState.m_state = State::CMT_SINGLE;
         return {};
       } else {
         // It was just a division symbol
@@ -325,7 +324,7 @@ void Lexer::tokenize(std::string_view filename) {
 
 void Lexer::tokenize(std::istringstream &stream) {
   m_tokenState.m_data = {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
-  m_tokenState.m_fileName = "string stream";
+  m_tokenState.m_fileName = "in-memory";
   tokenizeInput();
 }
 

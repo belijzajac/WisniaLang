@@ -612,10 +612,10 @@ TEST(ParserTest, IOStatements) {
 TEST(ParserTest, FunctionAndMehtodCalls) {
   constexpr auto program = R"(
   fn main() {
-    # function call
+    // function call
     foo(1, 2);
     bar{3, 4};
-    # method call
+    // method call
     obj.foo(5, 6);
     obj->bar(7, 8);
   }

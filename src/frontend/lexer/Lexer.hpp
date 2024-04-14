@@ -31,7 +31,7 @@ class Lexer {
     OP_PP,             // Unary prefix: ++
     OP_MM,             // Unary prefix: --
     ESCAPE_SEQ,        // Escapes \t, \n, etc.
-    CMT_SINGLE,        // Single line comment: #
+    CMT_SINGLE,        // Single line comment: //
     CMT_I,             // Escape multi-line comment (1)
     CMT_II,            // Escape multi-line comment (2)
     CMT_III,           // Escape multi-line comment (3)
