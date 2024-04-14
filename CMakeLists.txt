@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(WisniaLang)
 
-add_compile_definitions(WISNIA_VERSION="1.0.1-dev")
+add_compile_definitions(WISNIA_VERSION="1.0.2-dev")
 
 option(UNIT_TESTS "Build unit tests" OFF)
 
