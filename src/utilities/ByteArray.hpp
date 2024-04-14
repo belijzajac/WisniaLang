@@ -111,7 +111,7 @@ class ByteArray {
   }
 
  private:
-  Bytes m_byteData{};
+  Bytes m_byteData;
 };
 
 }  // namespace Wisnia

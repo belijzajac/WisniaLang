@@ -49,8 +49,9 @@ class SymbolTable {
     }
 
     const AST::VarExpr *findSymbol(const std::string &name) const {
-      if (auto search = m_info.find(name); search != m_info.end())
+      if (auto search = m_info.find(name); search != m_info.end()) {
         return search->second;
+      }
       if (m_parentScope) {
         return m_parentScope->findSymbol(name);
       }

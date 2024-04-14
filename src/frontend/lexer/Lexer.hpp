@@ -40,21 +40,21 @@ class Lexer {
   struct TokenState {
     // Info needed to construct a token and to tokenize a letter
     State m_state{State::START};
-    std::string m_buff{};
+    std::string m_buff;
 
     // Accessors to the actual data of the source file
-    std::string m_data{};
+    std::string m_data;
     std::string::iterator m_iterator;
 
     // Vague info about the source file
-    std::string m_fileName{};
+    std::string m_fileName;
     size_t m_lineNo{1};
 
     // String info
     size_t m_strStart{0};
 
     // Temp info
-    std::string m_errType{};
+    std::string m_errType;
   };
 
   // Having provided the TType, it constructs and returns a token

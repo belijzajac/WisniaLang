@@ -23,7 +23,9 @@ constexpr std::array<char, 9> kSimpleOperands{'.', '*', '(', ')', '{', '}', ',',
 
 Lexer::TokenPtr Lexer::finishTok(const TType &type, bool backtrack) {
   // We've over-gone by 1 character further by returning the token earlier, so step back
-  if (backtrack) --m_tokenState.m_iterator;
+  if (backtrack) {
+    --m_tokenState.m_iterator;
+  }
 
   m_tokenState.m_state = State::START;
   size_t lineNo = (type == TType::LIT_STR) ? m_tokenState.m_strStart : m_tokenState.m_lineNo;
@@ -62,8 +64,9 @@ Lexer::TokenPtr Lexer::finishTok(const TType &type, bool backtrack) {
 }
 
 Lexer::TokenPtr Lexer::finishIdent() {
-  if (auto search = Str2TokenKw.find(m_tokenState.m_buff); search != Str2TokenKw.end())
+  if (auto search = Str2TokenKw.find(m_tokenState.m_buff); search != Str2TokenKw.end()) {
     return finishTok(search->second, true);
+  }
   return finishTok(TType::IDENT, true);
 }
 
@@ -111,7 +114,9 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
         return finishTok(Str2TokenOp[m_tokenState.m_buff]);
       }
       else if (isspace(ch)) {
-        if (ch == '\n') ++m_tokenState.m_lineNo;
+        if (ch == '\n') {
+          ++m_tokenState.m_lineNo;
+        }
       }
       else {
         throw LexerError{fmt::format("Unrecognized character '{}' in {}:{}",
@@ -123,8 +128,12 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
 
     /* ~~~ CASE: IDENT ~~~ */
     case State::IDENT:
-      if (isspace(ch)) return finishIdent();
-      if (!isalpha(ch) && !isdigit(ch) && ch != '_') return finishIdent();
+      if (isspace(ch)) {
+        return finishIdent();
+      }
+      if (!isalpha(ch) && !isdigit(ch) && ch != '_') {
+        return finishIdent();
+      }
       m_tokenState.m_buff += ch;
       return {};
 
@@ -219,7 +228,9 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
     /* ~~~ CASE: ERRONEOUS_NUMBER ~~~ */
     case State::ERRONEOUS_NUMBER:
       if (isspace(ch)) {
-        if (ch == '\n') ++m_tokenState.m_lineNo;
+        if (ch == '\n') {
+          ++m_tokenState.m_lineNo;
+        }
         return finishTok(TType::TOK_INVALID);
       }
       m_tokenState.m_buff += ch;
@@ -227,19 +238,25 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
 
     /* ~~~ CASE: LOGIC_AND ~~~ */
     case State::LOGIC_AND:
-      if (ch == '&') return finishTok(TType::OP_AND);
+      if (ch == '&') {
+        return finishTok(TType::OP_AND);
+      }
       m_tokenState.m_errType = "ampersand";
       return finishTok(TType::TOK_INVALID, true);
 
     /* ~~~ CASE: LOGIC_OR ~~~ */
     case State::LOGIC_OR:
-      if (ch == '|') return finishTok(TType::OP_OR);
+      if (ch == '|') {
+        return finishTok(TType::OP_OR);
+      }
       m_tokenState.m_errType = "tilde";
       return finishTok(TType::TOK_INVALID, true);
 
     /* ~~~ CASE: OP_PP ~~~ */
     case State::OP_PP:
-      if (ch == '+') return finishTok(TType::OP_UADD);
+      if (ch == '+') {
+        return finishTok(TType::OP_UADD);
+      }
       return finishTok(TType::OP_ADD, true);
 
     /* ~~~ CASE: OP_MM ~~~ */
@@ -278,13 +295,11 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
     /* ~~~ CASE: CMT_II ~~~ */
     case State::CMT_II:
       if (ch == '*') {
-        // Maybe we've reached the multi-line comment closing
         m_tokenState.m_state = State::CMT_III;
       } else if (ch == '\n') {
-        // Newline
         ++m_tokenState.m_lineNo;
       } else if (ch == -1) {
-        // Found EOF
+        // Reached EOF
         throw LexerError{fmt::format("Multi-line comment was not closed in {}:{}",
                                      m_tokenState.m_fileName,
                                      m_tokenState.m_lineNo)};
@@ -294,7 +309,6 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
     /* ~~~ CASE: CMT_III ~~~ */
     case State::CMT_III:
       if (ch == '/') {
-        // It was indeed a multi-line comment closing
         m_tokenState.m_state = State::START;
       } else if (ch == -1) {
         // Reached EOF
@@ -302,7 +316,6 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
                                      m_tokenState.m_fileName,
                                      m_tokenState.m_lineNo)};
       } else if (ch != '*') {
-        // Any other symbol other than '/' must be skipped
         m_tokenState.m_state = State::CMT_II;
       }
       return {};
@@ -335,7 +348,9 @@ void Lexer::tokenizeInput() {
   // Add a newline at the end of the data if there's none already.
   // This comes in handy to save the last token from getting dismissed
   // when we reach the end of file and escape the condition `if(currState == MAIN)`
-  if (m_tokenState.m_data.back() != '\n') m_tokenState.m_data += '\n';
+  if (m_tokenState.m_data.back() != '\n') {
+    m_tokenState.m_data += '\n';
+  }
 
   // Set an iterator to the beginning of the data
   // And file name for the file being tokenized at the moment

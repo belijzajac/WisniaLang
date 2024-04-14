@@ -182,15 +182,15 @@ void IRGenerator::visit(AST::Root &node) {
   }
 
   // Load modules
-  auto [moduleCalculateStringLength, moduleCalculateStringLengthUsed] = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
-  auto [modulePrintNumber, modulePrintNumberUsed] = Modules::getModule(Module::PRINT_NUMBER);
-  auto [modulePrintBoolean, modulePrintBooleanUsed] = Modules::getModule(Module::PRINT_BOOLEAN);
-  auto [moduleExit, moduleExitUsed] = Modules::getModule(Module::EXIT);
+  auto [module1, module1Used] = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
+  auto [module2, module2Used] = Modules::getModule(Module::PRINT_NUMBER);
+  auto [module3, module3Used] = Modules::getModule(Module::PRINT_BOOLEAN);
+  auto [module4, module4Used] = Modules::getModule(Module::EXIT);
 
-  if (moduleCalculateStringLengthUsed) registerAllocator.allocate(std::move(moduleCalculateStringLength), false);
-  if (modulePrintNumberUsed) registerAllocator.allocate(std::move(modulePrintNumber), false);
-  if (modulePrintBooleanUsed) registerAllocator.allocate(std::move(modulePrintBoolean), false);
-  if (moduleExitUsed) registerAllocator.allocate(std::move(moduleExit), false);
+  if (module1Used) registerAllocator.allocate(std::move(module1), false);
+  if (module2Used) registerAllocator.allocate(std::move(module2), false);
+  if (module3Used) registerAllocator.allocate(std::move(module3), false);
+  if (module4Used) registerAllocator.allocate(std::move(module4), false);
 
   // Instruction optimization
   const auto &instructions = getInstructions(Transformation::REGISTER_ALLOCATION);

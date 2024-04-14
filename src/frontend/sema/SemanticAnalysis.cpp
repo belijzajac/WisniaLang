@@ -297,8 +297,12 @@ void SemanticAnalysis::visit(AST::ClassDef &node) {
   for (const auto &field : node.getFields()) {
     field->accept(*this);
   }
-  if (node.getConstructor()) node.getConstructor()->accept(*this);
-  if (node.getDestructor()) node.getDestructor()->accept(*this);
+  if (node.getConstructor()) {
+    node.getConstructor()->accept(*this);
+  }
+  if (node.getDestructor()) {
+    node.getDestructor()->accept(*this);
+  }
   for (const auto &method : node.getMethods()) {
     method->accept(*this);
   }

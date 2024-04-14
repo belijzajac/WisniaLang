@@ -119,7 +119,9 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
   while (hasNext() && !has(TType::OP_PAREN_C)) {
     paramsList.push_back(parseParam());
     // Check whether we've parsed all params already
-    if (has(TType::OP_PAREN_C)) break;
+    if (has(TType::OP_PAREN_C)) {
+      break;
+    }
     // If not, continue parsing
     expect(TType::OP_COMMA);
   }
@@ -145,7 +147,9 @@ std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
 std::unique_ptr<BaseStmt> Parser::parseStmtBlock() {
   expect(TType::OP_BRACE_O);  // expect "{"
   auto stmtBlock = std::make_unique<StmtBlock>();
-  while (hasNext() && !has(TType::OP_BRACE_C)) stmtBlock->addStatement(parseStmt());
+  while (hasNext() && !has(TType::OP_BRACE_C)) {
+    stmtBlock->addStatement(parseStmt());
+  }
   expect(TType::OP_BRACE_C);  // expect "}"
   return stmtBlock;
 }
@@ -173,14 +177,17 @@ std::unique_ptr<BaseStmt> Parser::parseStmt() {
     case TType::KW_BOOL:
     case TType::KW_FLOAT:
     case TType::KW_STRING:
-      if (has2(TType::IDENT))
+      if (has2(TType::IDENT)) {
         return parseVarDeclStmt();
+      }
     // <ASSIGNMENT_STMT>
-    case TType::IDENT: {         // "a"
-      if (has2(TType::OP_ASSN))  // "a="
+    case TType::IDENT: { // "a"
+      if (has2(TType::OP_ASSN)) {
+        // "a="
         return parseVarAssignStmt();
-      else  // "a(", "a{", "a.", "a->"
-        return parseExprStmt();
+      }
+      // "a(", "a{", "a.", "a->"
+      return parseExprStmt();
     }
     // <IO_STMT>
     case TType::KW_READ:
@@ -207,12 +214,11 @@ std::unique_ptr<BaseStmt> Parser::parseReturnStmt() {
   if (has(TType::OP_SEMICOLON)) {  // if the following token is ";"
     consume();                     // eat ";"
     return std::make_unique<ReturnStmt>();
-  } else {
-    auto returnStmt = std::make_unique<ReturnStmt>();
-    returnStmt->addReturnValue(parseExpr());
-    expect(TType::OP_SEMICOLON);   // expect ";"
-    return returnStmt;
   }
+  auto returnStmt = std::make_unique<ReturnStmt>();
+  returnStmt->addReturnValue(parseExpr());
+  expect(TType::OP_SEMICOLON);   // expect ";"
+  return returnStmt;
 }
 
 // <EXPRESSION> ::= <AND_EXPR> | <EXPRESSION> <OR_SYMB> <AND_EXPR>
@@ -383,14 +389,17 @@ std::unique_ptr<BaseExpr> Parser::parseSomeExpr() {
 // Returns any of the following: <VAR> | <FN_CALL> | <CLASS_M_CALL>
 std::unique_ptr<BaseExpr> Parser::parseVarExp() {
   // <FN_CALL>
-  if (has2(TType::OP_PAREN_O) || has2(TType::OP_BRACE_O))  // a( or a{
+  if (has2(TType::OP_PAREN_O) || has2(TType::OP_BRACE_O)) {
+    // a( or a{
     return parseFnCall();
+  }
   // <CLASS_M_CALL>
-  else if (has2(TType::OP_METHOD_CALL) || has2(TType::OP_FN_ARROW))  // a. or a->
+  if (has2(TType::OP_METHOD_CALL) || has2(TType::OP_FN_ARROW)) {
+    // a. or a->
     return parseMethodCall();
+  }
   // <VAR>
-  else
-    return parseVar();
+  return parseVar();
 }
 
 // <FN_CALL> ::= <IDENT> <ARGUMENTS>
@@ -444,7 +453,9 @@ std::vector<std::unique_ptr<BaseExpr>> Parser::parseArgsList() {
     auto arg = parseExpr();
     argsList.push_back(std::move(arg));
     // Check whether we've parsed all args
-    if (has(argsExpType)) break;
+    if (has(argsExpType)) {
+      break;
+    }
     // If not, continue parsing
     expect(TType::OP_COMMA);
   }
@@ -495,9 +506,8 @@ std::unique_ptr<BaseStmt> Parser::parseLoopBrkStmt() {
   expect(TType::OP_SEMICOLON);      // expect ";" following the statement
   if (tokenName->getType() == TType::KW_BREAK) {
     return std::make_unique<BreakStmt>(tokenName);
-  } else {
-    return std::make_unique<ContinueStmt>(tokenName);
   }
+  return std::make_unique<ContinueStmt>(tokenName);
 }
 
 // <VAR_DECL> <STMT_END>
@@ -573,7 +583,9 @@ std::unique_ptr<BaseStmt> Parser::parseVarAssignStmt(bool expectSemicolon) {
   varAssignPtr->addVariable(parseVar());
   expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=
   varAssignPtr->addValue(parseExpr());
-  if (expectSemicolon) expect(TType::OP_SEMICOLON);
+  if (expectSemicolon) {
+    expect(TType::OP_SEMICOLON);
+  }
   return varAssignPtr;
 }
 
@@ -593,16 +605,18 @@ std::unique_ptr<BaseStmt> Parser::parseIOStmt() {
 // <INPUT_STMT> ::= "read" "(" <INPUT_SEQ> ")"
 // <INPUT_SEQ>  ::= <VAR> | <INPUT_SEQ> "," <VAR>
 std::unique_ptr<BaseStmt> Parser::parseReadIOStmt() {
-  expect(TType::KW_READ);           // expect "read"
+  expect(TType::KW_READ);    // expect "read"
   auto readIO = std::make_unique<ReadStmt>();
-  expect(TType::OP_PAREN_O);        // expect "("
+  expect(TType::OP_PAREN_O); // expect "("
   // <INPUT_SEQ>
-  while (hasNext()) {               // a, b, c
+  while (hasNext()) {        // a, b, c
     readIO->addVariable(parseVar());
-    if (has(TType::OP_COMMA))
-      consume();                    // eat ","
-    else
+    if (has(TType::OP_COMMA)) {
+      consume();             // eat ","
+    }
+    else {
       break;
+    }
   }
   expect(TType::OP_PAREN_C);        // expect ")"
   expect(TType::OP_SEMICOLON);
@@ -612,16 +626,18 @@ std::unique_ptr<BaseStmt> Parser::parseReadIOStmt() {
 // <OUTPUT_STMT> ::= "print" "(" <OUTPUT_SEQ> ")"
 // <OUTPUT_SEQ>  ::= <EXPRESSION> | <OUTPUT_SEQ> "," <EXPRESSION>
 std::unique_ptr<BaseStmt> Parser::parseWriteIOStmt() {
-  expect(TType::KW_PRINT);          // expect "print"
+  expect(TType::KW_PRINT);   // expect "print"
   auto writeIO = std::make_unique<WriteStmt>();
-  expect(TType::OP_PAREN_O);        // expect "("
+  expect(TType::OP_PAREN_O); // expect "("
   // <OUTPUT_SEQ>
-  while (hasNext()) {               // a, b, c
+  while (hasNext()) {        // a, b, c
     writeIO->addExpression(parseExpr());
-    if (has(TType::OP_COMMA))
-      consume();                    // eat ","
-    else
+    if (has(TType::OP_COMMA)) {
+      consume();             // eat ","
+    }
+    else {
       break;
+    }
   }
   expect(TType::OP_PAREN_C);        // expect ")"
   expect(TType::OP_SEMICOLON);
@@ -631,14 +647,15 @@ std::unique_ptr<BaseStmt> Parser::parseWriteIOStmt() {
 // <LOOP_STMT> ::= <WHILE_LOOP> | <FOR_LOOP> | <FOREACH_LOOP>
 std::unique_ptr<BaseLoop> Parser::parseLoops() {
   // <WHILE_LOOP>
-  if (has(TType::KW_WHILE))
+  if (has(TType::KW_WHILE)) {
     return parseWhileLoop();
+  }
   // <FOR_LOOP>
-  else if (has(TType::KW_FOR))
+  if (has(TType::KW_FOR)) {
     return parseForLoop();
+  }
   // <FOREACH_LOOP>
-  else
-    return parseForEachLoop();
+  return parseForEachLoop();
 }
 
 // <WHILE_LOOP> ::= "while" "(" <EXPRESSION> ")" <STMT_BLOCK>
@@ -732,12 +749,14 @@ std::vector<std::unique_ptr<BaseIf>> Parser::parseMultipleElseBlock() {
   };
 
   // Parse elif blocks while there are any left
-  while (has(TType::KW_ELIF))
+  while (has(TType::KW_ELIF)) {
     elseBlocks.push_back(elifBodyPtr());
+  }
 
   // Eventually, parse the else block
-  if (has(TType::KW_ELSE))
+  if (has(TType::KW_ELSE)) {
     elseBlocks.push_back(elseBodyPtr());
+  }
 
   return elseBlocks;
 }
