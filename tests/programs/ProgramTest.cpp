@@ -33,7 +33,7 @@ class IProgramTestFixture : public testing::Test {
     CodeGenerator codeGenerator{};
     codeGenerator.generate(m_generator.getInstructions(IRGenerator::Transformation::INSTRUCTION_OPTIMIZATION));
     ELF elf{codeGenerator.getTextSection(), codeGenerator.getDataSection()};
-    elf.compile();
+    elf.writeELF();
   }
 
   void exec(std::string_view cmd) {
@@ -189,7 +189,7 @@ TEST_F(ProgramTest, PrintStringVariables) {
 TEST_F(ProgramTest, PrintMaxInt) {
   constexpr auto program = R"(
   fn main() {
-    int max = 2147483647; # mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
+    int max = 2147483647; // mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
     print(max);
   })"sv;
   SetUp(program);

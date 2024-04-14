@@ -19,6 +19,7 @@ namespace Wisnia {
 class Instruction;
 
 class IRGenerator : public Visitor {
+  using TokenPtr = std::shared_ptr<Basic::Token>;
   using InstructionList = std::vector<std::shared_ptr<Instruction>>;
   using TemporaryVariableList = std::vector<std::shared_ptr<AST::VarExpr>>;
 
@@ -119,8 +120,7 @@ class IRGenerator : public Visitor {
   // In general, we want literal types to be associated with variables, but in the case of
   // "AST::WriteStmt", we perform a compile-time optimization to prevent loading modules for
   // printing variables whose values we already know at compile time
-  std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> getExpression(
-      AST::Root &node, bool createVariableForLiteral = true);
+  std::tuple<TokenPtr, Basic::TType> getExpression(AST::Root &node, bool createVariableForLiteral = true);
 
  private:
   std::stack<AST::Root *> m_stack;

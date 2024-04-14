@@ -4,8 +4,7 @@
 #ifndef WISNIALANG_AST_DEFINITIONS_HPP
 #define WISNIALANG_AST_DEFINITIONS_HPP
 
-// Wisnia
-#include "Root.hpp"
+#include <utility>
 
 namespace Wisnia {
 namespace Basic {
@@ -14,10 +13,10 @@ class Token;
 
 namespace AST {
 
-class Param : public Root {
+class Param : public Root, public VariableMixin {
  public:
-  explicit Param(const std::shared_ptr<Basic::Token> &tok)
-      : Root(tok) {}
+  explicit Param(TokenPtr token)
+      : Root(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -29,104 +28,67 @@ class Param : public Root {
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
-    m_var->print(output, level);
+    getVariable()->print(output, level);
   }
-
-  void addType(std::unique_ptr<BaseType> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVar(std::unique_ptr<BaseExpr> var) {
-    m_var = std::move(var);
-  }
-
-  const std::unique_ptr<BaseExpr> &getVar() const {
-    return m_var;
-  }
-
- private:
-  std::unique_ptr<BaseExpr> m_var;
 };
 
-class BaseDef : public Root {
+class BaseDef : public Root, public VariableMixin {
  public:
-  explicit BaseDef(const std::shared_ptr<Basic::Token> &tok)
-      : Root(tok) {}
+  explicit BaseDef(TokenPtr token)
+      : Root(std::move(token)) {}
 
   void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
-    m_var->print(output, level);
+    getVariable()->print(output, level);
   }
-
-  void addType(std::unique_ptr<BaseType> type) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
-      varPtr->addType(std::move(type));
-    }
-  }
-
-  void addVar(std::unique_ptr<BaseExpr> var) {
-    m_var = std::move(var);
-  }
-
-  const std::unique_ptr<BaseExpr> &getVar() const {
-    return m_var;
-  }
-
- protected:
-  std::unique_ptr<BaseExpr> m_var;
 };
 
 class MethodDef : public BaseDef {
+  using ParameterPtr = std::unique_ptr<Param>;
+  using BodyPtr      = std::unique_ptr<BaseStmt>;
+
  public:
-  explicit MethodDef(const std::shared_ptr<Basic::Token> &tok)
-      : BaseDef(tok) {}
+  explicit MethodDef(TokenPtr token)
+      : BaseDef(std::move(token)) {}
 
   void accept(Visitor &) override = 0;
 
   void print(std::ostream &output, size_t level) const override {
     BaseDef::print(output, level++);
-    for (const auto &param : m_params) {
+    for (const auto &param : m_parameters) {
       param->print(output, level);
     }
   }
 
-  void addRetType(std::unique_ptr<BaseType> type) {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
-      varPtr->addType(std::move(type));
-    }
+  void addParameters(std::vector<ParameterPtr> params) {
+    m_parameters = std::move(params);
   }
 
-  void addParams(std::vector<std::unique_ptr<Param>> params) {
-    m_params = std::move(params);
-  }
-
-  void addBody(std::unique_ptr<BaseStmt> body) {
+  void addBody(BodyPtr body) {
     m_body = std::move(body);
   }
 
-  const std::vector<std::unique_ptr<Param>> &getParams() const {
-    return m_params;
+  const std::vector<ParameterPtr> &getParameters() const {
+    return m_parameters;
   }
 
-  const std::unique_ptr<BaseStmt> &getBody() const {
+  const BodyPtr &getBody() const {
     return m_body;
   }
 
  protected:
-  std::unique_ptr<BaseStmt> m_body;
+  BodyPtr m_body;
 
  private:
-  std::vector<std::unique_ptr<Param>> m_params;
+  std::vector<ParameterPtr> m_parameters;
 };
 
 class FnDef : public MethodDef {
  public:
-  explicit FnDef(const std::shared_ptr<Basic::Token> &tok)
-      : MethodDef(tok) {}
+  explicit FnDef(TokenPtr token)
+      : MethodDef(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -144,8 +106,8 @@ class FnDef : public MethodDef {
 
 class CtorDef : public MethodDef {
  public:
-  explicit CtorDef(const std::shared_ptr<Basic::Token> &tok)
-      : MethodDef(tok) {}
+  explicit CtorDef(TokenPtr token)
+      : MethodDef(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -163,8 +125,8 @@ class CtorDef : public MethodDef {
 
 class DtorDef : public MethodDef {
  public:
-  explicit DtorDef(const std::shared_ptr<Basic::Token> &tok)
-      : MethodDef(tok) {}
+  explicit DtorDef(TokenPtr token)
+      : MethodDef(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -180,10 +142,12 @@ class DtorDef : public MethodDef {
   }
 };
 
-class Field : public Root {
+class Field : public Root, public VariableMixin {
+  using ValuePtr = std::unique_ptr<BaseExpr>;
+
  public:
-  explicit Field(const std::shared_ptr<Basic::Token> &tok)
-      : Root(tok) {}
+  explicit Field(TokenPtr token)
+      : Root(std::move(token)) {}
 
   Field() = default;
 
@@ -197,40 +161,30 @@ class Field : public Root {
 
   void print(std::ostream &output, size_t level) const override {
     Root::print(output, level++);
-    m_var->print(output, level);
+    getVariable()->print(output, level);
   }
 
-  void addType(std::unique_ptr<BaseType> varType) const {
-    if (auto varPtr = dynamic_cast<AST::VarExpr*>(m_var.get())) {
-      varPtr->addType(std::move(varType));
-    }
-  }
-
-  void addVar(std::unique_ptr<BaseExpr> var) {
-    m_var = std::move(var);
-  }
-
-  void addValue(std::unique_ptr<BaseExpr> varValue) {
+  void addValue(ValuePtr varValue) {
     m_value = std::move(varValue);
   }
 
-  const std::unique_ptr<BaseExpr> &getVar() const {
-    return m_var;
-  }
-
-  const std::unique_ptr<BaseExpr> &getValue() const {
+  const ValuePtr &getValue() const {
     return m_value;
   }
 
  private:
-  std::unique_ptr<BaseExpr> m_var;
-  std::unique_ptr<BaseExpr> m_value;
+  ValuePtr m_value;
 };
 
 class ClassDef : public BaseDef {
+  using ConstructorPtr = std::unique_ptr<BaseDef>;
+  using DestructorPtr  = std::unique_ptr<BaseDef>;
+  using MethodPtr      = std::unique_ptr<BaseDef>;
+  using FieldPtr       = std::unique_ptr<Field>;
+
  public:
-  explicit ClassDef(const std::shared_ptr<Basic::Token> &tok)
-      : BaseDef(tok) {}
+  explicit ClassDef(TokenPtr token)
+      : BaseDef(std::move(token)) {}
 
   void accept(Visitor &v) override {
     v.visit(*this);
@@ -242,8 +196,8 @@ class ClassDef : public BaseDef {
 
   void print(std::ostream &output, size_t level) const override {
     BaseDef::print(output, level++);
-    if (m_ctor) m_ctor->print(output, level);
-    if (m_dtor) m_dtor->print(output, level);
+    if (m_constructor) m_constructor->print(output, level);
+    if (m_destructor) m_destructor->print(output, level);
     for (const auto &method : m_methods) {
       method->print(output, level);
     }
@@ -252,43 +206,43 @@ class ClassDef : public BaseDef {
     }
   }
 
-  void addCtor(std::unique_ptr<BaseDef> ctor) {
-    m_ctor = std::move(ctor);
+  void addConstructor(ConstructorPtr constructor) {
+    m_constructor = std::move(constructor);
   }
 
-  void addDtor(std::unique_ptr<BaseDef> dtor) {
-    m_dtor = std::move(dtor);
+  void addDestructor(DestructorPtr destructor) {
+    m_destructor = std::move(destructor);
   }
 
-  void addMethod(std::unique_ptr<BaseDef> method) {
+  void addMethod(MethodPtr method) {
     m_methods.push_back(std::move(method));
   }
 
-  void addField(std::unique_ptr<Field> field) {
+  void addField(FieldPtr field) {
     m_fields.push_back(std::move(field));
   }
 
-  const std::unique_ptr<BaseDef> &getCtor() const {
-    return m_ctor;
+  const ConstructorPtr &getConstructor() const {
+    return m_constructor;
   }
 
-  const std::unique_ptr<BaseDef> &getDtor() const {
-    return m_dtor;
+  const DestructorPtr &getDestructor() const {
+    return m_destructor;
   }
 
-  const std::vector<std::unique_ptr<BaseDef>> &getMethods() const {
+  const std::vector<MethodPtr> &getMethods() const {
     return m_methods;
   }
 
-  const std::vector<std::unique_ptr<Field>> &getFields() const {
+  const std::vector<FieldPtr> &getFields() const {
     return m_fields;
   }
 
  private:
-  std::unique_ptr<BaseDef> m_ctor;
-  std::unique_ptr<BaseDef> m_dtor;
-  std::vector<std::unique_ptr<BaseDef>> m_methods;
-  std::vector<std::unique_ptr<Field>> m_fields;
+  ConstructorPtr m_constructor;
+  DestructorPtr m_destructor;
+  std::vector<MethodPtr> m_methods;
+  std::vector<FieldPtr> m_fields;
 };
 
 }  // namespace AST

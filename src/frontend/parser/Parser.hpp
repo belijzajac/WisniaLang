@@ -29,6 +29,8 @@ class Field;
 }  // namespace AST
 
 class Parser {
+  using TokenPtr = std::shared_ptr<Basic::Token>;
+
  public:
   explicit Parser(const Lexer &lexer);
 
@@ -53,21 +55,21 @@ class Parser {
   void expect(const Basic::TType &token);
 
   // Returns an instance of the current token
-  const std::shared_ptr<Basic::Token> &curr() const {
+  const TokenPtr &curr() const {
     assert(m_pos < m_tokens.size());
     return m_tokens[m_pos];
   }
 
   // Consumes and returns current token
   // Used for obtaining tokens that represent names
-  const std::shared_ptr<Basic::Token> &getNextToken() {
+  const TokenPtr &getNextToken() {
     assert(hasNext());
     consume();
     return m_tokens[m_pos];
   }
 
   // Returns an instance of the following token (peeks)
-  const std::shared_ptr<Basic::Token> &peek() const {
+  const TokenPtr &peek() const {
     assert(hasNext());
     return m_tokens[m_pos + 1];
   }
@@ -79,7 +81,7 @@ class Parser {
   bool hasNext() const { return m_pos + 1 < m_tokens.size(); }
 
   // Tokens stream copied from Lexer through constructor call
-  std::vector<std::shared_ptr<Basic::Token>> m_tokens;
+  std::vector<TokenPtr> m_tokens;
 
  private:
   // Parses identifier

@@ -1,8 +1,8 @@
 // Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
 // SPDX-License-Identifier: GPL-3.0
 
-#ifndef WISNIALANG_CODE_FRAGMENT_HPP
-#define WISNIALANG_CODE_FRAGMENT_HPP
+#ifndef WISNIALANG_MACHINE_CODE_TABLE_HPP
+#define WISNIALANG_MACHINE_CODE_TABLE_HPP
 
 #include <cstdint>
 // Wisnia
@@ -12,10 +12,10 @@
 namespace Wisnia {
 
 template <typename T>
-class CodeFragment {};
+class MachineCodeTable {};
 
 template <>
-class CodeFragment<uint8_t> {
+class MachineCodeTable<uint8_t> {
 public:
   // machine code for `cmp byte ptr` instruction
   static constexpr ByteArray getCmpPtrMachineCode(Basic::register_t reg) {
@@ -42,7 +42,7 @@ public:
 };
 
 template <>
-class CodeFragment<uint32_t> {
+class MachineCodeTable<uint32_t> {
 public:
   // machine code for 32-bit mov instruction
   static constexpr ByteArray getMovMachineCode(Basic::register_t reg) {
@@ -171,4 +171,4 @@ public:
 
 }  // namespace Wisnia
 
-#endif  // WISNIALANG_CODE_FRAGMENT_HPP
+#endif  // WISNIALANG_MACHINE_CODE_TABLE_HPP

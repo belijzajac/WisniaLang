@@ -52,8 +52,8 @@ TEST_F(RegisterAllocatorTest, RegisterForEachVariable) {
     int m = 13;
     int n = 14;
     int o = 15;
-    int p = 16; # expected to be spilled
-    int r = 17; # expected to be spilled
+    int p = 16; // expected to be spilled
+    int r = 17; // expected to be spilled
     int sum = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + r;
   })"sv;
   SetUp(program.data());

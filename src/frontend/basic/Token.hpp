@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <variant>
 // Wisnia
 #include "Exceptions.hpp"
@@ -24,11 +25,11 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 class Token {
  public:
-  Token(TType type, const TokenValue &value, std::unique_ptr<Position> pif = nullptr)
-      : m_type{type}, m_value{value}, m_position{std::move(pif)} {}
+  Token(TType type, TokenValue value, std::unique_ptr<Position> pif = nullptr)
+      : m_type{type}, m_value{std::move(value)}, m_position{std::move(pif)} {}
 
-  Token(TType type, const TokenValue &value, const Position &pif)
-      : m_type{type}, m_value{value}, m_position{std::make_unique<Position>(pif)} {}
+  Token(TType type, TokenValue value, const Position &pif)
+      : m_type{type}, m_value{std::move(value)}, m_position{std::make_unique<Position>(pif)} {}
 
   template <typename T>
   T getValue() const {
@@ -67,7 +68,7 @@ class Token {
               case '\t': temp += "\\t"; break;
               case '\v': temp += "\\v"; break;
               case '\n': temp += "\\n"; break;
-              case '\"': temp += "\\"; break;
+              case '\"': temp += "\\";  break;
               case '\0': temp += "\\0"; break;
               default  : temp += ch;
             }

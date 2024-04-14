@@ -4,12 +4,14 @@
 #ifndef WISNIALANG_POSITION_HPP
 #define WISNIALANG_POSITION_HPP
 
+#include <utility>
+
 namespace Wisnia::Basic {
 
 class Position {
  public:
-  Position(const std::string &file, size_t line)
-      : m_fileName{file}
+  Position(std::string file, size_t line)
+      : m_fileName{std::move(file)}
       , m_lineNo{line}
   {}
   std::string getFileName() const { return m_fileName; }

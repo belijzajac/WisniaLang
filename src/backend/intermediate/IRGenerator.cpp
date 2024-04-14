@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <ranges>
+#include <algorithm>
 // Wisnia
 #include "AST.hpp"
 #include "IRGenerator.hpp"
@@ -110,9 +111,8 @@ void IRGenerator::createBinaryExpression(Basic::TType expressionType) {
   ));
 }
 
-std::tuple<std::shared_ptr<Basic::Token>, Basic::TType> IRGenerator::getExpression(
-    Root &node, bool createVariableForLiteral) {
-  std::shared_ptr<Basic::Token> token;
+std::tuple<IRGenerator::TokenPtr, Basic::TType> IRGenerator::getExpression(Root &node, bool createVariableForLiteral) {
+  IRGenerator::TokenPtr token;
   TType type;
 
   if (dynamic_cast<AST::BinaryExpr *>(&node)) {
@@ -182,15 +182,15 @@ void IRGenerator::visit(AST::Root &node) {
   }
 
   // Load modules
-  auto [moduleCalculateStringLength, moduleCalculateStringLengthUsed] = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
-  auto [modulePrintNumber, modulePrintNumberUsed] = Modules::getModule(Module::PRINT_NUMBER);
-  auto [modulePrintBoolean, modulePrintBooleanUsed] = Modules::getModule(Module::PRINT_BOOLEAN);
-  auto [moduleExit, moduleExitUsed] = Modules::getModule(Module::EXIT);
+  auto [module1, module1Used] = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
+  auto [module2, module2Used] = Modules::getModule(Module::PRINT_NUMBER);
+  auto [module3, module3Used] = Modules::getModule(Module::PRINT_BOOLEAN);
+  auto [module4, module4Used] = Modules::getModule(Module::EXIT);
 
-  if (moduleCalculateStringLengthUsed) registerAllocator.allocate(std::move(moduleCalculateStringLength), false);
-  if (modulePrintNumberUsed) registerAllocator.allocate(std::move(modulePrintNumber), false);
-  if (modulePrintBooleanUsed) registerAllocator.allocate(std::move(modulePrintBoolean), false);
-  if (moduleExitUsed) registerAllocator.allocate(std::move(moduleExit), false);
+  if (module1Used) registerAllocator.allocate(std::move(module1), false);
+  if (module2Used) registerAllocator.allocate(std::move(module2), false);
+  if (module3Used) registerAllocator.allocate(std::move(module3), false);
+  if (module4Used) registerAllocator.allocate(std::move(module4), false);
 
   // Instruction optimization
   const auto &instructions = getInstructions(Transformation::REGISTER_ALLOCATION);
@@ -248,23 +248,25 @@ void IRGenerator::visit(AST::DivExpr &node) {
 
 void IRGenerator::visit(AST::UnaryExpr &node) {
   node.lhs()->accept(*this);
-  throw NotImplementedError{"Unary expressions are not supported"};
+  throw NotImplementedError{fmt::format("Unary expressions are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::FnCallExpr &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
 
   // suboptimal approach to avoid overriding registers inside the called function
-  for (auto reg : registers) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
+  std::transform(registers.begin(), registers.end(), std::back_inserter(m_instructions), [&](auto reg) {
+    return std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
       std::make_shared<Basic::Token>(TType::REGISTER, reg)
-    ));
-  }
+    );
+  });
 
-  for (const auto &arg : node.getArgs()) {
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
     const auto &[argToken, _] = getExpression(*arg);
     auto varToken = std::make_shared<Basic::Token>(
@@ -284,28 +286,30 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
     ));
   }
 
-  const auto &functionName = node.getFnName();
+  const auto &functionName = node.getFunctionName();
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::CALL,
     std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getValue<std::string>())
   ));
 
   // following the function call, restore old register values
-  for (auto reg : std::ranges::reverse_view(registers)) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
+  std::transform(std::ranges::rbegin(registers), std::ranges::rend(registers), std::back_inserter(m_instructions), [](auto reg) {
+    return std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
       std::make_shared<Basic::Token>(TType::REGISTER, reg)
-    ));
-  }
+    );
+  });
 }
 
 void IRGenerator::visit(AST::ClassInitExpr &node) {
-  node.getVar()->accept(*this);
-  for (const auto &arg : node.getArgs()) {
+  node.getVariable()->accept(*this);
+  for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
-  throw NotImplementedError{"Class initialization expressions are not supported"};
+  throw NotImplementedError{fmt::format("Class initialization expressions are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::IntExpr &node) {
@@ -340,12 +344,16 @@ void IRGenerator::visit(AST::ReturnStmt &node) {
   ));
 }
 
-void IRGenerator::visit(AST::BreakStmt &) {
-  throw NotImplementedError{"Break statements are not supported"};
+void IRGenerator::visit(AST::BreakStmt &node) {
+  throw NotImplementedError{fmt::format("Break statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ContinueStmt &) {
-  throw NotImplementedError{"Continue statements are not supported"};
+void IRGenerator::visit(AST::ContinueStmt &node) {
+  throw NotImplementedError{fmt::format("Continue statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::VarDeclStmt &node) {
@@ -353,32 +361,34 @@ void IRGenerator::visit(AST::VarDeclStmt &node) {
   const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    node.getVar()->getToken(), // int a
-    token                      // _tx
+    node.getVariable()->getToken(), // int a
+    token                           // _tx
   ));
 }
 
 void IRGenerator::visit(AST::VarAssignStmt &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 
   const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
-    node.getVar()->getToken(),
+    node.getVariable()->getToken(),
     token
   ));
 }
 
 void IRGenerator::visit(AST::ExprStmt &node) {
-  node.getExpr()->accept(*this);
+  node.getExpression()->accept(*this);
 }
 
 void IRGenerator::visit(AST::ReadStmt &node) {
-  for (const auto &var : node.getVars()) {
+  for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
-  throw NotImplementedError{"Read statements are not supported"};
+  throw NotImplementedError{fmt::format("Read statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 /*
@@ -389,11 +399,11 @@ void IRGenerator::visit(AST::ReadStmt &node) {
   syscall            ;; make the system call
 */
 void IRGenerator::visit(AST::WriteStmt &node) {
-  for (const auto &expr : node.getExprs()) {
+  for (const auto &expr : node.getExpressions()) {
     expr->accept(*this);
   }
 
-  for (const auto &expr : node.getExprs()) {
+  for (const auto &expr : node.getExpressions()) {
     const auto &[token, type] = getExpression(*expr, false);
 
     if (token->isIdentifierType()) {
@@ -466,9 +476,13 @@ void IRGenerator::visit(AST::WriteStmt &node) {
           Modules::markAsUsed(Module::PRINT_BOOLEAN);
           continue;
         case TType::IDENT_FLOAT:
-          throw InstructionError{"Float variables are not supported"};
+          throw InstructionError{fmt::format("Float variables are not supported in print statements in {}:{}",
+                                             token->getPosition().getFileName(),
+                                             token->getPosition().getLineNo())};
         default:
-          throw InstructionError{"Unknown variable type"};
+          throw InstructionError{fmt::format("Unknown variable type for print statement in {}:{}",
+                                             token->getPosition().getFileName(),
+                                             token->getPosition().getLineNo())};
       }
     }
 
@@ -565,15 +579,17 @@ void IRGenerator::visit(AST::WriteStmt &node) {
 }
 
 void IRGenerator::visit(AST::Param &node) {
-  node.getVar()->accept(*this);
-  throw NotImplementedError{"Function parameters are not supported"};
+  node.getVariable()->accept(*this);
+  throw NotImplementedError{fmt::format("Function parameters are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::FnDef &node) {
-  node.getVar()->accept(*this);
+  node.getVariable()->accept(*this);
   const auto &functionName = popNode();
   const auto functionNameStr = functionName.getToken()->getValue<std::string>();
-  std::shared_ptr<Basic::Token> returnAddressToken;
+  IRGenerator::TokenPtr returnAddressToken;
 
   if (functionNameStr != "main") {
     // the main function doesn't require a label indicating where it begins
@@ -597,13 +613,13 @@ void IRGenerator::visit(AST::FnDef &node) {
     ));
   }
 
-  for (const auto &param : std::ranges::reverse_view(node.getParams())) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
+  std::transform(node.getParameters().rbegin(), node.getParameters().rend(), std::back_inserter(m_instructions), [](const auto &param) {
+    return std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
       param->getToken()
-    ));
-  }
+    );
+  });
 
   node.getBody()->accept(*this);
 
@@ -632,26 +648,36 @@ void IRGenerator::visit(AST::FnDef &node) {
   }
 }
 
-void IRGenerator::visit(AST::CtorDef &) {
-  throw NotImplementedError{"Constructors are not supported"};
+void IRGenerator::visit(AST::CtorDef &node) {
+  throw NotImplementedError{fmt::format("Constructors are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::DtorDef &) {
-  throw NotImplementedError{"Destructors are not supported"};
+void IRGenerator::visit(AST::DtorDef &node) {
+  throw NotImplementedError{fmt::format("Destructors are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::Field &) {
-  throw NotImplementedError{"Class fields are not supported"};
+void IRGenerator::visit(AST::Field &node) {
+  throw NotImplementedError{fmt::format("Class fields are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ClassDef &) {
-  throw NotImplementedError{"Classes are not supported"};
+void IRGenerator::visit(AST::ClassDef &node) {
+  throw NotImplementedError{fmt::format("Classes are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::WhileLoop &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"While loops are not supported"};
+  throw NotImplementedError{fmt::format("While loops are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::ForLoop &node) {
@@ -659,14 +685,18 @@ void IRGenerator::visit(AST::ForLoop &node) {
   node.getCondition()->accept(*this);
   node.getIncrement()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"For loops are not supported"};
+  throw NotImplementedError{fmt::format("For loops are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::ForEachLoop &node) {
   node.getElement()->accept(*this);
   node.getCollection()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"For-each loops are not supported"};
+  throw NotImplementedError{fmt::format("For-each loops are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }
 
 void IRGenerator::visit(AST::IfStmt &node) {
@@ -729,5 +759,7 @@ void IRGenerator::visit(AST::ElseStmt &node) {
 void IRGenerator::visit(AST::ElseIfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
-  throw NotImplementedError{"Else-if statements are not supported"};
+  throw NotImplementedError{fmt::format("Else-if statements are not supported in {}:{}",
+                                        node.getToken()->getPosition().getFileName(),
+                                        node.getToken()->getPosition().getLineNo())};
 }

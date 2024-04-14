@@ -5,7 +5,6 @@
 #include "AST.hpp"
 #include "Lexer.hpp"
 #include "NodeCollector.hpp"
-#include "Parser.hpp"
 #include "SemanticAnalysis.hpp"
 #include "SemanticTestFixture.hpp"
 
@@ -46,7 +45,7 @@ TEST_F(NameResolverTest, ResolveVarInfo) {
   size_t collectedIdx{0};
   for (const auto &[name, type] : kExpectedVars) {
     EXPECT_STREQ(collectedVars[collectedIdx]->getToken()->getValue<std::string>().c_str(), name);
-    EXPECT_STREQ(collectedVars[collectedIdx]->getType()->getStrType().c_str(), type);
+    EXPECT_STREQ(collectedVars[collectedIdx]->getType()->getStringType().c_str(), type);
     collectedIdx++;
   }
 }

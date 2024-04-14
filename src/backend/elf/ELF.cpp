@@ -2,26 +2,26 @@
 // SPDX-License-Identifier: GPL-3.0
 
 #include <cstddef>
-#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <utility>
 // Wisnia
 #include "ELF.hpp"
 
 using namespace Wisnia;
 
-ELF::ELF(const ByteArray &textSection, const ByteArray &dataSection)
-    : m_textSection{textSection}, m_dataSection{dataSection} {}
+ELF::ELF(ByteArray textSection, ByteArray dataSection)
+    : m_textSection{std::move(textSection)}, m_dataSection{std::move(dataSection)} {}
 
-ByteArray ELF::assembleELF() {
-  ByteArray elf{};
+ByteArray ELF::generateELF() {
+  ByteArray elfData{};
 
   const auto textSize = uint64_t(m_textSection.size());
   const auto dataSize = uint64_t(m_dataSection.size());
   const auto dataOffset = uint64_t(kTextOffset + textSize);
   const auto dataVirtualAddress = uint64_t(kDataVirtualStartAddress + dataOffset);
 
-  elf.putBytes(
+  elfData.putBytes(
       // ELF magic value
       std::byte{0x7f}, std::byte{0x45}, std::byte{0x4c}, std::byte{0x46},
 
@@ -42,9 +42,9 @@ ByteArray ELF::assembleELF() {
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}
   );
 
-  elf.putValue<uint64_t>(kVirtualStartAddress + kTextOffset); // 64-bit virtual offset
+  elfData.putValue<uint64_t>(kVirtualStartAddress + kTextOffset); // 64-bit virtual offset
 
-  elf.putBytes(
+  elfData.putBytes(
       // Offset from file to program header
       std::byte{0x40}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
       std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
@@ -63,44 +63,43 @@ ByteArray ELF::assembleELF() {
   );
 
   // Build program header: text segment
-  elf.putBytes(
+  elfData.putBytes(
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // PT_LOAD
       std::byte{0x07}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}  // Flags
   );
 
-  elf.putValue<uint64_t>(0);                    // Offset from the beginning of the file
-  elf.putValue<uint64_t>(kVirtualStartAddress); // Virtual address
-  elf.putValue<uint64_t>(kVirtualStartAddress); // Physical address
-  elf.putValue<uint64_t>(textSize);             // Number of bytes in file image of segment
-  elf.putValue<uint64_t>(textSize);             // Number of bytes in memory image of segment
-  elf.putValue<uint64_t>(kAlignment);           // Alignment
+  elfData.putValue<uint64_t>(0);                    // Offset from the beginning of the file
+  elfData.putValue<uint64_t>(kVirtualStartAddress); // Virtual address
+  elfData.putValue<uint64_t>(kVirtualStartAddress); // Physical address
+  elfData.putValue<uint64_t>(textSize);             // Number of bytes in file image of segment
+  elfData.putValue<uint64_t>(textSize);             // Number of bytes in memory image of segment
+  elfData.putValue<uint64_t>(kAlignment);           // Alignment
 
   // Build program header: data segment
-  elf.putBytes(
+  elfData.putBytes(
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // PT_LOAD
       std::byte{0x07}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}  // Flags
   );
 
-  elf.putValue<uint64_t>(dataOffset);         // Offset address
-  elf.putValue<uint64_t>(dataVirtualAddress); // Virtual address
-  elf.putValue<uint64_t>(dataVirtualAddress); // Physical address
-  elf.putValue<uint64_t>(dataSize);           // Number of bytes in file image
-  elf.putValue<uint64_t>(dataSize);           // Number of bytes in memory image
-  elf.putValue<uint64_t>(kAlignment);         // Alignment
+  elfData.putValue<uint64_t>(dataOffset);         // Offset address
+  elfData.putValue<uint64_t>(dataVirtualAddress); // Virtual address
+  elfData.putValue<uint64_t>(dataVirtualAddress); // Physical address
+  elfData.putValue<uint64_t>(dataSize);           // Number of bytes in file image
+  elfData.putValue<uint64_t>(dataSize);           // Number of bytes in memory image
+  elfData.putValue<uint64_t>(kAlignment);         // Alignment
 
-  elf.putBytes(m_textSection); // Output the text segment
-  elf.putBytes(m_dataSection); // Output the data segment
+  elfData.putBytes(m_textSection); // Output the text segment
+  elfData.putBytes(m_dataSection); // Output the data segment
 
-  return elf;
+  return elfData;
 }
 
-void ELF::compile() {
+void ELF::writeELF(std::string_view filename) {
   namespace fs = std::filesystem;
-  const auto filename{"a.out"};
-  ByteArray data = assembleELF();
+  ByteArray elfData = generateELF();
   {
-    std::ofstream file(filename, std::ios::out | std::ios::binary);
-    file.write(reinterpret_cast<const char *>(data.data()), (std::streamsize)data.size());
+    std::ofstream file(filename.data(), std::ios::out | std::ios::binary);
+    file.write(reinterpret_cast<const char *>(elfData.data()), (std::streamsize)elfData.size());
   }
   fs::permissions(filename, fs::perms::all, fs::perm_options::add);
 }

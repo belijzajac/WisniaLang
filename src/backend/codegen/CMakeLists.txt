@@ -5,6 +5,6 @@ set(WISNIA_SOURCES
   ${WISNIA_SOURCES}
   backend/codegen/CodeGenerator.hpp
   backend/codegen/CodeGenerator.cpp
-  backend/codegen/CodeFragment.hpp
+  backend/codegen/MachineCodeTable.hpp
   PARENT_SCOPE
 )

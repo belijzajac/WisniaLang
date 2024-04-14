@@ -5,10 +5,10 @@
 #include <cassert>
 #include <iostream>
 // Wisnia
-#include "CodeFragment.hpp"
 #include "CodeGenerator.hpp"
 #include "ELF.hpp"
 #include "Instruction.hpp"
+#include "MachineCodeTable.hpp"
 #include "RegisterAllocator.hpp"
 #include "Token.hpp"
 
@@ -22,7 +22,7 @@ struct RegisterContext {
 
 constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::register_t destination) {
   RegisterContext assigned{};
-  for (auto i = 0; i < RegisterAllocator::kHalfRegisters * 2; i++) {
+  for (auto i = 0; i < RegisterAllocator::getFullRegisters(); i++) {
     if (RegisterAllocator::getAllRegisters[i] == source) assigned.source = i;
     if (RegisterAllocator::getAllRegisters[i] == destination) assigned.destination = i;
     if (assigned.source > -1 && assigned.destination > -1) break;
@@ -30,7 +30,7 @@ constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::regis
   return assigned;
 }
 
-void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> &instructions) {
+void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionPtr> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
       case Operation::LEA:
@@ -43,7 +43,7 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
         emitMoveMemory(instruction);
         break;
       case Operation::SYSCALL:
-        emitSysCall(instruction);
+        emitSysCall();
         break;
       case Operation::PUSH:
         emitPush(instruction);
@@ -108,9 +108,8 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
     const auto start{data.m_start};
     const auto offset{data.m_offset};
 
-    const uint32_t newAddress{
-        static_cast<uint32_t>(kVirtualStartAddress + offset + m_textSection.size() + kTextOffset)};
-    const ByteArray bytes{newAddress};
+    const auto address{static_cast<uint32_t>(kVirtualStartAddress + offset + m_textSection.size() + kTextOffset)};
+    const ByteArray bytes{address};
 
     // Overwrite the instruction
     for (size_t i = 0; i < bytes.size(); i++) {
@@ -149,13 +148,13 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionValue> 
   }
 }
 
-void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitLea(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
   // lea reg, [rsp + number]
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getLeaMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getLeaMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -164,13 +163,13 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown lea instruction"};
 }
 
-void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction, bool label) {
+void CodeGenerator::emitMove(const CodeGenerator::InstructionPtr &instruction, bool label) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
   // mov reg, number
   if (target->getType() == TType::REGISTER && (argOne->isLiteralIntegerType() || argOne->getType() == TType::LIT_BOOL)) {
-    const auto bytes = CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     if (label) {
       m_data.emplace_back(Data{m_textSection.size(), static_cast<size_t>(argOne->getValue<int>())});
@@ -182,7 +181,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
 
   // mov reg, bool
   if (target->getType() == TType::REGISTER && (argOne->getType() == TType::KW_TRUE || argOne->getType() == TType::KW_FALSE)) {
-    const auto bytes = CodeFragment<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getMovMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<bool>() ? 1 : 0);
     return;
@@ -209,16 +208,16 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x89});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x89});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x89});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x89});
     } else {
@@ -226,8 +225,8 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
     }
 
     const auto result =
-        0xc0 + (RegisterAllocator::kHalfRegisters * (src % RegisterAllocator::kHalfRegisters)) +
-        (dst % RegisterAllocator::kHalfRegisters);
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -236,7 +235,7 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionValue &instruction,
   throw CodeGenerationError{"Unknown mov instruction"};
 }
 
-void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -251,11 +250,11 @@ void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionValue &instru
   throw CodeGenerationError{"Unknown mov memory instruction"};
 }
 
-void CodeGenerator::emitSysCall(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitSysCall() {
   m_textSection.putBytes(std::byte{0x0f}, std::byte{0x05});
 }
 
-void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitPush(const CodeGenerator::InstructionPtr &instruction) {
   // push reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -289,7 +288,7 @@ void CodeGenerator::emitPush(const CodeGenerator::InstructionValue &instruction)
   throw CodeGenerationError{"Unknown push instruction"};
 }
 
-void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitPop(const CodeGenerator::InstructionPtr &instruction) {
   // pop reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -323,7 +322,7 @@ void CodeGenerator::emitPop(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown pop instruction"};
 }
 
-void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitCall(const CodeGenerator::InstructionPtr &instruction) {
   m_textSection.putBytes(std::byte{0xe8});
 
   // call label
@@ -334,19 +333,19 @@ void CodeGenerator::emitCall(const CodeGenerator::InstructionValue &instruction)
   m_textSection.putValue<uint32_t>(0);
 }
 
-void CodeGenerator::emitLabel(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitLabel(const CodeGenerator::InstructionPtr &instruction) {
   const auto &label = instruction->getArg1()->getValue<std::string>();
   const auto offset = m_textSection.size();
   m_labels.emplace_back(Label{label, offset});
 }
 
-void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitCmp(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
   // cmp reg, number
   if (argOne->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argTwo->getValue<int>());
     return;
@@ -355,13 +354,13 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown cmp instruction"};
 }
 
-void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
   // cmp byte ptr [reg], number
   if (argOne->getType() == TType::REGISTER) {
-    const auto bytes = CodeFragment<uint8_t>::getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint8_t>::getCmpPtrMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putBytes(std::byte(argTwo->getValue<int>()));
     return;
@@ -370,7 +369,7 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionValue &instru
   throw CodeGenerationError{"Unknown cmp byte ptr instruction"};
 }
 
-void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitJmp(const CodeGenerator::InstructionPtr &instruction) {
   const auto getOperandByte = [&]() -> std::byte {
     switch (instruction->getOperation()) {
       case Operation::JMP:
@@ -396,7 +395,7 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionValue &instruction) 
   m_textSection.putBytes(std::byte{0x00});
 }
 
-void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitInc(const CodeGenerator::InstructionPtr &instruction) {
   // inc reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -430,7 +429,7 @@ void CodeGenerator::emitInc(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown inc instruction"};
 }
 
-void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitDec(const CodeGenerator::InstructionPtr &instruction) {
   // dec reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -464,13 +463,13 @@ void CodeGenerator::emitDec(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown dec instruction"};
 }
 
-void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitAdd(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
   // add reg, number
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getAddMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getAddMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -485,16 +484,16 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x01});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x01});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x01});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x01});
     } else {
@@ -502,8 +501,8 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
     }
 
     const auto result =
-        0xc0 + (RegisterAllocator::kHalfRegisters * (src % RegisterAllocator::kHalfRegisters)) +
-        (dst % RegisterAllocator::kHalfRegisters);
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -512,13 +511,13 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown add instruction"};
 }
 
-void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitSub(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
   // sub reg, number
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getSubMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getSubMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -541,16 +540,16 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x29});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x29});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x29});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x29});
     } else {
@@ -558,8 +557,8 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
     }
 
     const auto result =
-        0xc0 + (RegisterAllocator::kHalfRegisters * (src % RegisterAllocator::kHalfRegisters)) +
-        (dst % RegisterAllocator::kHalfRegisters);
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -568,13 +567,13 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown sub instruction"};
 }
 
-void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitMul(const CodeGenerator::InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
   // imul reg, number
   if (target->getType() == TType::REGISTER && argOne->isLiteralIntegerType()) {
-    const auto bytes = CodeFragment<uint32_t>::getMulMachineCode(target->getValue<Basic::register_t>());
+    const auto bytes = MachineCodeTable<uint32_t>::getMulMachineCode(target->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argOne->getValue<int>());
     return;
@@ -589,16 +588,16 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     // rax   <byte_0000>   ...   <byte_0015>
     // ...       ...       ...       ...
     // r15   <byte_1500>   ...   <byte_1515>
-    if (dst < RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // top left
       m_textSection.putBytes(std::byte{0x48}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst < RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // top right
       m_textSection.putBytes(std::byte{0x49}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src < RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
       // bottom left
       m_textSection.putBytes(std::byte{0x4c}, std::byte{0x0f}, std::byte{0xaf});
-    } else if (dst >= RegisterAllocator::kHalfRegisters && src >= RegisterAllocator::kHalfRegisters) {
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
       // bottom right
       m_textSection.putBytes(std::byte{0x4d}, std::byte{0x0f}, std::byte{0xaf});
     } else {
@@ -606,8 +605,8 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
     }
 
     const auto result =
-        0xc0 + (src % RegisterAllocator::kHalfRegisters) +
-        (RegisterAllocator::kHalfRegisters * (dst % RegisterAllocator::kHalfRegisters));
+        0xc0 + (src % RegisterAllocator::getHalfRegisters()) +
+        (RegisterAllocator::getHalfRegisters() * (dst % RegisterAllocator::getHalfRegisters()));
     assert(result <= 255 && "Result value is out of range");
     m_textSection.putBytes(std::byte(result));
     return;
@@ -616,7 +615,7 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown imul instruction"};
 }
 
-void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitDiv(const CodeGenerator::InstructionPtr &instruction) {
   // div reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
@@ -650,7 +649,7 @@ void CodeGenerator::emitDiv(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown div instruction"};
 }
 
-void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitXor(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -689,7 +688,7 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionValue &instruction) 
   throw CodeGenerationError{"Unknown xor instruction"};
 }
 
-void CodeGenerator::emitTest(const CodeGenerator::InstructionValue &instruction) {
+void CodeGenerator::emitTest(const CodeGenerator::InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 

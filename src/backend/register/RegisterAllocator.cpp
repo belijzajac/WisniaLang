@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <set>
+#include <algorithm>
 // Wisnia
 #include "RegisterAllocator.hpp"
 #include "Instruction.hpp"
@@ -11,14 +12,17 @@
 using namespace Wisnia;
 using namespace Basic;
 
+using TokenPtr = std::shared_ptr<Basic::Token>;
+
 template <typename T>
-bool checkVariable(const std::shared_ptr<Basic::Token> &token, const T &variable) {
+bool checkVariable(const TokenPtr &token, const T &variable) {
   using VariableType = std::decay_t<decltype(variable)>;
   if (!token) return false;
   return token->isIdentifierType() && token->getValue<VariableType>() == variable;
 }
 
 // Linear Scan algorithm (default for LLVM)
+// https://pages.cs.wisc.edu/~horwitz/CS701-NOTES/5.REGISTER-ALLOCATION.html#linearScan
 void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRegisters) {
   if (!allocateRegisters) {
     m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
@@ -81,16 +85,19 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
       }
       return false;
     });
+
     // Search for an unassigned register
     const auto availableRegister = [&]() -> std::optional<Basic::register_t> {
-      for (auto &r : availableRegisters.m_registers) {
-        if (!r.m_assigned) {
-          r.m_assigned = true;
-          return r.m_register;
-        }
+      auto it = std::find_if(availableRegisters.m_registers.begin(), availableRegisters.m_registers.end(),
+        [](Registers::RegisterState r) { return !r.m_assigned; }
+      );
+      if (it != availableRegisters.m_registers.end()) {
+        it->m_assigned = true;
+        return it->m_register;
       }
       return {};
     };
+
     if (const auto &reg = availableRegister(); reg.has_value()) {
       // Allocate the register to the current interval
       // and add the current interval to the active list

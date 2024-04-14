@@ -5,6 +5,8 @@
 #define WISNIALANG_SEMANTIC_TEST_FIXTURE_HPP
 
 #include <gtest/gtest.h>
+// Wisnia
+#include "Parser.hpp"
 
 namespace Wisnia {
 using namespace std::literals;
