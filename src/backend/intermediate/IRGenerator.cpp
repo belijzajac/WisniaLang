@@ -717,7 +717,38 @@ void IRGenerator::visit(AST::IfStmt &node) {
   };
 
   node.getCondition()->accept(*this);
-  const auto &[token, _] = getExpression(*node.getCondition());
+  const auto &[token, _] = getExpression(*node.getCondition(), false);
+
+  if (token->isLiteralType()) {
+    // compile-time optimization
+
+    bool canElseBranchBeRemoved;
+    switch (token->getType()) {
+      case TType::LIT_INT:
+        canElseBranchBeRemoved = token->getValue<int>() > 0;
+        break;
+      case TType::KW_TRUE:
+        canElseBranchBeRemoved = true;
+        break;
+      case TType::KW_FALSE:
+        canElseBranchBeRemoved = false;
+        break;
+      default:
+        throw InstructionError{fmt::format("Unsupported expression in if statement in {}:{}",
+                                           token->getPosition().getFileName(),
+                                           token->getPosition().getLineNo())};
+    }
+
+    if (canElseBranchBeRemoved) {
+      node.getBody()->accept(*this);
+    } else {
+      for (const auto &stmt : node.getElseStatements()) {
+        stmt->accept(*this);
+      }
+    }
+
+    return;
+  }
 
   Operation comparisonOp = m_instructions.back().get()->getOperation();
   Operation jumpOp;

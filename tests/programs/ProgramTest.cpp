@@ -986,12 +986,14 @@ TEST_F(ProgramTest, ConditionalBooleanFollowup) {
 TEST_F(ProgramTest, ConditionalBooleanNested) {
   constexpr auto program = R"(
   fn main() {
-    bool value = true;
-    if (value) {
+    bool value1 = true;
+    bool value2 = true;
+    bool value3 = true;
+    if (value1) {
       print("true");
-      if (value) {
+      if (value2) {
         print("true");
-        if (value) {
+        if (value3) {
           print("true");
         }
       }
@@ -999,4 +1001,24 @@ TEST_F(ProgramTest, ConditionalBooleanNested) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetruetrue");
+}
+
+TEST_F(ProgramTest, ConditionalOptimizationRemoveElseBranch) {
+  constexpr auto program = R"(
+  fn main() {
+    if (5)    { print("true"); } else { print("false"); }
+    if (true) { print("true"); } else { print("false"); }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetrue");
+}
+
+TEST_F(ProgramTest, ConditionalOptimizationRemoveIfBranch) {
+  constexpr auto program = R"(
+  fn main() {
+    if (0)     { print("true"); } else { print("false"); }
+    if (false) { print("true"); } else { print("false"); }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "falsefalse");
 }
