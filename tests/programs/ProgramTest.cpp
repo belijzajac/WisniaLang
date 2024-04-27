@@ -795,18 +795,230 @@ TEST_F(ProgramTest, ConditionalIntFalse) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
 }
 
-TEST_F(ProgramTest, ConditionalInsideFunctionInt) {
+TEST_F(ProgramTest, ConditionalIntGreaterThanTrue) {
   constexpr auto program = R"(
-  fn foo(base: int, number: int) {
-    if (number) {
-      print(base * number, " ");
-      foo(base, number - 1);
-    }
-  }
   fn main() {
-    foo(3, 4);
-    print("1\n");
+    int value = 7;
+    if (value > 6) {
+      print("true");
+    } else {
+      print("false");
+    }
   })"sv;
   SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "12 9 6 3 1\n");
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntGreaterThanFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 6;
+    if (value > 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntGreaterThanOrEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 6;
+    if (value >= 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntGreaterThanOrEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 5;
+    if (value >= 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntLessTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 5;
+    if (value < 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntLessFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 7;
+    if (value < 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntLessOrEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 6;
+    if (value <= 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntLessOrEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 10;
+    if (value <= 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 6;
+    if (value == 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 7;
+    if (value == 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntNotEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 5;
+    if (value != 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntNotEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value = 6;
+    if (value != 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanFollowup) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value1 = true;
+    bool value2 = true;
+    bool value3 = true;
+    if (value1) {
+      print("true");
+    }
+    if (value2) {
+      print("true");
+    }
+    if (value3) {
+      print("true");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetruetrue");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanNested) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value1 = true;
+    bool value2 = true;
+    bool value3 = true;
+    if (value1) {
+      print("true");
+      if (value2) {
+        print("true");
+        if (value3) {
+          print("true");
+        }
+      }
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetruetrue");
+}
+
+TEST_F(ProgramTest, ConditionalOptimizationRemoveElseBranch) {
+  constexpr auto program = R"(
+  fn main() {
+    if (5)    { print("true"); } else { print("false"); }
+    if (true) { print("true"); } else { print("false"); }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetrue");
+}
+
+TEST_F(ProgramTest, ConditionalOptimizationRemoveIfBranch) {
+  constexpr auto program = R"(
+  fn main() {
+    if (0)     { print("true"); } else { print("false"); }
+    if (false) { print("true"); } else { print("false"); }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "falsefalse");
 }

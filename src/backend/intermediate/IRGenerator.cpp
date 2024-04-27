@@ -700,56 +700,107 @@ void IRGenerator::visit(AST::ForEachLoop &node) {
 }
 
 void IRGenerator::visit(AST::IfStmt &node) {
-  node.getCondition()->accept(*this);
+  m_labelCount++;
 
-  const auto &[token, _] = getExpression(*node.getCondition());
-  const std::array<std::string_view, 3> labels {
-    ".L" + std::to_string(m_labelCount) + "_true",
+  std::unordered_map<Operation, Operation> comparisonToJump = {
+    {Operation::IGT, Operation::JLE},
+    {Operation::IGE, Operation::JL },
+    {Operation::ILT, Operation::JGE},
+    {Operation::ILE, Operation::JG },
+    {Operation::IEQ, Operation::JNE},
+    {Operation::INE, Operation::JE },
+  };
+
+  const std::array labels {
     ".L" + std::to_string(m_labelCount) + "_false",
     ".L" + std::to_string(m_labelCount) + "_end",
   };
 
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::TEST,
-    nullptr,
-    token,
-    token
-  ));
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::JNZ,
-    nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0].data())
-  ));
+  node.getCondition()->accept(*this);
+  const auto &[token, _] = getExpression(*node.getCondition(), false);
 
-  for (const auto &elseBl : node.getElseStatements()) {
-    m_instructions.emplace_back(std::make_unique<Instruction>(
-      Operation::LABEL,
-      nullptr,
-      std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1].data())
-    ));
-    elseBl->accept(*this);
+  if (token->isLiteralType()) {
+    // compile-time optimization
+
+    bool canElseBranchBeRemoved;
+    switch (token->getType()) {
+      case TType::LIT_INT:
+        canElseBranchBeRemoved = token->getValue<int>() > 0;
+        break;
+      case TType::KW_TRUE:
+        canElseBranchBeRemoved = true;
+        break;
+      case TType::KW_FALSE:
+        canElseBranchBeRemoved = false;
+        break;
+      default:
+        throw InstructionError{fmt::format("Unsupported expression in if statement in {}:{}",
+                                           token->getPosition().getFileName(),
+                                           token->getPosition().getLineNo())};
+    }
+
+    if (canElseBranchBeRemoved) {
+      node.getBody()->accept(*this);
+    } else {
+      for (const auto &stmt : node.getElseStatements()) {
+        stmt->accept(*this);
+      }
+    }
+
+    return;
+  }
+
+  Operation comparisonOp = m_instructions.back().get()->getOperation();
+  Operation jumpOp;
+  IRGenerator::TokenPtr number;
+
+  if (comparisonToJump.contains(comparisonOp)) {
+    // if (register <op> number)
+    jumpOp = comparisonToJump[comparisonOp];
+    number = m_instructions.back().get()->getArg1();
+    m_instructions.pop_back();
+  } else {
+    // if (register) ==> if (register > 0)
+    jumpOp = Operation::JE;
+    number = std::make_shared<Basic::Token>(TType::LIT_INT, 0);
   }
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::JMP,
+    Operation::CMP,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[2].data())
+    token,
+    number
   ));
+
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::LABEL,
+    jumpOp,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0].data())
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0])
   ));
 
   node.getBody()->accept(*this);
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::LABEL,
+    Operation::JMP,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[2].data())
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1])
   ));
 
-  m_labelCount++;
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0])
+  ));
+
+  for (const auto &stmt : node.getElseStatements()) {
+    stmt->accept(*this);
+  }
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1])
+  ));
 }
 
 void IRGenerator::visit(AST::ElseStmt &node) {

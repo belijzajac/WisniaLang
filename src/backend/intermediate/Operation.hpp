@@ -34,9 +34,13 @@ enum class Operation {
   TEST,
   /* jumps */
   JMP,            // unconditional jump
+  JL,             // jump less
+  JLE,            // jump less or equal
+  JG,             // jump greater
+  JGE,            // jump greater or equal
   JE,             // jump equal
-  JZ,             // jump zero
   JNE,            // jump not equal
+  JZ,             // jump zero
   JNZ,            // jump not zero
   /* miscellaneous */
   LEA,
@@ -75,9 +79,13 @@ static inline std::unordered_map<Operation, std::string_view> Operation2Str {
   {Operation::TEST, "test"},
   // jumps
   {Operation::JMP, "jmp"},
+  {Operation::JL,  "jl" },
+  {Operation::JLE, "jle"},
+  {Operation::JG,  "jg" },
+  {Operation::JGE, "jge"},
   {Operation::JE,  "je" },
-  {Operation::JZ,  "jz" },
   {Operation::JNE, "jne"},
+  {Operation::JZ,  "jz" },
   {Operation::JNZ, "jnz"},
   // miscellaneous
   {Operation::LEA,        "lea"     },

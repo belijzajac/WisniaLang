@@ -64,9 +64,13 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionPtr> &i
         emitCmpBytePtr(instruction);
         break;
       case Operation::JMP:
+      case Operation::JL:
+      case Operation::JLE:
+      case Operation::JG:
+      case Operation::JGE:
       case Operation::JE:
-      case Operation::JZ:
       case Operation::JNE:
+      case Operation::JZ:
       case Operation::JNZ:
         emitJmp(instruction);
         break;
@@ -376,10 +380,17 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionPtr &instruction) {
         return std::byte{0xeb};
       case Operation::JE:
       case Operation::JZ:
+      case Operation::JLE:
         return std::byte{0x74};
+      case Operation::JG:
+        return std::byte{0x7f};
       case Operation::JNE:
       case Operation::JNZ:
         return std::byte{0x75};
+      case Operation::JL:
+        return std::byte{0x7c};
+      case Operation::JGE:
+        return std::byte{0x7d};
       default: {
         assert(0 && "Unknown jump instruction");
       }
