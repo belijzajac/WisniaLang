@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 #include <stack>
-#include <variant>
 // Wisnia
 #include "IROptimization.hpp"
 #include "IRPrintHelper.hpp"
@@ -18,7 +17,7 @@
 namespace Wisnia {
 class Instruction;
 
-class IRGenerator : public Visitor {
+class IRGenerator final : public Visitor {
   using TokenPtr = std::shared_ptr<Basic::Token>;
   using InstructionList = std::vector<std::shared_ptr<Instruction>>;
   using TemporaryVariableList = std::vector<std::shared_ptr<AST::VarExpr>>;
@@ -31,7 +30,7 @@ class IRGenerator : public Visitor {
   }
 
  public:
-  explicit IRGenerator(bool allocateRegisters = true)
+  explicit IRGenerator(const bool allocateRegisters = true)
       : m_allocateRegisters{allocateRegisters} {}
 
   enum class Transformation {
@@ -40,7 +39,7 @@ class IRGenerator : public Visitor {
     INSTRUCTION_OPTIMIZATION
   };
 
-  const InstructionList &getInstructions(Transformation transform) const {
+  const InstructionList &getInstructions(const Transformation transform) const {
     switch (transform) {
       case Transformation::NONE:
         return m_instructions;
@@ -57,7 +56,7 @@ class IRGenerator : public Visitor {
     return m_tempVars;
   }
 
-  void printInstructions(std::ostream &output, Transformation transform) const {
+  void printInstructions(std::ostream &output, const Transformation transform) const {
     switch (transform) {
       case Transformation::NONE:
         IRPrintHelper::print(output, m_instructions);

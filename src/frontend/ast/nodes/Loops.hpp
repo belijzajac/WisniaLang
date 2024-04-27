@@ -42,7 +42,7 @@ class BaseLoop : public BaseStmt {
   BodyPtr m_body;
 };
 
-class WhileLoop : public BaseLoop {
+class WhileLoop final : public BaseLoop {
   using ConditionPtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -75,7 +75,7 @@ class WhileLoop : public BaseLoop {
   ConditionPtr m_condition;
 };
 
-class ForLoop : public BaseLoop {
+class ForLoop final : public BaseLoop {
   using InitialPtr   = std::unique_ptr<BaseStmt>; // e.g. int i = 0
   using ConditionPtr = std::unique_ptr<BaseExpr>; // e.g. i < 10
   using IncrementPtr = std::unique_ptr<BaseStmt>; // e.g. i++
@@ -130,7 +130,7 @@ class ForLoop : public BaseLoop {
   IncrementPtr m_increment;
 };
 
-class ForEachLoop : public BaseLoop {
+class ForEachLoop final : public BaseLoop {
   using ElementPtr    = std::unique_ptr<BaseExpr>;
   using CollectionPtr = std::unique_ptr<BaseExpr>;
 

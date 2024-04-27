@@ -42,7 +42,7 @@ class BaseIf : public BaseStmt {
   StatementPtr m_body;
 };
 
-class IfStmt : public BaseIf {
+class IfStmt final : public BaseIf {
   using ElseStatementPtr = std::unique_ptr<BaseIf>;
   using ConditionPtr     = std::unique_ptr<BaseExpr>;
 
@@ -89,7 +89,7 @@ class IfStmt : public BaseIf {
   std::vector<ElseStatementPtr> m_statements;
 };
 
-class ElseStmt : public BaseIf {
+class ElseStmt final : public BaseIf {
  public:
   explicit ElseStmt(TokenPtr token)
       : BaseIf(std::move(token)) {}
@@ -108,7 +108,7 @@ class ElseStmt : public BaseIf {
   }
 };
 
-class ElseIfStmt : public BaseIf {
+class ElseIfStmt final : public BaseIf {
   using ConditionPtr = std::unique_ptr<BaseExpr>;
 
  public:

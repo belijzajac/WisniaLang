@@ -12,10 +12,10 @@
 namespace Wisnia {
 
 template <typename T>
-class NodeCollector : public Visitor {
+class NodeCollector final : public Visitor {
  public:
   NodeCollector() {
-    static_assert(std::is_base_of<AST::Root, T>::value, "Type parameter of this class must derive from AST::Root");
+    static_assert(std::is_base_of_v<AST::Root, T>, "Type parameter of this class must derive from AST::Root");
   }
 
   std::vector<const T *> getNodes() const {

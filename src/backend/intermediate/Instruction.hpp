@@ -22,7 +22,7 @@ class Instruction {
 
  public:
   explicit Instruction(
-    Operation op,
+    const Operation op,
     TokenPtr target = nullptr,
     TokenPtr arg1   = nullptr,
     TokenPtr arg2   = nullptr
@@ -33,8 +33,8 @@ class Instruction {
   TokenPtr &getArg1() { return m_arg1; }
   TokenPtr &getArg2() { return m_arg2; }
 
-  static void setPrintTargetWidth(size_t width) { sPrintTargetWidth = width; }
-  static void setPrintArgOneWidth(size_t width) { sPrintArgOneWidth = width; }
+  static void setPrintTargetWidth(const size_t width) { sPrintTargetWidth = width; }
+  static void setPrintArgOneWidth(const size_t width) { sPrintArgOneWidth = width; }
   void print(std::ostream &output) const;
 
  private:

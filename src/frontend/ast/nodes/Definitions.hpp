@@ -13,7 +13,7 @@ class Token;
 
 namespace AST {
 
-class Param : public Root, public VariableMixin {
+class Param final : public Root, public VariableMixin {
  public:
   explicit Param(TokenPtr token)
       : Root(std::move(token)) {}
@@ -85,7 +85,7 @@ class MethodDef : public BaseDef {
   std::vector<ParameterPtr> m_parameters;
 };
 
-class FnDef : public MethodDef {
+class FnDef final : public MethodDef {
  public:
   explicit FnDef(TokenPtr token)
       : MethodDef(std::move(token)) {}
@@ -104,7 +104,7 @@ class FnDef : public MethodDef {
   }
 };
 
-class CtorDef : public MethodDef {
+class CtorDef final : public MethodDef {
  public:
   explicit CtorDef(TokenPtr token)
       : MethodDef(std::move(token)) {}
@@ -123,7 +123,7 @@ class CtorDef : public MethodDef {
   }
 };
 
-class DtorDef : public MethodDef {
+class DtorDef final : public MethodDef {
  public:
   explicit DtorDef(TokenPtr token)
       : MethodDef(std::move(token)) {}
@@ -142,7 +142,7 @@ class DtorDef : public MethodDef {
   }
 };
 
-class Field : public Root, public VariableMixin {
+class Field final : public Root, public VariableMixin {
   using ValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -176,7 +176,7 @@ class Field : public Root, public VariableMixin {
   ValuePtr m_value;
 };
 
-class ClassDef : public BaseDef {
+class ClassDef final : public BaseDef {
   using ConstructorPtr = std::unique_ptr<BaseDef>;
   using DestructorPtr  = std::unique_ptr<BaseDef>;
   using MethodPtr      = std::unique_ptr<BaseDef>;

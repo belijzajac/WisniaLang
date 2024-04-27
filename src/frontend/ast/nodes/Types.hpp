@@ -10,7 +10,6 @@
 #include "Root.hpp"
 #include "TType.hpp"
 #include "Token.hpp"
-#include "Exceptions.hpp"
 
 namespace Wisnia {
 namespace AST {
@@ -58,7 +57,7 @@ class BaseType : public Root {
   std::string m_type;
 };
 
-class PrimitiveType : public BaseType {
+class PrimitiveType final : public BaseType {
  public:
   explicit PrimitiveType(TokenPtr token)
       : BaseType(std::move(token)) {}

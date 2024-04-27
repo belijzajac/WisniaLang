@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 // Wisnia
 #include "CodeGenerator.hpp"
 #include "ELF.hpp"
@@ -20,7 +19,7 @@ struct RegisterContext {
   int destination{-1};
 };
 
-constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::register_t destination) {
+constexpr RegisterContext assignRegisters(const Basic::register_t source, const Basic::register_t destination) {
   RegisterContext assigned{};
   for (auto i = 0; i < RegisterAllocator::getFullRegisters(); i++) {
     if (RegisterAllocator::getAllRegisters[i] == source) assigned.source = i;
@@ -30,7 +29,7 @@ constexpr RegisterContext assignRegisters(Basic::register_t source, Basic::regis
   return assigned;
 }
 
-void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionPtr> &instructions) {
+void CodeGenerator::generate(const std::vector<InstructionPtr> &instructions) {
   for (const auto &instruction : instructions) {
     switch (instruction->getOperation()) {
       case Operation::LEA:
@@ -108,10 +107,7 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionPtr> &i
   }
 
   // Patch data
-  for (const auto &data : m_data) {
-    const auto start{data.m_start};
-    const auto offset{data.m_offset};
-
+  for (const auto &[start, offset] : m_data) {
     const auto address{static_cast<uint32_t>(kVirtualStartAddress + offset + m_textSection.size() + kTextOffset)};
     const ByteArray bytes{address};
 
@@ -122,37 +118,35 @@ void CodeGenerator::generate(const std::vector<CodeGenerator::InstructionPtr> &i
   }
 
   // Patch jumps
-  for (const auto &jump : m_jumps) {
+  for (const auto &[name, offset] : m_jumps) {
     const auto label = std::find_if(m_labels.begin(), m_labels.end(),
-                                    [&](const auto &label) { return label.m_name == jump.m_name; });
+                                    [&](const auto &l) { return l.m_name == name; });
     assert(label != m_labels.end() && "No such label to jump to");
-    const auto offset{label->m_offset};
-    const auto diff{jump.m_offset - offset};
+    const auto diff{offset - label->m_offset};
 
     // Overwrite the instruction
-    m_textSection.insert(jump.m_offset, std::byte(0xff - diff));
+    m_textSection.insert(offset, std::byte(0xff - diff));
   }
 
   // Patch calls
-  for (const auto &call : m_calls) {
+  for (const auto &[name, offset] : m_calls) {
     const auto label = std::find_if(m_labels.begin(), m_labels.end(),
-                                    [&](const auto &label) { return label.m_name == call.m_name; });
+                                    [&](const auto &l) { return l.m_name == name; });
     assert(label != m_labels.end() && "No such label to call");
-    const auto offset{label->m_offset};
 
     // The offset of the position is a byte
-    const uint32_t diff{static_cast<uint32_t>(call.m_offset - offset + 4)};
-    const uint32_t x{0xffffffff - static_cast<uint32_t>(diff - 1)};
+    const uint32_t diff{static_cast<uint32_t>(offset - label->m_offset + 4)};
+    const uint32_t x{0xffffffff - (diff - 1)};
     const ByteArray bytes{x};
 
     // Overwrite the instruction
     for (size_t i = 0; i < bytes.size(); i++) {
-      m_textSection.insert(i + call.m_offset, bytes.data()[i]);
+      m_textSection.insert(i + offset, bytes.data()[i]);
     }
   }
 }
 
-void CodeGenerator::emitLea(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitLea(const InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -167,7 +161,7 @@ void CodeGenerator::emitLea(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown lea instruction"};
 }
 
-void CodeGenerator::emitMove(const CodeGenerator::InstructionPtr &instruction, bool label) {
+void CodeGenerator::emitMove(const InstructionPtr &instruction, const bool label) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -239,14 +233,14 @@ void CodeGenerator::emitMove(const CodeGenerator::InstructionPtr &instruction, b
   throw CodeGenerationError{"Unknown mov instruction"};
 }
 
-void CodeGenerator::emitMoveMemory(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitMoveMemory(const InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
   // mov [rsi], dl
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
-      target->getValue<Basic::register_t>() == Basic::register_t::RSI &&
-      argOne->getValue<Basic::register_t>() == Basic::register_t::DL) {
+      target->getValue<Basic::register_t>() == RSI &&
+      argOne->getValue<Basic::register_t>() == DL) {
     m_textSection.putBytes(std::byte{0x88}, std::byte{0x16});
     return;
   }
@@ -258,29 +252,29 @@ void CodeGenerator::emitSysCall() {
   m_textSection.putBytes(std::byte{0x0f}, std::byte{0x05});
 }
 
-void CodeGenerator::emitPush(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitPush(const InstructionPtr &instruction) {
   // push reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
     const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
     const auto pushMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x50}};
-        case Basic::register_t::RCX: return {std::byte{0x51}};
-        case Basic::register_t::RDX: return {std::byte{0x52}};
-        case Basic::register_t::RBX: return {std::byte{0x53}};
-        case Basic::register_t::RSP: return {std::byte{0x54}};
-        case Basic::register_t::RBP: return {std::byte{0x55}};
-        case Basic::register_t::RSI: return {std::byte{0x56}};
-        case Basic::register_t::RDI: return {std::byte{0x57}};
-        case Basic::register_t::R8:  return {std::byte{0x41}, std::byte{0x50}};
-        case Basic::register_t::R9:  return {std::byte{0x41}, std::byte{0x51}};
-        case Basic::register_t::R10: return {std::byte{0x41}, std::byte{0x52}};
-        case Basic::register_t::R11: return {std::byte{0x41}, std::byte{0x53}};
-        case Basic::register_t::R12: return {std::byte{0x41}, std::byte{0x54}};
-        case Basic::register_t::R13: return {std::byte{0x41}, std::byte{0x55}};
-        case Basic::register_t::R14: return {std::byte{0x41}, std::byte{0x56}};
-        case Basic::register_t::R15: return {std::byte{0x41}, std::byte{0x57}};
+        case RAX: return {std::byte{0x50}};
+        case RCX: return {std::byte{0x51}};
+        case RDX: return {std::byte{0x52}};
+        case RBX: return {std::byte{0x53}};
+        case RSP: return {std::byte{0x54}};
+        case RBP: return {std::byte{0x55}};
+        case RSI: return {std::byte{0x56}};
+        case RDI: return {std::byte{0x57}};
+        case R8:  return {std::byte{0x41}, std::byte{0x50}};
+        case R9:  return {std::byte{0x41}, std::byte{0x51}};
+        case R10: return {std::byte{0x41}, std::byte{0x52}};
+        case R11: return {std::byte{0x41}, std::byte{0x53}};
+        case R12: return {std::byte{0x41}, std::byte{0x54}};
+        case R13: return {std::byte{0x41}, std::byte{0x55}};
+        case R14: return {std::byte{0x41}, std::byte{0x56}};
+        case R15: return {std::byte{0x41}, std::byte{0x57}};
         default: { assert(0 && "Unknown register for push instruction"); }
       }
     };
@@ -292,29 +286,29 @@ void CodeGenerator::emitPush(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown push instruction"};
 }
 
-void CodeGenerator::emitPop(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitPop(const InstructionPtr &instruction) {
   // pop reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
     const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
     const auto popMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x58}};
-        case Basic::register_t::RCX: return {std::byte{0x59}};
-        case Basic::register_t::RDX: return {std::byte{0x5a}};
-        case Basic::register_t::RBX: return {std::byte{0x5b}};
-        case Basic::register_t::RSP: return {std::byte{0x5c}};
-        case Basic::register_t::RBP: return {std::byte{0x5d}};
-        case Basic::register_t::RSI: return {std::byte{0x5e}};
-        case Basic::register_t::RDI: return {std::byte{0x5f}};
-        case Basic::register_t::R8:  return {std::byte{0x41}, std::byte{0x58}};
-        case Basic::register_t::R9:  return {std::byte{0x41}, std::byte{0x59}};
-        case Basic::register_t::R10: return {std::byte{0x41}, std::byte{0x5a}};
-        case Basic::register_t::R11: return {std::byte{0x41}, std::byte{0x5b}};
-        case Basic::register_t::R12: return {std::byte{0x41}, std::byte{0x5c}};
-        case Basic::register_t::R13: return {std::byte{0x41}, std::byte{0x5d}};
-        case Basic::register_t::R14: return {std::byte{0x41}, std::byte{0x5e}};
-        case Basic::register_t::R15: return {std::byte{0x41}, std::byte{0x5f}};
+        case RAX: return {std::byte{0x58}};
+        case RCX: return {std::byte{0x59}};
+        case RDX: return {std::byte{0x5a}};
+        case RBX: return {std::byte{0x5b}};
+        case RSP: return {std::byte{0x5c}};
+        case RBP: return {std::byte{0x5d}};
+        case RSI: return {std::byte{0x5e}};
+        case RDI: return {std::byte{0x5f}};
+        case R8:  return {std::byte{0x41}, std::byte{0x58}};
+        case R9:  return {std::byte{0x41}, std::byte{0x59}};
+        case R10: return {std::byte{0x41}, std::byte{0x5a}};
+        case R11: return {std::byte{0x41}, std::byte{0x5b}};
+        case R12: return {std::byte{0x41}, std::byte{0x5c}};
+        case R13: return {std::byte{0x41}, std::byte{0x5d}};
+        case R14: return {std::byte{0x41}, std::byte{0x5e}};
+        case R15: return {std::byte{0x41}, std::byte{0x5f}};
         default: { assert(0 && "Unknown register for pop instruction"); }
       }
     };
@@ -326,7 +320,7 @@ void CodeGenerator::emitPop(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown pop instruction"};
 }
 
-void CodeGenerator::emitCall(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitCall(const InstructionPtr &instruction) {
   m_textSection.putBytes(std::byte{0xe8});
 
   // call label
@@ -337,13 +331,13 @@ void CodeGenerator::emitCall(const CodeGenerator::InstructionPtr &instruction) {
   m_textSection.putValue<uint32_t>(0);
 }
 
-void CodeGenerator::emitLabel(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitLabel(const InstructionPtr &instruction) {
   const auto &label = instruction->getArg1()->getValue<std::string>();
   const auto offset = m_textSection.size();
   m_labels.emplace_back(Label{label, offset});
 }
 
-void CodeGenerator::emitCmp(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitCmp(const InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -358,7 +352,7 @@ void CodeGenerator::emitCmp(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown cmp instruction"};
 }
 
-void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitCmpBytePtr(const InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -373,7 +367,7 @@ void CodeGenerator::emitCmpBytePtr(const CodeGenerator::InstructionPtr &instruct
   throw CodeGenerationError{"Unknown cmp byte ptr instruction"};
 }
 
-void CodeGenerator::emitJmp(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitJmp(const InstructionPtr &instruction) {
   const auto getOperandByte = [&]() -> std::byte {
     switch (instruction->getOperation()) {
       case Operation::JMP:
@@ -406,29 +400,29 @@ void CodeGenerator::emitJmp(const CodeGenerator::InstructionPtr &instruction) {
   m_textSection.putBytes(std::byte{0x00});
 }
 
-void CodeGenerator::emitInc(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitInc(const InstructionPtr &instruction) {
   // inc reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
     const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
     const auto incMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}};
-        case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}};
-        case Basic::register_t::RDX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}};
-        case Basic::register_t::RBX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc3}};
-        case Basic::register_t::RSP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc4}};
-        case Basic::register_t::RBP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc5}};
-        case Basic::register_t::RSI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc6}};
-        case Basic::register_t::RDI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc7}};
-        case Basic::register_t::R8:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc0}};
-        case Basic::register_t::R9:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc1}};
-        case Basic::register_t::R10: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc2}};
-        case Basic::register_t::R11: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc3}};
-        case Basic::register_t::R12: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc4}};
-        case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc5}};
-        case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc6}};
-        case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}};
+        case RAX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc0}};
+        case RCX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc1}};
+        case RDX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc2}};
+        case RBX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc3}};
+        case RSP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc4}};
+        case RBP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc5}};
+        case RSI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc6}};
+        case RDI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc7}};
+        case R8:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc0}};
+        case R9:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc1}};
+        case R10: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc2}};
+        case R11: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc3}};
+        case R12: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc4}};
+        case R13: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc5}};
+        case R14: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc6}};
+        case R15: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}};
         default: { assert(0 && "Unknown register for inc instruction"); }
       }
     };
@@ -440,29 +434,29 @@ void CodeGenerator::emitInc(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown inc instruction"};
 }
 
-void CodeGenerator::emitDec(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitDec(const InstructionPtr &instruction) {
   // dec reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
     const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
     const auto decMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}};
-        case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}};
-        case Basic::register_t::RDX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xca}};
-        case Basic::register_t::RBX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcb}};
-        case Basic::register_t::RSP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcc}};
-        case Basic::register_t::RBP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcd}};
-        case Basic::register_t::RSI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xce}};
-        case Basic::register_t::RDI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcf}};
-        case Basic::register_t::R8:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc8}};
-        case Basic::register_t::R9:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc9}};
-        case Basic::register_t::R10: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xca}};
-        case Basic::register_t::R11: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcb}};
-        case Basic::register_t::R12: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcc}};
-        case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcd}};
-        case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xce}};
-        case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}};
+        case RAX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc8}};
+        case RCX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xc9}};
+        case RDX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xca}};
+        case RBX: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcb}};
+        case RSP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcc}};
+        case RBP: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcd}};
+        case RSI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xce}};
+        case RDI: return {std::byte{0x48}, std::byte{0xff}, std::byte{0xcf}};
+        case R8:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc8}};
+        case R9:  return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc9}};
+        case R10: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xca}};
+        case R11: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcb}};
+        case R12: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcc}};
+        case R13: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcd}};
+        case R14: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xce}};
+        case R15: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}};
         default: { assert(0 && "Unknown register for dec instruction"); }
       }
     };
@@ -474,7 +468,7 @@ void CodeGenerator::emitDec(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown dec instruction"};
 }
 
-void CodeGenerator::emitAdd(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitAdd(const InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -522,7 +516,7 @@ void CodeGenerator::emitAdd(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown add instruction"};
 }
 
-void CodeGenerator::emitSub(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitSub(const InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -536,8 +530,8 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionPtr &instruction) {
 
   // sub edx, esi
   if (target->getType() == TType::REGISTER && argOne->getType() == TType::REGISTER &&
-      target->getValue<Basic::register_t>() == Basic::register_t::EDX &&
-      argOne->getValue<Basic::register_t>() == Basic::register_t::ESI) {
+      target->getValue<Basic::register_t>() == EDX &&
+      argOne->getValue<Basic::register_t>() == ESI) {
     m_textSection.putBytes(std::byte{0x29}, std::byte{0xf2});
     return;
   }
@@ -578,7 +572,7 @@ void CodeGenerator::emitSub(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown sub instruction"};
 }
 
-void CodeGenerator::emitMul(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitMul(const InstructionPtr &instruction) {
   const auto &target = instruction->getTarget();
   const auto &argOne = instruction->getArg1();
 
@@ -626,29 +620,29 @@ void CodeGenerator::emitMul(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown imul instruction"};
 }
 
-void CodeGenerator::emitDiv(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitDiv(const InstructionPtr &instruction) {
   // div reg
   if (instruction->getArg1()->getType() == TType::REGISTER) {
 
     const auto reg = instruction->getArg1()->getValue<Basic::register_t>();
     const auto divMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}};
-        case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}};
-        case Basic::register_t::RDX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}};
-        case Basic::register_t::RBX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf3}};
-        case Basic::register_t::RSP: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf4}};
-        case Basic::register_t::RBP: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf5}};
-        case Basic::register_t::RSI: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf6}};
-        case Basic::register_t::RDI: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf7}};
-        case Basic::register_t::R8:  return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf0}};
-        case Basic::register_t::R9:  return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf1}};
-        case Basic::register_t::R10: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf2}};
-        case Basic::register_t::R11: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf3}};
-        case Basic::register_t::R12: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf4}};
-        case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf5}};
-        case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf6}};
-        case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}};
+        case RAX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf0}};
+        case RCX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf1}};
+        case RDX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf2}};
+        case RBX: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf3}};
+        case RSP: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf4}};
+        case RBP: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf5}};
+        case RSI: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf6}};
+        case RDI: return {std::byte{0x48}, std::byte{0xf7}, std::byte{0xf7}};
+        case R8:  return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf0}};
+        case R9:  return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf1}};
+        case R10: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf2}};
+        case R11: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf3}};
+        case R12: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf4}};
+        case R13: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf5}};
+        case R14: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf6}};
+        case R15: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}};
         default: { assert(0 && "Unknown register for div instruction"); }
       }
     };
@@ -660,7 +654,7 @@ void CodeGenerator::emitDiv(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown div instruction"};
 }
 
-void CodeGenerator::emitXor(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitXor(const InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -671,23 +665,23 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionPtr &instruction) {
     const auto reg = argOne->getValue<Basic::register_t>();
     const auto xorMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xc0}};
-        case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xc9}};
-        case Basic::register_t::RDX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xd2}};
-        case Basic::register_t::RBX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xdb}};
-        case Basic::register_t::RSP: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xe4}};
-        case Basic::register_t::RBP: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xed}};
-        case Basic::register_t::RSI: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xf6}};
-        case Basic::register_t::RDI: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xff}};
-        case Basic::register_t::R8:  return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xc0}};
-        case Basic::register_t::R9:  return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xc9}};
-        case Basic::register_t::R10: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xd2}};
-        case Basic::register_t::R11: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xdb}};
-        case Basic::register_t::R12: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xe4}};
-        case Basic::register_t::R13: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xed}};
-        case Basic::register_t::R14: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xf6}};
-        case Basic::register_t::R15: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xff}};
-        case Basic::register_t::EDX: return {std::byte{0x31}, std::byte{0xd2}};
+        case RAX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xc0}};
+        case RCX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xc9}};
+        case RDX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xd2}};
+        case RBX: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xdb}};
+        case RSP: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xe4}};
+        case RBP: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xed}};
+        case RSI: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xf6}};
+        case RDI: return {std::byte{0x48}, std::byte{0x31}, std::byte{0xff}};
+        case R8:  return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xc0}};
+        case R9:  return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xc9}};
+        case R10: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xd2}};
+        case R11: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xdb}};
+        case R12: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xe4}};
+        case R13: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xed}};
+        case R14: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xf6}};
+        case R15: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xff}};
+        case EDX: return {std::byte{0x31}, std::byte{0xd2}};
         default: { assert(0 && "Unknown register for xor instruction"); }
       }
     };
@@ -699,7 +693,7 @@ void CodeGenerator::emitXor(const CodeGenerator::InstructionPtr &instruction) {
   throw CodeGenerationError{"Unknown xor instruction"};
 }
 
-void CodeGenerator::emitTest(const CodeGenerator::InstructionPtr &instruction) {
+void CodeGenerator::emitTest(const InstructionPtr &instruction) {
   const auto &argOne = instruction->getArg1();
   const auto &argTwo = instruction->getArg2();
 
@@ -710,22 +704,22 @@ void CodeGenerator::emitTest(const CodeGenerator::InstructionPtr &instruction) {
     const auto reg = argOne->getValue<Basic::register_t>();
     const auto testMachineCode = [&reg]() -> ByteArray {
       switch (reg) {
-        case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xc0}};
-        case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xc9}};
-        case Basic::register_t::RDX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xd2}};
-        case Basic::register_t::RBX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xdb}};
-        case Basic::register_t::RSP: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xe4}};
-        case Basic::register_t::RBP: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xed}};
-        case Basic::register_t::RSI: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xf6}};
-        case Basic::register_t::RDI: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xff}};
-        case Basic::register_t::R8:  return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xc0}};
-        case Basic::register_t::R9:  return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xc9}};
-        case Basic::register_t::R10: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xd2}};
-        case Basic::register_t::R11: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xdb}};
-        case Basic::register_t::R12: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xe4}};
-        case Basic::register_t::R13: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xed}};
-        case Basic::register_t::R14: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xf6}};
-        case Basic::register_t::R15: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}};
+        case RAX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xc0}};
+        case RCX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xc9}};
+        case RDX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xd2}};
+        case RBX: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xdb}};
+        case RSP: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xe4}};
+        case RBP: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xed}};
+        case RSI: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xf6}};
+        case RDI: return {std::byte{0x48}, std::byte{0x85}, std::byte{0xff}};
+        case R8:  return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xc0}};
+        case R9:  return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xc9}};
+        case R10: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xd2}};
+        case R11: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xdb}};
+        case R12: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xe4}};
+        case R13: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xed}};
+        case R14: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xf6}};
+        case R15: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}};
         default: { assert(0 && "Unknown register for test instruction"); }
       }
     };

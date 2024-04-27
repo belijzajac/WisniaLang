@@ -18,43 +18,43 @@ class WisniaError : public std::exception {
   std::string m_msg;
 };
 
-class TokenError : public WisniaError {
+class TokenError final : public WisniaError {
  public:
   explicit TokenError(const std::string &msg)
       : WisniaError("Token Error: " + msg) {}
 };
 
-class LexerError : public WisniaError {
+class LexerError final : public WisniaError {
  public:
   explicit LexerError(const std::string &msg)
       : WisniaError("Lexical Analysis Error: " + msg) {}
 };
 
-class ParserError : public WisniaError {
+class ParserError final : public WisniaError {
  public:
   explicit ParserError(const std::string &msg)
       : WisniaError("Syntax Analysis Error: " + msg) {}
 };
 
-class SemanticError : public WisniaError {
+class SemanticError final : public WisniaError {
  public:
   explicit SemanticError(const std::string &msg)
       : WisniaError("Semantic Analysis Error: " + msg) {}
 };
 
-class InstructionError : public WisniaError {
+class InstructionError final : public WisniaError {
  public:
   explicit InstructionError(const std::string &msg)
       : WisniaError("Instruction Error: " + msg) {}
 };
 
-class CodeGenerationError : public WisniaError {
+class CodeGenerationError final : public WisniaError {
  public:
   explicit CodeGenerationError(const std::string &msg)
       : WisniaError("Code Generation Error: " + msg) {}
 };
 
-class NotImplementedError : public WisniaError {
+class NotImplementedError final : public WisniaError {
  public:
   explicit NotImplementedError(const std::string &msg)
       : WisniaError("Not Implemented Error: " + msg) {}

@@ -9,7 +9,7 @@
 
 using namespace Wisnia;
 
-void IRPrintHelper::print(std::ostream &output, const IRPrintHelper::InstructionList &instructions) {
+void IRPrintHelper::print(std::ostream &output, const InstructionList &instructions) {
   size_t maxTargetWidth{0}, maxArgOneWidth{0};
   for (const auto &ir : instructions) {
     if (const auto &token = ir->getTarget(); token) {

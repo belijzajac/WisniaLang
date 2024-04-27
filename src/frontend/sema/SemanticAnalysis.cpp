@@ -1,8 +1,6 @@
 // Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
 // SPDX-License-Identifier: GPL-3.0
 
-#include <fmt/ostream.h>
-
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -70,16 +68,16 @@ void SemanticAnalysis::visit(Root &node) {
     throw SemanticError{"Function `main` not found"};
   }
 
-  for (const auto &function : programChecks.functionDefinitions) {
-    auto found = std::find(programChecks.invokedFunctions.begin(), programChecks.invokedFunctions.end(), function.name);
-    if (function.name != "main" && found == programChecks.invokedFunctions.end()) {
-      std::cout << fmt::format("[Warning] Function '{}' is defined but never used\n", function.name);
+  for (const auto &[name, _] : programChecks.functionDefinitions) {
+    auto it = std::find(programChecks.invokedFunctions.begin(), programChecks.invokedFunctions.end(), name);
+    if (name != "main" && it == programChecks.invokedFunctions.end()) {
+      std::cout << fmt::format("[Warning] Function '{}' is defined but never used\n", name);
     }
   }
 
   std::map<std::string, size_t> functionOccurrenceMap;
-  for (const auto &function : programChecks.functionDefinitions) {
-    functionOccurrenceMap[function.name]++;
+  for (const auto &[name, _] : programChecks.functionDefinitions) {
+    functionOccurrenceMap[name]++;
   }
 
   for (const auto &[function, count] : functionOccurrenceMap) {
@@ -89,55 +87,55 @@ void SemanticAnalysis::visit(Root &node) {
   }
 }
 
-void SemanticAnalysis::visit(AST::PrimitiveType &) {
+void SemanticAnalysis::visit(PrimitiveType &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::VarExpr &node) {
-  auto foundVar = m_table.findSymbol(node.getToken()->getValue<std::string>()); // VarExpr
+void SemanticAnalysis::visit(VarExpr &node) {
+  const auto *foundVar = m_table.findSymbol(node.getToken()->getValue<std::string>()); // VarExpr
   node.addType(std::make_unique<PrimitiveType>(foundVar->getType()->getToken()));
 }
 
-void SemanticAnalysis::visit(AST::BooleanExpr &node) {
+void SemanticAnalysis::visit(BooleanExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::EqExpr &node) {
+void SemanticAnalysis::visit(EqExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::CompExpr &node) {
+void SemanticAnalysis::visit(CompExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::AddExpr &node) {
+void SemanticAnalysis::visit(AddExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::SubExpr &node) {
+void SemanticAnalysis::visit(SubExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::MultExpr &node) {
+void SemanticAnalysis::visit(MultExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::DivExpr &node) {
+void SemanticAnalysis::visit(DivExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::UnaryExpr &node) {
+void SemanticAnalysis::visit(UnaryExpr &node) {
   node.lhs()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::FnCallExpr &node) {
+void SemanticAnalysis::visit(FnCallExpr &node) {
   const auto functionName = node.getVariable()->getToken()->getValue<std::string>();
   programChecks.invokedFunctions.emplace_back(functionName);
 
@@ -163,30 +161,30 @@ void SemanticAnalysis::visit(AST::FnCallExpr &node) {
   }
 }
 
-void SemanticAnalysis::visit(AST::ClassInitExpr &node) {
+void SemanticAnalysis::visit(ClassInitExpr &node) {
   node.getVariable()->accept(*this);
   for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
   }
 }
 
-void SemanticAnalysis::visit(AST::IntExpr &) {
+void SemanticAnalysis::visit(IntExpr &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::FloatExpr &) {
+void SemanticAnalysis::visit(FloatExpr &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::BoolExpr &) {
+void SemanticAnalysis::visit(BoolExpr &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::StringExpr &) {
+void SemanticAnalysis::visit(StringExpr &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::StmtBlock &node) {
+void SemanticAnalysis::visit(StmtBlock &node) {
   m_table.pushScope();
   for (const auto &stmt : node.getStatements()) {
     stmt->accept(*this);
@@ -194,52 +192,52 @@ void SemanticAnalysis::visit(AST::StmtBlock &node) {
   m_table.popScope();
 }
 
-void SemanticAnalysis::visit(AST::ReturnStmt &node) {
+void SemanticAnalysis::visit(ReturnStmt &node) {
   functionChecks.returnFound = true;
   node.getReturnValue()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::BreakStmt &) {
+void SemanticAnalysis::visit(BreakStmt &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::ContinueStmt &) {
+void SemanticAnalysis::visit(ContinueStmt &) {
   // nothing to do
 }
 
-void SemanticAnalysis::visit(AST::VarDeclStmt &node) {
+void SemanticAnalysis::visit(VarDeclStmt &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
   node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::VarAssignStmt &node) {
+void SemanticAnalysis::visit(VarAssignStmt &node) {
   node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::ExprStmt &node) {
+void SemanticAnalysis::visit(ExprStmt &node) {
   node.getExpression()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::ReadStmt &node) {
+void SemanticAnalysis::visit(ReadStmt &node) {
   for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
 }
 
-void SemanticAnalysis::visit(AST::WriteStmt &node) {
+void SemanticAnalysis::visit(WriteStmt &node) {
   for (const auto &expr : node.getExpressions()) {
     expr->accept(*this);
   }
 }
 
-void SemanticAnalysis::visit(AST::Param &node) {
+void SemanticAnalysis::visit(Param &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
   node.getVariable()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::FnDef &node) {
+void SemanticAnalysis::visit(FnDef &node) {
   const auto functionName = node.getVariable()->getToken()->getValue<std::string>();
   if (functionName == "main") {
     programChecks.mainFunctionFound = true;
@@ -273,25 +271,25 @@ void SemanticAnalysis::visit(AST::FnDef &node) {
   }
 }
 
-void SemanticAnalysis::visit(AST::CtorDef &node) {
+void SemanticAnalysis::visit(CtorDef &node) {
   throw NotImplementedError{fmt::format("Constructors are not supported in {}:{}",
                                         node.getVariable()->getToken()->getPosition().getFileName(),
                                         node.getVariable()->getToken()->getPosition().getLineNo())};
 }
 
-void SemanticAnalysis::visit(AST::DtorDef &node) {
+void SemanticAnalysis::visit(DtorDef &node) {
   throw NotImplementedError{fmt::format("Destructors are not supported in {}:{}",
                                         node.getVariable()->getToken()->getPosition().getFileName(),
                                         node.getVariable()->getToken()->getPosition().getLineNo())};
 }
 
-void SemanticAnalysis::visit(AST::Field &node) {
+void SemanticAnalysis::visit(Field &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
   node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::ClassDef &node) {
+void SemanticAnalysis::visit(ClassDef &node) {
   m_table.addSymbol(dynamic_cast<VarExpr *>(node.getVariable().get()));
   node.getVariable()->accept(*this);
   for (const auto &field : node.getFields()) {
@@ -308,25 +306,25 @@ void SemanticAnalysis::visit(AST::ClassDef &node) {
   }
 }
 
-void SemanticAnalysis::visit(AST::WhileLoop &node) {
+void SemanticAnalysis::visit(WhileLoop &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::ForLoop &node) {
+void SemanticAnalysis::visit(ForLoop &node) {
   node.getInitial()->accept(*this);
   node.getCondition()->accept(*this);
   node.getIncrement()->accept(*this);
   node.getBody()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::ForEachLoop &node) {
+void SemanticAnalysis::visit(ForEachLoop &node) {
   node.getElement()->accept(*this);
   node.getCollection()->accept(*this);
   node.getBody()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::IfStmt &node) {
+void SemanticAnalysis::visit(IfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
   for (const auto &elseBl : node.getElseStatements()) {
@@ -334,11 +332,11 @@ void SemanticAnalysis::visit(AST::IfStmt &node) {
   }
 }
 
-void SemanticAnalysis::visit(AST::ElseStmt &node) {
+void SemanticAnalysis::visit(ElseStmt &node) {
   node.getBody()->accept(*this);
 }
 
-void SemanticAnalysis::visit(AST::ElseIfStmt &node) {
+void SemanticAnalysis::visit(ElseIfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
 }

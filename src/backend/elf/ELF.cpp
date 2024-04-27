@@ -13,13 +13,13 @@ using namespace Wisnia;
 ELF::ELF(ByteArray textSection, ByteArray dataSection)
     : m_textSection{std::move(textSection)}, m_dataSection{std::move(dataSection)} {}
 
-ByteArray ELF::generateELF() {
+ByteArray ELF::generateELF() const {
   ByteArray elfData{};
 
-  const auto textSize = uint64_t(m_textSection.size());
-  const auto dataSize = uint64_t(m_dataSection.size());
-  const auto dataOffset = uint64_t(kTextOffset + textSize);
-  const auto dataVirtualAddress = uint64_t(kDataVirtualStartAddress + dataOffset);
+  const auto textSize = m_textSection.size();
+  const auto dataSize = m_dataSection.size();
+  const auto dataOffset = kTextOffset + textSize;
+  const auto dataVirtualAddress = kDataVirtualStartAddress + dataOffset;
 
   elfData.putBytes(
       // ELF magic value
@@ -94,12 +94,12 @@ ByteArray ELF::generateELF() {
   return elfData;
 }
 
-void ELF::writeELF(std::string_view filename) {
+void ELF::writeELF(const std::string_view filename) const {
   namespace fs = std::filesystem;
-  ByteArray elfData = generateELF();
+  const ByteArray elfData = generateELF();
   {
     std::ofstream file(filename.data(), std::ios::out | std::ios::binary);
-    file.write(reinterpret_cast<const char *>(elfData.data()), (std::streamsize)elfData.size());
+    file.write(reinterpret_cast<const char *>(elfData.data()), static_cast<std::streamsize>(elfData.size()));
   }
-  fs::permissions(filename, fs::perms::all, fs::perm_options::add);
+  permissions(filename, fs::perms::all, fs::perm_options::add);
 }

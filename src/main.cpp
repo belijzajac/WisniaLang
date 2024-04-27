@@ -15,14 +15,15 @@
 
 using namespace Wisnia;
 using namespace lyra;
+using namespace std::literals;
 
-constexpr std::string_view kLogo {
-    " __        ___           _       _                           \n"
-    " \\ \\      / (_)___ _ __ (_) __ _| |    __ _ _ __   __ _    \n"
+constexpr auto kLogo {
+    " __        ___           _       _                      \n"
+    " \\ \\      / (_)___ _ __ (_) __ _| |    __ _ _ __   __ _ \n"
     "  \\ \\ /\\ / /| / __| '_ \\| |/ _` | |   / _` | '_ \\ / _` |\n"
-    "   \\ V  V / | \\__ \\ | | | | (_| | |__| (_| | | | | (_| |  \n"
+    "   \\ V  V / | \\__ \\ | | | | (_| | |__| (_| | | | | (_| |\n"
     "    \\_/\\_/  |_|___/_| |_|_|\\__,_|_____\\__,_|_| |_|\\__, |\n"
-    "                                                  |___/ "
+    "                                                  |___/ "sv
 };
 
 int main(int argc, char *argv[]) {
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
   const auto result = cli.parse({ argc, argv });
 
   bool logoShown{false};
-  auto showLogo = [&logoShown]() {
+  auto showLogo = [&logoShown] {
     if (!logoShown) {
       std::cout << fmt::format("{} v{}\n", kLogo, WISNIA_VERSION);
       logoShown = true;

@@ -1,8 +1,10 @@
 // Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
 // SPDX-License-Identifier: GPL-3.0
 
+#ifndef WISNIALANG_NODE_COLLECTOR_TPP
+#define WISNIALANG_NODE_COLLECTOR_TPP
+
 #include "NodeCollector.hpp"
-#include "AST.hpp"
 
 template <typename T>
 void NodeCollector<T>::visit(AST::Root &node) {
@@ -347,3 +349,5 @@ void NodeCollector<T>::visit(AST::ElseIfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
 }
+
+#endif  // WISNIALANG_NODE_COLLECTOR_TPP

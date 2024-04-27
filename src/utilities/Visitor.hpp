@@ -49,6 +49,7 @@ class ElseIfStmt;
 
 class Visitor {
  public:
+  virtual ~Visitor() = default;
   virtual void visit(AST::Root &) = 0;
   virtual void visit(AST::PrimitiveType &) = 0;
   virtual void visit(AST::VarExpr &) = 0;

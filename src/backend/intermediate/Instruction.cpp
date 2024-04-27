@@ -9,7 +9,7 @@
 using namespace Wisnia;
 using namespace Basic;
 
-void Wisnia::Instruction::print(std::ostream &output) const {
+void Instruction::print(std::ostream &output) const {
   output << fmt::format("{:^{}} %% {:<15}|{:^14}|{:^{}} %% {:<15}|{:^15} %% {:<15}\n",
     // target
     m_target ? m_target->getASTValueStr() : "", sPrintTargetWidth + 2,

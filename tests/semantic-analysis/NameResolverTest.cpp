@@ -25,7 +25,7 @@ TEST_F(NameResolverTest, ResolveVarInfo) {
   const auto &collectedVars = collector.getNodes();
   EXPECT_EQ(collectedVars.size(), 44);
 
-  constexpr std::array<VarInfo, 44> kExpectedVars{
+  constexpr std::array kExpectedVars{
     VarInfo{"Foo", "class"}, VarInfo{"is_fifteen", "bool"}, VarInfo{"number", "float"},
     VarInfo{"digit", "int"}, VarInfo{"simple_operations", "void"}, VarInfo{"a", "float"},
     VarInfo{"number", "float"}, VarInfo{"i", "int"}, VarInfo{"i", "int"}, VarInfo{"i", "int"},

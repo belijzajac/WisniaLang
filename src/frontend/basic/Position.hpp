@@ -10,7 +10,7 @@ namespace Wisnia::Basic {
 
 class Position {
  public:
-  Position(std::string file, size_t line)
+  Position(std::string file, const size_t line)
       : m_fileName{std::move(file)}
       , m_lineNo{line}
   {}

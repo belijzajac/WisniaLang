@@ -33,7 +33,7 @@ class BaseStmt : public Root {
       : Root(std::move(token)) {}
 };
 
-class StmtBlock : public BaseStmt {
+class StmtBlock final : public BaseStmt {
   using StatementPtr = std::unique_ptr<BaseStmt>;
 
  public:
@@ -69,7 +69,7 @@ class StmtBlock : public BaseStmt {
   std::vector<StatementPtr> m_statements;
 };
 
-class ReturnStmt : public BaseStmt {
+class ReturnStmt final : public BaseStmt {
   using ReturnValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -103,7 +103,7 @@ class ReturnStmt : public BaseStmt {
   ReturnValuePtr m_returnValue;
 };
 
-class BreakStmt : public BaseStmt {
+class BreakStmt final : public BaseStmt {
  public:
   explicit BreakStmt(TokenPtr token)
       : BaseStmt(std::move(token)) {}
@@ -117,7 +117,7 @@ class BreakStmt : public BaseStmt {
   }
 };
 
-class ContinueStmt : public BaseStmt {
+class ContinueStmt final : public BaseStmt {
  public:
   explicit ContinueStmt(TokenPtr token)
       : BaseStmt(std::move(token)) {}
@@ -131,7 +131,7 @@ class ContinueStmt : public BaseStmt {
   }
 };
 
-class VarDeclStmt : public BaseStmt, public VariableMixin {
+class VarDeclStmt final : public BaseStmt, public VariableMixin {
   using ValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -166,7 +166,7 @@ class VarDeclStmt : public BaseStmt, public VariableMixin {
   ValuePtr m_value;
 };
 
-class VarAssignStmt : public BaseStmt, public VariableMixin {
+class VarAssignStmt final : public BaseStmt, public VariableMixin {
   using ValuePtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -201,7 +201,7 @@ class VarAssignStmt : public BaseStmt, public VariableMixin {
   ValuePtr m_value;
 };
 
-class ExprStmt : public BaseStmt {
+class ExprStmt final : public BaseStmt {
   using ExpressionPtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -235,7 +235,7 @@ class ExprStmt : public BaseStmt {
   ExpressionPtr m_expression;
 };
 
-class ReadStmt : public BaseStmt, public VariableMixin {
+class ReadStmt final : public BaseStmt, public VariableMixin {
  public:
   explicit ReadStmt(TokenPtr token)
       : BaseStmt(std::move(token)) {}
@@ -258,7 +258,7 @@ class ReadStmt : public BaseStmt, public VariableMixin {
   }
 };
 
-class WriteStmt : public BaseStmt {
+class WriteStmt final : public BaseStmt {
   using ExpressionPtr = std::unique_ptr<BaseExpr>;
 
  public:

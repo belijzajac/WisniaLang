@@ -11,14 +11,14 @@
 
 namespace Wisnia {
 
-template <typename T>
+template <typename>
 class MachineCodeTable {};
 
 template <>
 class MachineCodeTable<uint8_t> {
 public:
   // machine code for `cmp byte ptr` instruction
-  static constexpr ByteArray getCmpPtrMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getCmpPtrMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x80}, std::byte{0x38}};
       case Basic::register_t::RCX: return {std::byte{0x80}, std::byte{0x39}};
@@ -45,7 +45,7 @@ template <>
 class MachineCodeTable<uint32_t> {
 public:
   // machine code for 32-bit mov instruction
-  static constexpr ByteArray getMovMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getMovMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc0}};
       case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0xc7}, std::byte{0xc1}};
@@ -68,7 +68,7 @@ public:
   }
 
   // machine code for 32-bit lea instruction
-  static constexpr ByteArray getLeaMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getLeaMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::EDX: return {std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}};
       default: { assert(0 && "Unknown register for lea instruction"); }
@@ -76,7 +76,7 @@ public:
   }
 
   // machine code for 32-bit cmp instruction
-  static constexpr ByteArray getCmpMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getCmpMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0x3d}};
       case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0x81}, std::byte{0xf9}};
@@ -99,7 +99,7 @@ public:
   }
 
   // machine code for 32-bit add instruction
-  static constexpr ByteArray getAddMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getAddMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0x05}};
       case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0x81}, std::byte{0xc1}};
@@ -123,7 +123,7 @@ public:
   }
 
   // machine code for 32-bit sub instruction
-  static constexpr ByteArray getSubMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getSubMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0x2d}};
       case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0x81}, std::byte{0xe9}};
@@ -146,7 +146,7 @@ public:
   }
 
   // machine code for 32-bit imul instruction
-  static constexpr ByteArray getMulMachineCode(Basic::register_t reg) {
+  static constexpr ByteArray getMulMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::RAX: return {std::byte{0x48}, std::byte{0x69}, std::byte{0xc0}};
       case Basic::register_t::RCX: return {std::byte{0x48}, std::byte{0x69}, std::byte{0xc9}};

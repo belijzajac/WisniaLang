@@ -7,7 +7,6 @@
 #include <cassert>
 #include <cstddef>
 #include <iomanip>
-#include <sstream>
 #include <vector>
 
 namespace Wisnia {
@@ -15,7 +14,6 @@ namespace Wisnia {
 class ByteArray {
   using Bytes = std::vector<std::byte>;
 
- private:
   constexpr auto begin() const noexcept { return m_byteData.begin(); }
   constexpr auto end() const noexcept { return m_byteData.end(); }
 
@@ -39,17 +37,17 @@ class ByteArray {
     }
   }
 
-  constexpr ByteArray(std::initializer_list<std::byte> list) : m_byteData(list) {}
+  constexpr ByteArray(const std::initializer_list<std::byte> list) : m_byteData(list) {}
 
   constexpr size_t size() const { return m_byteData.size(); }
   constexpr const std::byte *data() const { return m_byteData.data(); }
 
-  constexpr const auto &operator[](std::size_t index) const {
+  constexpr const auto &operator[](const std::size_t index) const {
     assert(index < size());
     return m_byteData[index];
   }
 
-  constexpr void insert(size_t index, std::byte value) {
+  constexpr void insert(const size_t index, const std::byte value) {
     assert(index < size());
     m_byteData[index] = value;
   }
@@ -93,7 +91,7 @@ class ByteArray {
   template <typename... Ts>
   requires (std::is_same_v<Ts, std::byte> || ...)
   constexpr void putBytes(Ts &&...t) {
-    std::byte dummy[] = {std::byte{0}, (m_byteData.emplace_back(std::forward<Ts>(t)), std::byte{0})...};
+    const std::byte dummy[] = {std::byte{0}, (m_byteData.emplace_back(std::forward<Ts>(t)), std::byte{0})...};
     (void)dummy;
   }
 

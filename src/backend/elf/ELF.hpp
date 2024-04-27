@@ -4,7 +4,6 @@
 #ifndef WISNIALANG_ELF_HPP
 #define WISNIALANG_ELF_HPP
 
-#include <vector>
 // Wisnia
 #include "ByteArray.hpp"
 
@@ -13,15 +12,15 @@ namespace Wisnia {
 constexpr uint64_t kVirtualStartAddress{0x400000};
 constexpr uint64_t kDataVirtualStartAddress{0x600000};
 constexpr uint64_t kAlignment{0x200000};
-constexpr uint64_t kTextOffset{0x40 + (2 * 0x38)};
+constexpr uint64_t kTextOffset{0x40 + 2 * 0x38};
 
 class ELF {
  public:
   ELF(ByteArray textSection, ByteArray dataSection);
-  void writeELF(std::string_view filename = "a.out");
+  void writeELF(std::string_view filename = "a.out") const;
 
  private:
-  ByteArray generateELF();
+  ByteArray generateELF() const;
 
  private:
   ByteArray m_textSection;

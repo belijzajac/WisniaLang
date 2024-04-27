@@ -12,8 +12,7 @@ namespace Wisnia {
 
 constexpr auto kMaxIntValue{2147483647}; // mov rax, 0x7fffffff --> 48 c7 c0 | ff ff ff 7f
 
-class SemanticAnalysis : public Visitor {
- private:
+class SemanticAnalysis final : public Visitor {
   void visit(AST::Root &) override;
   void visit(AST::PrimitiveType &) override;
   void visit(AST::VarExpr &) override;

@@ -12,7 +12,7 @@
 using namespace Wisnia;
 using namespace Basic;
 
-using TokenPtr = std::shared_ptr<Basic::Token>;
+using TokenPtr = std::shared_ptr<Token>;
 
 template <typename T>
 bool checkVariable(const TokenPtr &token, const T &variable) {
@@ -23,7 +23,7 @@ bool checkVariable(const TokenPtr &token, const T &variable) {
 
 // Linear Scan algorithm (default for LLVM)
 // https://pages.cs.wisc.edu/~horwitz/CS701-NOTES/5.REGISTER-ALLOCATION.html#linearScan
-void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRegisters) {
+void RegisterAllocator::allocate(InstructionList &&instructions, const bool allocateRegisters) {
   if (!allocateRegisters) {
     m_instructions.insert(m_instructions.end(), instructions.begin(), instructions.end());
     return;
@@ -89,7 +89,7 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
     // Search for an unassigned register
     const auto availableRegister = [&]() -> std::optional<Basic::register_t> {
       auto it = std::find_if(availableRegisters.m_registers.begin(), availableRegisters.m_registers.end(),
-        [](Registers::RegisterState r) { return !r.m_assigned; }
+        [](const Registers::RegisterState r) { return !r.m_assigned; }
       );
       if (it != availableRegisters.m_registers.end()) {
         it->m_assigned = true;
@@ -108,25 +108,25 @@ void RegisterAllocator::allocate(InstructionList &&instructions, bool allocateRe
     } else {
       // We ran out of registers - spill it
       auto node = liveIntervals.extract(interval);
-      node.value().m_register = Basic::register_t::SPILLED;
+      node.value().m_register = SPILLED;
       liveIntervals.insert(std::move(node));
     }
   }
 
   // Assign registers to instructions
-  for (auto& instr : instructions) {
-    for (const auto &live : liveIntervals) {
-      if (const auto &var = instr->getTarget(); var && checkVariable(var, live.m_variable)) {
+  for (const auto &instr : instructions) {
+    for (const auto &[liveVar, liveReg, ignored1, ignored2] : liveIntervals) {
+      if (const auto &var = instr->getTarget(); var && checkVariable(var, liveVar)) {
         var->setType(TType::REGISTER);
-        var->setValue(live.m_register);
+        var->setValue(liveReg);
       }
-      if (const auto &var = instr->getArg1(); var && checkVariable(var, live.m_variable)) {
+      if (const auto &var = instr->getArg1(); var && checkVariable(var, liveVar)) {
         var->setType(TType::REGISTER);
-        var->setValue(live.m_register);
+        var->setValue(liveReg);
       }
-      if (const auto &var = instr->getArg2(); var && checkVariable(var, live.m_variable)) {
+      if (const auto &var = instr->getArg2(); var && checkVariable(var, liveVar)) {
         var->setType(TType::REGISTER);
-        var->setValue(live.m_register);
+        var->setValue(liveReg);
       }
     }
   }

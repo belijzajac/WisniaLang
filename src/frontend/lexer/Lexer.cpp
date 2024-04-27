@@ -1,8 +1,6 @@
 // Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
 // SPDX-License-Identifier: GPL-3.0
 
-#include <fmt/format.h>
-
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -10,6 +8,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <fmt/format.h>
 // Wisnia
 #include "Exceptions.hpp"
 #include "Lexer.hpp"
@@ -19,16 +18,16 @@
 using namespace Wisnia;
 using namespace Basic;
 
-constexpr std::array<char, 9> kSimpleOperands{'.', '*', '(', ')', '{', '}', ',', ':', ';'};
+constexpr std::array kSimpleOperands{'.', '*', '(', ')', '{', '}', ',', ':', ';'};
 
-Lexer::TokenPtr Lexer::finishTok(const TType &type, bool backtrack) {
+Lexer::TokenPtr Lexer::finishTok(const TType &type, const bool goBack) {
   // We've over-gone by 1 character further by returning the token earlier, so step back
-  if (backtrack) {
+  if (goBack) {
     --m_tokenState.m_iterator;
   }
 
   m_tokenState.m_state = State::START;
-  size_t lineNo = (type == TType::LIT_STR) ? m_tokenState.m_strStart : m_tokenState.m_lineNo;
+  const size_t lineNo = (type == TType::LIT_STR) ? m_tokenState.m_strStart : m_tokenState.m_lineNo;
   auto pif = std::make_unique<Position>(m_tokenState.m_fileName, lineNo);
 
   auto TokValue = [&]() -> TokenValue {
@@ -64,8 +63,8 @@ Lexer::TokenPtr Lexer::finishTok(const TType &type, bool backtrack) {
 }
 
 Lexer::TokenPtr Lexer::finishIdent() {
-  if (auto search = Str2TokenKw.find(m_tokenState.m_buff); search != Str2TokenKw.end()) {
-    return finishTok(search->second, true);
+  if (const auto it = Str2TokenKw.find(m_tokenState.m_buff); it != Str2TokenKw.end()) {
+    return finishTok(it->second, true);
   }
   return finishTok(TType::IDENT, true);
 }
@@ -109,7 +108,7 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
       else if (ch == '/') {
         m_tokenState.m_state = State::CMT_I;
       }
-      else if (std::any_of(kSimpleOperands.begin(), kSimpleOperands.end(), [&](char op) { return ch == op; })) {
+      else if (std::any_of(kSimpleOperands.begin(), kSimpleOperands.end(), [&](const char op) { return ch == op; })) {
         m_tokenState.m_buff = ch;
         return finishTok(Str2TokenOp[m_tokenState.m_buff]);
       }
@@ -143,10 +142,9 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
         // (!=, <=, >=, ==)
         m_tokenState.m_buff += '=';
         return finishTok(Str2TokenOp[m_tokenState.m_buff]);
-      } else {
-        // (!, <, >, =)
-        return finishTok(Str2TokenOp[m_tokenState.m_buff], true);
       }
+      // (!, <, >, =)
+      return finishTok(Str2TokenOp[m_tokenState.m_buff], true);
 
     /* ~~~ CASE: STRING ~~~ */
     case State::STRING:
@@ -201,7 +199,8 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
     case State::INTEGER:
       if (isspace(ch)) {
         return finishTok(TType::LIT_INT);
-      } else if (ch == '.') {
+      }
+      if (ch == '.') {
         m_tokenState.m_state = State::FLOAT;
       } else if (isalpha(ch)) {
         m_tokenState.m_state = State::ERRONEOUS_NUMBER;
@@ -216,7 +215,8 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
     case State::FLOAT:
       if (isspace(ch)) {
         return finishTok(TType::LIT_FLT);
-      } else if (isalpha(ch) || ch == '.') {
+      }
+      if (isalpha(ch) || ch == '.') {
         m_tokenState.m_state = State::ERRONEOUS_NUMBER;
         m_tokenState.m_errType = "float";
       } else if (!isdigit(ch)) {
@@ -264,7 +264,8 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
       if (ch == '-') {
         m_tokenState.m_buff += ch;
         return finishTok(TType::OP_USUB);
-      } else if (ch == '>') {
+      }
+      if (ch == '>') {
         m_tokenState.m_buff += ch;
         return finishTok(TType::OP_FN_ARROW);
       }
@@ -283,14 +284,14 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
       if (ch == '*') {
         m_tokenState.m_state = State::CMT_II;
         return {};
-      } else if (ch == '/') {
+      }
+      if (ch == '/') {
         m_tokenState.m_state = State::CMT_SINGLE;
         return {};
-      } else {
-        // It was just a division symbol
-        m_tokenState.m_state = State::START;
-        return finishTok(TType::OP_DIV, true);
       }
+      // It was just a division symbol
+      m_tokenState.m_state = State::START;
+      return finishTok(TType::OP_DIV, true);
 
     /* ~~~ CASE: CMT_II ~~~ */
     case State::CMT_II:
@@ -330,13 +331,13 @@ std::optional<Lexer::TokenPtr> Lexer::tokNext(const char ch) {
 
 void Lexer::tokenize(std::string_view filename) {
   std::ifstream sourceFile{filename.data()};
-  m_tokenState.m_data = {std::istreambuf_iterator<char>(sourceFile), std::istreambuf_iterator<char>()};
+  m_tokenState.m_data = {std::istreambuf_iterator(sourceFile), std::istreambuf_iterator<char>()};
   m_tokenState.m_fileName = filename;
   tokenizeInput();
 }
 
 void Lexer::tokenize(std::istringstream &stream) {
-  m_tokenState.m_data = {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
+  m_tokenState.m_data = {std::istreambuf_iterator(stream), std::istreambuf_iterator<char>()};
   m_tokenState.m_fileName = "in-memory";
   tokenizeInput();
 }
@@ -390,5 +391,5 @@ void Lexer::print(std::ostream &output) const {
   }
 }
 
-Lexer::Lexer(std::string_view filename) { tokenize(filename); }
+Lexer::Lexer(const std::string_view filename) { tokenize(filename); }
 Lexer::Lexer(std::istringstream &stream) { tokenize(stream); }

@@ -824,7 +824,7 @@ TEST(ParserTest, ClassDefinition) {
   EXPECT_STREQ(constructor->getToken()->getValue<std::string>().c_str(), "Main");
   // (var1: int)
   EXPECT_EQ(constructor->getParameters().size(), 1);
-  auto param = dynamic_cast<AST::Param *>(constructor->getParameters()[0].get());
+  auto param = constructor->getParameters()[0].get();
   EXPECT_NE(param, nullptr);
   EXPECT_EQ(param->getVariable()->getToken()->getType(), TType::IDENT_INT);
   EXPECT_STREQ(param->getVariable()->getToken()->getValue<std::string>().c_str(), "var1");
@@ -835,7 +835,7 @@ TEST(ParserTest, ClassDefinition) {
   EXPECT_STREQ(destructor->getToken()->getValue<std::string>().c_str(), "Main");
   // int m_var
   EXPECT_EQ(klass->getFields().size(), 1);
-  auto field = dynamic_cast<AST::Field *>(klass->getFields()[0].get());
+  auto field = klass->getFields()[0].get();
   EXPECT_NE(field, nullptr);
   EXPECT_EQ(field->getVariable()->getToken()->getType(), TType::IDENT_INT);
   EXPECT_STREQ(field->getVariable()->getToken()->getValue<std::string>().c_str(), "m_var");

@@ -17,7 +17,7 @@
 namespace Wisnia::Basic {
 
 // Variant that holds all the possible values for token
-using TokenValue = std::variant<int, float, bool, std::string, nullptr_t, Basic::register_t>;
+using TokenValue = std::variant<int, float, bool, std::string, nullptr_t, register_t>;
 
 // Helper type for the visitor
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -25,10 +25,10 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 class Token {
  public:
-  Token(TType type, TokenValue value, std::unique_ptr<Position> pif = nullptr)
+  Token(const TType type, TokenValue value, std::unique_ptr<Position> pif = nullptr)
       : m_type{type}, m_value{std::move(value)}, m_position{std::move(pif)} {}
 
-  Token(TType type, TokenValue value, const Position &pif)
+  Token(const TType type, TokenValue value, const Position &pif)
       : m_type{type}, m_value{std::move(value)}, m_position{std::make_unique<Position>(pif)} {}
 
   template <typename T>
@@ -36,7 +36,7 @@ class Token {
     try {
       return std::get<T>(m_value);
     } catch (const std::bad_variant_access &ex) {
-      throw Wisnia::TokenError{ex.what()};
+      throw TokenError{ex.what()};
     }
   }
 
@@ -48,11 +48,11 @@ class Token {
       [&](float arg)              { strResult = std::to_string(arg); },
       [&](bool arg)               { strResult = arg ? "true" : "false"; },
       [&](nullptr_t arg)          { strResult = "null"; },
-      [&](Basic::register_t arg)  { strResult = Register2Str[arg]; },
+      [&](register_t arg)         { strResult = Register2Str[arg]; },
     },
     m_value);
     return strResult;
-  };
+  }
 
   // Primarily used in AST output for pretty token's value printing
   std::string getASTValueStr() const {
@@ -78,15 +78,15 @@ class Token {
           strResult = arg;
         }
       },
-      [&](int arg)               { strResult = std::to_string(arg); },
-      [&](float arg)             { strResult = std::to_string(arg); },
-      [&](bool arg)              { strResult = arg ? "true" : "false"; },
-      [&](nullptr_t arg)         { strResult = "null"; },
-      [&](Basic::register_t arg) { strResult = Register2Str[arg]; },
+      [&](int arg)        { strResult = std::to_string(arg); },
+      [&](float arg)      { strResult = std::to_string(arg); },
+      [&](bool arg)       { strResult = arg ? "true" : "false"; },
+      [&](nullptr_t arg)  { strResult = "null"; },
+      [&](register_t arg) { strResult = Register2Str[arg]; },
     },
     m_value);
     return strResult;
-  };
+  }
 
   constexpr bool isIdentifierType() const {
     return m_type == TType::IDENT_INT    || m_type == TType::IDENT_FLOAT ||
@@ -103,7 +103,7 @@ class Token {
   }
 
   TType getType() const { return m_type; }
-  void setType(TType type) { m_type = type; }
+  void setType(const TType type) { m_type = type; }
   void setValue(const TokenValue &value) { m_value = value; }
   std::string &getName() const { return TokenType2Str[m_type]; }
   Position &getPosition() const { return *m_position; }

@@ -58,7 +58,7 @@ class Lexer {
   };
 
   // Having provided the TType, it constructs and returns a token
-  TokenPtr finishTok(const Basic::TType &type, bool backtrack = false);
+  TokenPtr finishTok(const Basic::TType &type, bool goBack = false);
 
   // From an existing token buffer constructs and returns a token of identifier
   // (or keyword) type

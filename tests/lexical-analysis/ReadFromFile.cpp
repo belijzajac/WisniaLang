@@ -13,15 +13,14 @@ using namespace Basic;
 namespace fs = std::filesystem;
 
 TEST(LexerTest, ReadFromFile) {
-  const std::array<std::string_view, 2> filePaths {
+  constexpr std::array<std::string_view, 2> filePaths {
     "../../tests/lexical-analysis/sample.wsn", // CLion
     "../tests/lexical-analysis/sample.wsn"     // build instructions from repo
   };
 
-  const auto filePath = std::find_if(begin(filePaths), end(filePaths), [&](std::string_view path) {
-    return fs::exists(fs::path{path});
+  const auto filePath = std::find_if(begin(filePaths), end(filePaths), [&](const std::string_view path) {
+    return exists(fs::path{path});
   });
-
   if (filePath == std::end(filePaths)) {
     throw std::runtime_error{"sample.wsn wasn't found"};
   }

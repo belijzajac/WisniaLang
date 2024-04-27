@@ -15,7 +15,7 @@ using namespace Wisnia;
 using namespace Basic;
 using namespace AST;
 
-AST::Root &IRGenerator::popNode() {
+Root &IRGenerator::popNode() {
   assert(!m_stack.empty() && "The stack is empty");
   auto &topNode{*m_stack.top()};
   m_stack.pop();
@@ -37,38 +37,38 @@ constexpr std::array<std::array<Operation, 2>, 12> binaryExprMapping {{
   {{Operation::OR,   Operation::NOP }}
 }};
 
-constexpr Operation getOperationForBinaryExpression(Basic::TType exprType, bool isFloat) {
+constexpr Operation getOperationForBinaryExpression(const TType exprType, const bool isFloat) {
   switch (exprType) {
-    case Basic::TType::OP_ADD:
+    case TType::OP_ADD:
       return binaryExprMapping[0][isFloat];
-    case Basic::TType::OP_SUB:
+    case TType::OP_SUB:
       return binaryExprMapping[1][isFloat];
-    case Basic::TType::OP_MUL:
+    case TType::OP_MUL:
       return binaryExprMapping[2][isFloat];
-    case Basic::TType::OP_DIV:
+    case TType::OP_DIV:
       return binaryExprMapping[3][isFloat];
-    case Basic::TType::OP_EQ:
+    case TType::OP_EQ:
       return binaryExprMapping[4][isFloat];
-    case Basic::TType::OP_L:
+    case TType::OP_L:
       return binaryExprMapping[5][isFloat];
-    case Basic::TType::OP_LE:
+    case TType::OP_LE:
       return binaryExprMapping[6][isFloat];
-    case Basic::TType::OP_G:
+    case TType::OP_G:
       return binaryExprMapping[7][isFloat];
-    case Basic::TType::OP_GE:
+    case TType::OP_GE:
       return binaryExprMapping[8][isFloat];
-    case Basic::TType::OP_NE:
+    case TType::OP_NE:
       return binaryExprMapping[9][isFloat];
-    case Basic::TType::OP_AND:
+    case TType::OP_AND:
       return binaryExprMapping[10][0];
-    case Basic::TType::OP_OR:
+    case TType::OP_OR:
       return binaryExprMapping[11][0];
     default:
       throw InstructionError{"Unknown binary expression"};
   }
 }
 
-constexpr TType getIdentForLiteralType(TType type) {
+constexpr TType getIdentForLiteralType(const TType type) {
   switch (type) {
     case TType::LIT_INT:  return TType::IDENT_INT;
     case TType::LIT_FLT:  return TType::IDENT_FLOAT;
@@ -80,11 +80,11 @@ constexpr TType getIdentForLiteralType(TType type) {
   }
 }
 
-void IRGenerator::createBinaryExpression(Basic::TType expressionType) {
+void IRGenerator::createBinaryExpression(const TType expressionType) {
   const auto &rhs = popNode();
   const auto &lhs = popNode();
 
-  auto varToken = std::make_shared<Basic::Token>(
+  auto varToken = std::make_shared<Token>(
     getIdentForLiteralType(rhs.getToken()->getType()),
     "_t" + std::to_string(m_tempVars.size())
   );
@@ -92,9 +92,9 @@ void IRGenerator::createBinaryExpression(Basic::TType expressionType) {
   m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
   m_stack.push(m_tempVars.back().get());
 
-  bool isFloat = rhs.getToken()->getType() == TType::LIT_FLT ||
+  const bool isFloat = rhs.getToken()->getType() == TType::LIT_FLT ||
                  rhs.getToken()->getType() == TType::IDENT_FLOAT;
-  Operation op = getOperationForBinaryExpression(expressionType, isFloat);
+  const Operation op = getOperationForBinaryExpression(expressionType, isFloat);
 
   // _tx = a <op> b rewritten as
   //    _tx = a
@@ -111,16 +111,16 @@ void IRGenerator::createBinaryExpression(Basic::TType expressionType) {
   ));
 }
 
-std::tuple<IRGenerator::TokenPtr, Basic::TType> IRGenerator::getExpression(Root &node, bool createVariableForLiteral) {
-  IRGenerator::TokenPtr token;
+std::tuple<IRGenerator::TokenPtr, TType> IRGenerator::getExpression(Root &node, const bool createVariableForLiteral) {
+  TokenPtr token;
   TType type;
 
-  if (dynamic_cast<AST::BinaryExpr *>(&node)) {
+  if (dynamic_cast<BinaryExpr *>(&node)) {
     token = m_tempVars.back()->getToken();
     type  = m_tempVars.back()->getToken()->getType();
-  } else if (dynamic_cast<AST::FnCallExpr *>(&node)) {
+  } else if (dynamic_cast<FnCallExpr *>(&node)) {
     type  = node.getToken()->getType();
-    token = std::make_shared<Basic::Token>(
+    token = std::make_shared<Token>(
       getIdentForLiteralType(type),
       "_t" + std::to_string(m_tempVars.size())
     );
@@ -130,9 +130,9 @@ std::tuple<IRGenerator::TokenPtr, Basic::TType> IRGenerator::getExpression(Root 
       //   1. we push all registers (rax, ..., r15)
       //   2. we generate IRs for function call
       //   3. we pop all registers (r15, ..., rax) <-- thus return value is stored in r15
-      auto functionReturn = std::make_shared<Basic::Token>(
+      auto functionReturn = std::make_shared<Token>(
         TType::REGISTER,
-        Basic::register_t::R15
+        R15
       );
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
@@ -146,7 +146,7 @@ std::tuple<IRGenerator::TokenPtr, Basic::TType> IRGenerator::getExpression(Root 
   } else if (node.getToken()->isLiteralType()) {
     if (createVariableForLiteral) {
       const auto &litToken = node.getToken();
-      auto varToken = std::make_shared<Basic::Token>(
+      auto varToken = std::make_shared<Token>(
         getIdentForLiteralType(litToken->getType()),
         "_t" + std::to_string(m_tempVars.size())
       );
@@ -169,7 +169,7 @@ std::tuple<IRGenerator::TokenPtr, Basic::TType> IRGenerator::getExpression(Root 
   return {token, type};
 }
 
-void IRGenerator::visit(AST::Root &node) {
+void IRGenerator::visit(Root &node) {
   size_t last{0};
   const auto &functions = node.getGlobalFunctions();
   for (const auto &function : std::ranges::reverse_view(functions)) {
@@ -182,10 +182,10 @@ void IRGenerator::visit(AST::Root &node) {
   }
 
   // Load modules
-  auto [module1, module1Used] = Modules::getModule(Module::CALCULATE_STRING_LENGTH);
-  auto [module2, module2Used] = Modules::getModule(Module::PRINT_NUMBER);
-  auto [module3, module3Used] = Modules::getModule(Module::PRINT_BOOLEAN);
-  auto [module4, module4Used] = Modules::getModule(Module::EXIT);
+  auto [module1, module1Used] = Modules::getModule(CALCULATE_STRING_LENGTH);
+  auto [module2, module2Used] = Modules::getModule(PRINT_NUMBER);
+  auto [module3, module3Used] = Modules::getModule(PRINT_BOOLEAN);
+  auto [module4, module4Used] = Modules::getModule(EXIT);
 
   if (module1Used) registerAllocator.allocate(std::move(module1), false);
   if (module2Used) registerAllocator.allocate(std::move(module2), false);
@@ -197,63 +197,63 @@ void IRGenerator::visit(AST::Root &node) {
   irOptimization.optimize(vec_slice(instructions, 0, instructions.size()));
 }
 
-void IRGenerator::visit(AST::PrimitiveType &) {
+void IRGenerator::visit(PrimitiveType &) {
 }
 
-void IRGenerator::visit(AST::VarExpr &node) {
+void IRGenerator::visit(VarExpr &node) {
   m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::BooleanExpr &node) {
+void IRGenerator::visit(BooleanExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::EqExpr &node) {
+void IRGenerator::visit(EqExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::CompExpr &node) {
+void IRGenerator::visit(CompExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::AddExpr &node) {
+void IRGenerator::visit(AddExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::SubExpr &node) {
+void IRGenerator::visit(SubExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::MultExpr &node) {
+void IRGenerator::visit(MultExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::DivExpr &node) {
+void IRGenerator::visit(DivExpr &node) {
   node.lhs()->accept(*this);
   node.rhs()->accept(*this);
   createBinaryExpression(node.getToken()->getType());
 }
 
-void IRGenerator::visit(AST::UnaryExpr &node) {
+void IRGenerator::visit(UnaryExpr &node) {
   node.lhs()->accept(*this);
   throw NotImplementedError{fmt::format("Unary expressions are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::FnCallExpr &node) {
+void IRGenerator::visit(FnCallExpr &node) {
   node.getVariable()->accept(*this);
   constexpr auto registers = RegisterAllocator::getAllocatableRegisters;
 
@@ -262,14 +262,14 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
     return std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, reg)
+      std::make_shared<Token>(TType::REGISTER, reg)
     );
   });
 
   for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
     const auto &[argToken, _] = getExpression(*arg);
-    auto varToken = std::make_shared<Basic::Token>(
+    auto varToken = std::make_shared<Token>(
       getIdentForLiteralType(argToken->getType()),
       "_t" + std::to_string(m_tempVars.size())
     );
@@ -289,7 +289,7 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
   const auto &functionName = node.getFunctionName();
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::CALL,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, functionName->getValue<std::string>())
+    std::make_shared<Token>(TType::IDENT_VOID, functionName->getValue<std::string>())
   ));
 
   // following the function call, restore old register values
@@ -297,12 +297,12 @@ void IRGenerator::visit(AST::FnCallExpr &node) {
     return std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, reg)
+      std::make_shared<Token>(TType::REGISTER, reg)
     );
   });
 }
 
-void IRGenerator::visit(AST::ClassInitExpr &node) {
+void IRGenerator::visit(ClassInitExpr &node) {
   node.getVariable()->accept(*this);
   for (const auto &arg : node.getArguments()) {
     arg->accept(*this);
@@ -312,29 +312,29 @@ void IRGenerator::visit(AST::ClassInitExpr &node) {
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::IntExpr &node) {
+void IRGenerator::visit(IntExpr &node) {
   m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::FloatExpr &node) {
+void IRGenerator::visit(FloatExpr &node) {
   m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::BoolExpr &node) {
+void IRGenerator::visit(BoolExpr &node) {
   m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::StringExpr &node) {
+void IRGenerator::visit(StringExpr &node) {
   m_stack.push(&node);
 }
 
-void IRGenerator::visit(AST::StmtBlock &node) {
+void IRGenerator::visit(StmtBlock &node) {
   for (const auto &stmt : node.getStatements()) {
     stmt->accept(*this);
   }
 }
 
-void IRGenerator::visit(AST::ReturnStmt &node) {
+void IRGenerator::visit(ReturnStmt &node) {
   node.getReturnValue()->accept(*this);
   const auto &[token, _] = getExpression(*node.getReturnValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -344,19 +344,19 @@ void IRGenerator::visit(AST::ReturnStmt &node) {
   ));
 }
 
-void IRGenerator::visit(AST::BreakStmt &node) {
+void IRGenerator::visit(BreakStmt &node) {
   throw NotImplementedError{fmt::format("Break statements are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ContinueStmt &node) {
+void IRGenerator::visit(ContinueStmt &node) {
   throw NotImplementedError{fmt::format("Continue statements are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::VarDeclStmt &node) {
+void IRGenerator::visit(VarDeclStmt &node) {
   node.getValue()->accept(*this);
   const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -366,7 +366,7 @@ void IRGenerator::visit(AST::VarDeclStmt &node) {
   ));
 }
 
-void IRGenerator::visit(AST::VarAssignStmt &node) {
+void IRGenerator::visit(VarAssignStmt &node) {
   node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
 
@@ -378,11 +378,11 @@ void IRGenerator::visit(AST::VarAssignStmt &node) {
   ));
 }
 
-void IRGenerator::visit(AST::ExprStmt &node) {
+void IRGenerator::visit(ExprStmt &node) {
   node.getExpression()->accept(*this);
 }
 
-void IRGenerator::visit(AST::ReadStmt &node) {
+void IRGenerator::visit(ReadStmt &node) {
   for (const auto &var : node.getVariableList()) {
     var->accept(*this);
   }
@@ -398,7 +398,7 @@ void IRGenerator::visit(AST::ReadStmt &node) {
   mov rdi, 0x1       ;; stdout file descriptor
   syscall            ;; make the system call
 */
-void IRGenerator::visit(AST::WriteStmt &node) {
+void IRGenerator::visit(WriteStmt &node) {
   for (const auto &expr : node.getExpressions()) {
     expr->accept(*this);
   }
@@ -413,67 +413,67 @@ void IRGenerator::visit(AST::WriteStmt &node) {
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::PUSH,
             nullptr,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX)
+            std::make_shared<Token>(TType::REGISTER, RDX)
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::PUSH,
             nullptr,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSI)
+            std::make_shared<Token>(TType::REGISTER, RSI)
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::MOV,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSI),
-            std::make_shared<Basic::Token>(type, token->getValue<std::string>())
+            std::make_shared<Token>(TType::REGISTER, RSI),
+            std::make_shared<Token>(type, token->getValue<std::string>())
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::CALCULATE_STRING_LENGTH].data())
+            std::make_shared<Token>(TType::IDENT_VOID, Module2Str[CALCULATE_STRING_LENGTH])
           ));
-          Modules::markAsUsed(Module::CALCULATE_STRING_LENGTH);
+          Modules::markAsUsed(CALCULATE_STRING_LENGTH);
           break;
         case TType::IDENT_INT:
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::PUSH,
             nullptr,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI)
+            std::make_shared<Token>(TType::REGISTER, RDI)
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::MOV,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-            std::make_shared<Basic::Token>(type, token->getValue<std::string>())
+            std::make_shared<Token>(TType::REGISTER, RDI),
+            std::make_shared<Token>(type, token->getValue<std::string>())
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_NUMBER].data())
+            std::make_shared<Token>(TType::IDENT_VOID, Module2Str[PRINT_NUMBER])
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::POP,
             nullptr,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI)
+            std::make_shared<Token>(TType::REGISTER, RDI)
           ));
-          Modules::markAsUsed(Module::PRINT_NUMBER);
+          Modules::markAsUsed(PRINT_NUMBER);
           continue;
         case TType::IDENT_BOOL:
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::PUSH,
             nullptr,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI)
+            std::make_shared<Token>(TType::REGISTER, RDI)
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::MOV,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-            std::make_shared<Basic::Token>(type, token->getValue<std::string>())
+            std::make_shared<Token>(TType::REGISTER, RDI),
+            std::make_shared<Token>(type, token->getValue<std::string>())
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::CALL,
-            std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::PRINT_BOOLEAN].data())
+            std::make_shared<Token>(TType::IDENT_VOID, Module2Str[PRINT_BOOLEAN])
           ));
           m_instructions.emplace_back(std::make_unique<Instruction>(
             Operation::POP,
             nullptr,
-            std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI)
+            std::make_shared<Token>(TType::REGISTER, RDI)
           ));
-          Modules::markAsUsed(Module::PRINT_BOOLEAN);
+          Modules::markAsUsed(PRINT_BOOLEAN);
           continue;
         case TType::IDENT_FLOAT:
           throw InstructionError{fmt::format("Float variables are not supported in print statements in {}:{}",
@@ -493,54 +493,54 @@ void IRGenerator::visit(AST::WriteStmt &node) {
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::PUSH,
         nullptr,
-        std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX)
+        std::make_shared<Token>(TType::REGISTER, RDX)
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::PUSH,
         nullptr,
-        std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSI)
+        std::make_shared<Token>(TType::REGISTER, RSI)
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX),
-        std::make_shared<Basic::Token>(TType::LIT_INT, static_cast<int>(length))
+        std::make_shared<Token>(TType::REGISTER, RDX),
+        std::make_shared<Token>(TType::LIT_INT, static_cast<int>(length))
       ));
       m_instructions.emplace_back(std::make_unique<Instruction>(
         Operation::MOV,
-        std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSI),
-        std::make_shared<Basic::Token>(TType::LIT_STR, str)
+        std::make_shared<Token>(TType::REGISTER, RSI),
+        std::make_shared<Token>(TType::LIT_STR, str)
       ));
     }
 
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX)
+      std::make_shared<Token>(TType::REGISTER, RAX)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RCX)
+      std::make_shared<Token>(TType::REGISTER, RCX)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::R11)
+      std::make_shared<Token>(TType::REGISTER, R11)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::PUSH,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI)
+      std::make_shared<Token>(TType::REGISTER, RDI)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX),
-      std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+      std::make_shared<Token>(TType::REGISTER, RAX),
+      std::make_shared<Token>(TType::LIT_INT, 1)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::MOV,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI),
-      std::make_shared<Basic::Token>(TType::LIT_INT, 1)
+      std::make_shared<Token>(TType::REGISTER, RDI),
+      std::make_shared<Token>(TType::LIT_INT, 1)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::SYSCALL
@@ -548,48 +548,48 @@ void IRGenerator::visit(AST::WriteStmt &node) {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDI)
+      std::make_shared<Token>(TType::REGISTER, RDI)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::R11)
+      std::make_shared<Token>(TType::REGISTER, R11)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RCX)
+      std::make_shared<Token>(TType::REGISTER, RCX)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RAX)
+      std::make_shared<Token>(TType::REGISTER, RAX)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RSI)
+      std::make_shared<Token>(TType::REGISTER, RSI)
     ));
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::POP,
       nullptr,
-      std::make_shared<Basic::Token>(TType::REGISTER, Basic::register_t::RDX)
+      std::make_shared<Token>(TType::REGISTER, RDX)
     ));
   }
 }
 
-void IRGenerator::visit(AST::Param &node) {
+void IRGenerator::visit(Param &node) {
   node.getVariable()->accept(*this);
   throw NotImplementedError{fmt::format("Function parameters are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::FnDef &node) {
+void IRGenerator::visit(FnDef &node) {
   node.getVariable()->accept(*this);
   const auto &functionName = popNode();
   const auto functionNameStr = functionName.getToken()->getValue<std::string>();
-  IRGenerator::TokenPtr returnAddressToken;
+  TokenPtr returnAddressToken;
 
   if (functionNameStr != "main") {
     // the main function doesn't require a label indicating where it begins
@@ -597,11 +597,11 @@ void IRGenerator::visit(AST::FnDef &node) {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::LABEL,
       nullptr,
-      std::make_shared<Basic::Token>(TType::IDENT_VOID, functionNameStr)
+      std::make_shared<Token>(TType::IDENT_VOID, functionNameStr)
     ));
     // put the function return address into a variable because we'll be popping out the arguments
     // passed to the function in the later steps
-    returnAddressToken = std::make_shared<Basic::Token>(
+    returnAddressToken = std::make_shared<Token>(
       TType::IDENT_INT,
       "_t" + std::to_string(m_tempVars.size())
     );
@@ -638,9 +638,9 @@ void IRGenerator::visit(AST::FnDef &node) {
     // because we terminate the program immediately in the "_exit_" function
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::CALL,
-      std::make_shared<Basic::Token>(TType::IDENT_VOID, Module2Str[Module::EXIT].data())
+      std::make_shared<Token>(TType::IDENT_VOID, Module2Str[EXIT])
     ));
-    Modules::markAsUsed(Module::EXIT);
+    Modules::markAsUsed(EXIT);
   } else {
     m_instructions.emplace_back(std::make_unique<Instruction>(
       Operation::RET
@@ -648,31 +648,31 @@ void IRGenerator::visit(AST::FnDef &node) {
   }
 }
 
-void IRGenerator::visit(AST::CtorDef &node) {
+void IRGenerator::visit(CtorDef &node) {
   throw NotImplementedError{fmt::format("Constructors are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::DtorDef &node) {
+void IRGenerator::visit(DtorDef &node) {
   throw NotImplementedError{fmt::format("Destructors are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::Field &node) {
+void IRGenerator::visit(Field &node) {
   throw NotImplementedError{fmt::format("Class fields are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ClassDef &node) {
+void IRGenerator::visit(ClassDef &node) {
   throw NotImplementedError{fmt::format("Classes are not supported in {}:{}",
                                         node.getToken()->getPosition().getFileName(),
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::WhileLoop &node) {
+void IRGenerator::visit(WhileLoop &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
   throw NotImplementedError{fmt::format("While loops are not supported in {}:{}",
@@ -680,7 +680,7 @@ void IRGenerator::visit(AST::WhileLoop &node) {
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ForLoop &node) {
+void IRGenerator::visit(ForLoop &node) {
   node.getInitial()->accept(*this);
   node.getCondition()->accept(*this);
   node.getIncrement()->accept(*this);
@@ -690,7 +690,7 @@ void IRGenerator::visit(AST::ForLoop &node) {
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::ForEachLoop &node) {
+void IRGenerator::visit(ForEachLoop &node) {
   node.getElement()->accept(*this);
   node.getCollection()->accept(*this);
   node.getBody()->accept(*this);
@@ -699,7 +699,7 @@ void IRGenerator::visit(AST::ForEachLoop &node) {
                                         node.getToken()->getPosition().getLineNo())};
 }
 
-void IRGenerator::visit(AST::IfStmt &node) {
+void IRGenerator::visit(IfStmt &node) {
   m_labelCount++;
 
   std::unordered_map<Operation, Operation> comparisonToJump = {
@@ -750,9 +750,9 @@ void IRGenerator::visit(AST::IfStmt &node) {
     return;
   }
 
-  Operation comparisonOp = m_instructions.back().get()->getOperation();
+  const Operation comparisonOp = m_instructions.back().get()->getOperation();
   Operation jumpOp;
-  IRGenerator::TokenPtr number;
+  TokenPtr number;
 
   if (comparisonToJump.contains(comparisonOp)) {
     // if (register <op> number)
@@ -762,7 +762,7 @@ void IRGenerator::visit(AST::IfStmt &node) {
   } else {
     // if (register) ==> if (register > 0)
     jumpOp = Operation::JE;
-    number = std::make_shared<Basic::Token>(TType::LIT_INT, 0);
+    number = std::make_shared<Token>(TType::LIT_INT, 0);
   }
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -775,7 +775,7 @@ void IRGenerator::visit(AST::IfStmt &node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     jumpOp,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0])
+    std::make_shared<Token>(TType::IDENT_VOID, labels[0])
   ));
 
   node.getBody()->accept(*this);
@@ -783,13 +783,13 @@ void IRGenerator::visit(AST::IfStmt &node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JMP,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1])
+    std::make_shared<Token>(TType::IDENT_VOID, labels[1])
   ));
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[0])
+    std::make_shared<Token>(TType::IDENT_VOID, labels[0])
   ));
 
   for (const auto &stmt : node.getElseStatements()) {
@@ -799,15 +799,15 @@ void IRGenerator::visit(AST::IfStmt &node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Basic::Token>(TType::IDENT_VOID, labels[1])
+    std::make_shared<Token>(TType::IDENT_VOID, labels[1])
   ));
 }
 
-void IRGenerator::visit(AST::ElseStmt &node) {
+void IRGenerator::visit(ElseStmt &node) {
   node.getBody()->accept(*this);
 }
 
-void IRGenerator::visit(AST::ElseIfStmt &node) {
+void IRGenerator::visit(ElseIfStmt &node) {
   node.getCondition()->accept(*this);
   node.getBody()->accept(*this);
   throw NotImplementedError{fmt::format("Else-if statements are not supported in {}:{}",

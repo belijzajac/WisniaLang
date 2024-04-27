@@ -47,7 +47,7 @@ class BaseExpr : public Root {
   std::vector<ExpressionPtr> m_children; // lhs and rhs
 };
 
-class VarExpr : public BaseExpr {
+class VarExpr final : public BaseExpr {
   using TypePtr = std::unique_ptr<BaseType>;
 
  public:
@@ -175,7 +175,7 @@ class BinaryExpr : public BaseExpr {
   }
 };
 
-class BooleanExpr : public BinaryExpr {
+class BooleanExpr final : public BinaryExpr {
  public:
   explicit BooleanExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -191,7 +191,7 @@ class BooleanExpr : public BinaryExpr {
   }
 };
 
-class EqExpr : public BinaryExpr {
+class EqExpr final : public BinaryExpr {
  public:
   explicit EqExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -207,7 +207,7 @@ class EqExpr : public BinaryExpr {
   }
 };
 
-class CompExpr : public BinaryExpr {
+class CompExpr final : public BinaryExpr {
  public:
   explicit CompExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -223,7 +223,7 @@ class CompExpr : public BinaryExpr {
   }
 };
 
-class AddExpr : public BinaryExpr {
+class AddExpr final : public BinaryExpr {
  public:
   explicit AddExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -239,7 +239,7 @@ class AddExpr : public BinaryExpr {
   }
 };
 
-class SubExpr : public BinaryExpr {
+class SubExpr final : public BinaryExpr {
  public:
   explicit SubExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -255,7 +255,7 @@ class SubExpr : public BinaryExpr {
   }
 };
 
-class MultExpr : public BinaryExpr {
+class MultExpr final : public BinaryExpr {
  public:
   explicit MultExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -271,7 +271,7 @@ class MultExpr : public BinaryExpr {
   }
 };
 
-class DivExpr : public BinaryExpr {
+class DivExpr final : public BinaryExpr {
  public:
   explicit DivExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -287,7 +287,7 @@ class DivExpr : public BinaryExpr {
   }
 };
 
-class UnaryExpr : public BinaryExpr {
+class UnaryExpr final : public BinaryExpr {
  public:
   explicit UnaryExpr(TokenPtr token)
       : BinaryExpr(std::move(token)) {}
@@ -308,7 +308,7 @@ class UnaryExpr : public BinaryExpr {
   }
 };
 
-class FnCallExpr : public BaseExpr, public VariableMixin {
+class FnCallExpr final : public BaseExpr, public VariableMixin {
   using ArgumentPtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -358,7 +358,7 @@ class FnCallExpr : public BaseExpr, public VariableMixin {
   std::vector<ArgumentPtr> m_arguments;
 };
 
-class ClassInitExpr : public BaseExpr, public VariableMixin {
+class ClassInitExpr final : public BaseExpr, public VariableMixin {
   using ArgumentPtr = std::unique_ptr<BaseExpr>;
 
  public:
@@ -404,7 +404,7 @@ class ConstExpr : public BaseExpr {
       : BaseExpr(std::move(token)) {}
 };
 
-class IntExpr : public ConstExpr {
+class IntExpr final : public ConstExpr {
  public:
   explicit IntExpr(TokenPtr token)
       : ConstExpr(std::move(token)) {}
@@ -426,7 +426,7 @@ class IntExpr : public ConstExpr {
   }
 };
 
-class FloatExpr : public ConstExpr {
+class FloatExpr final : public ConstExpr {
  public:
   explicit FloatExpr(TokenPtr token)
       : ConstExpr(std::move(token)) {}
@@ -442,7 +442,7 @@ class FloatExpr : public ConstExpr {
   }
 };
 
-class BoolExpr : public ConstExpr {
+class BoolExpr final : public ConstExpr {
  public:
   explicit BoolExpr(TokenPtr token)
       : ConstExpr(std::move(token)) {}
@@ -458,7 +458,7 @@ class BoolExpr : public ConstExpr {
   }
 };
 
-class StringExpr : public ConstExpr {
+class StringExpr final : public ConstExpr {
  public:
   explicit StringExpr(TokenPtr token)
       : ConstExpr(std::move(token)) {}

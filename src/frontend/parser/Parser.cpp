@@ -38,7 +38,7 @@ void Parser::expect(const TType &token) {
 }
 
 void addTypeToVariable(BaseExpr *variable, std::unique_ptr<BaseType> type) {
-  if (auto varPtr = dynamic_cast<AST::VarExpr*>(variable)) {
+  if (auto *const varPtr = dynamic_cast<VarExpr *>(variable)) {
     varPtr->addType(std::move(type));
   }
 }
@@ -131,10 +131,10 @@ std::vector<std::unique_ptr<Param>> Parser::parseParamsList() {
 
 // <TYPE> ::= "void" | "int" | "bool" | "float" | "string"
 std::unique_ptr<BaseType> Parser::parsePrimitiveType() {
-  constexpr std::array<TType, 5> kPrimitiveTypes {
+  constexpr std::array kPrimitiveTypes {
     TType::KW_VOID, TType::KW_INT, TType::KW_BOOL, TType::KW_FLOAT, TType::KW_STRING
   };
-  if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](TType t) { return peek()->getType() == t; })) {
+  if (std::any_of(kPrimitiveTypes.begin(), kPrimitiveTypes.end(), [&](const TType t) { return peek()->getType() == t; })) {
     return std::make_unique<PrimitiveType>(getNextToken());
   }
   throw ParserError{fmt::format("Type '{}' is not supported in {}:{}",
@@ -230,7 +230,7 @@ std::unique_ptr<BaseExpr> Parser::parseExpr() {
     consume();                 // eat "||"
     auto rhs = parseAndExpr();
     // Make a temporary copy of the lhs
-    auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
+    auto tempLhs = std::unique_ptr(std::move(lhs));
     // Move rhs and tempLhs nodes
     lhs = std::make_unique<BooleanExpr>(token);
     lhs->addChild(std::move(tempLhs));
@@ -248,7 +248,7 @@ std::unique_ptr<BaseExpr> Parser::parseAndExpr() {
     consume();                  // eat "&&"
     auto rhs = parseEqExpr();
     // Make a temporary copy of the lhs
-    auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
+    auto tempLhs = std::unique_ptr(std::move(lhs));
     // Move rhs and tempLhs nodes
     lhs = std::make_unique<BooleanExpr>(token);
     lhs->addChild(std::move(tempLhs));
@@ -267,7 +267,7 @@ std::unique_ptr<BaseExpr> Parser::parseEqExpr() {
     consume(); // eat either "==" or "!="
     auto rhs = parseCompExpr();
     // Make a temporary copy of the lhs
-    auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
+    auto tempLhs = std::unique_ptr(std::move(lhs));
     // Move rhs and tempLhs nodes
     lhs = std::make_unique<EqExpr>(token);
     lhs->addChild(std::move(tempLhs));
@@ -286,7 +286,7 @@ std::unique_ptr<BaseExpr> Parser::parseCompExpr() {
     consume(); // eat any of ">", ">=", "<", "<="
     auto rhs = parseAddExpr();
     // Make a temporary copy of the lhs
-    auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
+    auto tempLhs = std::unique_ptr(std::move(lhs));
     // Move rhs and tempLhs nodes
     lhs = std::make_unique<CompExpr>(token);
     lhs->addChild(std::move(tempLhs));
@@ -305,7 +305,7 @@ std::unique_ptr<BaseExpr> Parser::parseAddExpr() {
     consume(); // eat either "+" or "-"
     auto rhs = parseMultExpr();
     // Make a temporary copy of the lhs
-    auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
+    auto tempLhs = std::unique_ptr(std::move(lhs));
     // Move rhs and tempLhs nodes
     if (token->getType() == TType::OP_ADD) {
       lhs = std::make_unique<AddExpr>(token);
@@ -328,7 +328,7 @@ std::unique_ptr<BaseExpr> Parser::parseMultExpr() {
     consume(); // eat either "*" or "/"
     auto rhs = parseUnaryExpr();
     // Make a temporary copy of the lhs
-    auto tempLhs = std::unique_ptr<BaseExpr>(std::move(lhs));
+    auto tempLhs = std::unique_ptr(std::move(lhs));
     // Move rhs and tempLhs nodes
     if (token->getType() == TType::OP_MUL) {
       lhs = std::make_unique<MultExpr>(token);
@@ -418,8 +418,8 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
   consume();
 
   // Creates a `VarExpr` of concatenated class and var names, i.e. class::var
-  auto methodVarExpr = [this, &className]() {
-    auto tempVar = parseVar();
+  auto methodVarExpr = [this, &className] {
+    const auto tempVar = parseVar();
     auto methodTok = std::make_shared<Token>(
         tempVar->getToken()->getType(),
         className->getValue<std::string>() + "::" + tempVar->getToken()->getValue<std::string>(),
@@ -438,15 +438,15 @@ std::unique_ptr<BaseExpr> Parser::parseMethodCall() {
 // <ARGUMENTS> ::= "{" "}" | "{" <EXPR_LIST> "}" | "(" ")" | "(" <EXPR_LIST> ")"
 std::vector<std::unique_ptr<BaseExpr>> Parser::parseArgsList() {
   // To map possible argsBody types to their selectable closing body types
-  std::unordered_map<TType, TType> expectBodyType {
+  const std::unordered_map<TType, TType> expectBodyType {
     {TType::OP_PAREN_O, TType::OP_PAREN_C},
     {TType::OP_BRACE_O, TType::OP_BRACE_C}
   };
 
   consume();
-  auto argsCurrType = curr()->getType();               // either "(" or "{"
-  auto argsExpType = expectBodyType.at(argsCurrType);  // the opposite of argsCurrType
-  std::vector<std::unique_ptr<BaseExpr>> argsList;     // function arguments
+  const auto argsCurrType = curr()->getType();               // either "(" or "{"
+  const auto argsExpType = expectBodyType.at(argsCurrType);  // the opposite of argsCurrType
+  std::vector<std::unique_ptr<BaseExpr>> argsList;           // function arguments
 
   // <EXPR_LIST> ::= <EXPRESSION> | <EXPR_LIST> "," <EXPRESSION>
   while (hasNext() && !has(argsExpType)) {
@@ -488,7 +488,7 @@ std::unique_ptr<BaseExpr> Parser::parseConstExpr() {
       return std::make_unique<BoolExpr>(getNextToken());
     // <STRING>
     case TType::LIT_STR: {
-      auto &token = getNextToken();
+      const auto &token = getNextToken();
       token->setValue(token->getValue<std::string>() + '\0'); // make it null-terminated
       return std::make_unique<StringExpr>(token);
     }
@@ -516,7 +516,7 @@ std::unique_ptr<BaseStmt> Parser::parseLoopBrkStmt() {
 std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
   auto varDeclPtr = std::make_unique<VarDeclStmt>();
   auto varType = parsePrimitiveType();
-  auto tokenType = varType->getType();
+  const auto tokenType = varType->getType();
   auto var = parseVar();
   addTypeToVariable(var.get(), std::move(varType));
   varDeclPtr->addVariable(std::move(var));
@@ -578,7 +578,7 @@ std::unique_ptr<BaseStmt> Parser::parseVarDeclStmt() {
 
 // <ASSIGNMENT_STMT> <STMT_END>
 // <ASSIGNMENT_STMT> ::= <VAR> {"=" | "+=" | "-=" | "*=" | "/="} <EXPRESSION>
-std::unique_ptr<BaseStmt> Parser::parseVarAssignStmt(bool expectSemicolon) {
+std::unique_ptr<BaseStmt> Parser::parseVarAssignStmt(const bool expectSemicolon) {
   auto varAssignPtr = std::make_unique<VarAssignStmt>();
   varAssignPtr->addVariable(parseVar());
   expect(TType::OP_ASSN);  // eat "=" // TODO: add these operators: +=, -=, *=, /=

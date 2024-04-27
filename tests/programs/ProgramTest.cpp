@@ -36,7 +36,7 @@ class IProgramTestFixture : public testing::Test {
     elf.writeELF();
   }
 
-  void exec(std::string_view cmd) {
+  void exec(const std::string_view cmd) {
     const auto outFile = makeTemporaryFilename();
     const auto errFile = makeTemporaryFilename();
 
@@ -60,7 +60,7 @@ class IProgramTestFixture : public testing::Test {
           "0123456789"
           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
           "abcdefghijklmnopqrstuvwxyz"sv;
-      constexpr size_t maxIndex = (charset.size() - 1);
+      constexpr size_t maxIndex = charset.size() - 1;
       return charset[rand() % maxIndex];
     };
     std::string str(length, 0);
@@ -74,7 +74,7 @@ class IProgramTestFixture : public testing::Test {
     return ss.str();
   }
 
-  static std::string readFile(std::string_view filename) {
+  static std::string readFile(const std::string_view filename) {
     std::string result{};
     std::ifstream file(filename.data());
     char c;

@@ -4,7 +4,6 @@
 #ifndef WISNIALANG_IR_OPTIMIZATION_HPP
 #define WISNIALANG_IR_OPTIMIZATION_HPP
 
-#include <array>
 #include <memory>
 // Wisnia
 #include "IRPrintHelper.hpp"
@@ -21,7 +20,7 @@ class IROptimization {
   void print(std::ostream &output) const { IRPrintHelper::print(output, m_instructions); }
 
  private:
-  void removeRedundantInstructions(InstructionList &instructions);
+  void removeRedundantInstructions(InstructionList &instructions) const;
 
  private:
   InstructionList m_instructions;

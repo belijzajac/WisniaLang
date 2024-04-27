@@ -19,11 +19,11 @@ enum Module : uint8_t {
   EXIT
 };
 
-static inline std::unordered_map<Module, std::string_view> Module2Str {
-  {Module::CALCULATE_STRING_LENGTH, "__builtin_calculate_string_length"},
-  {Module::PRINT_NUMBER,            "__builtin_print_number"           },
-  {Module::PRINT_BOOLEAN,           "__builtin_print_boolean"          },
-  {Module::EXIT,                    "__builtin_exit"                   },
+static inline std::unordered_map<Module, std::string> Module2Str {
+  {CALCULATE_STRING_LENGTH, "__builtin_calculate_string_length"},
+  {PRINT_NUMBER,            "__builtin_print_number"           },
+  {PRINT_BOOLEAN,           "__builtin_print_boolean"          },
+  {EXIT,                    "__builtin_exit"                   },
 };
 
 class Modules {
@@ -41,7 +41,7 @@ class Modules {
 
  public:
   static std::tuple<InstructionList, bool> getModule(Module module);
-  static void markAsUsed(Module module) { m_isUsed[module] = true; }
+  static void markAsUsed(const Module module) { m_isUsed[module] = true; }
   static void markAllAsUnused() { m_isUsed.fill(false); }
 };
 

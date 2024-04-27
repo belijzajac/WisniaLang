@@ -19,9 +19,9 @@ class VarExpr;
 
 class SymbolTable {
  public:
-  SymbolTable() : m_table(std::make_unique<ScopedSymbolTable>()) {};
+  SymbolTable() : m_table(std::make_unique<ScopedSymbolTable>()) {}
 
-  void addSymbol(AST::VarExpr *var) {
+  void addSymbol(const AST::VarExpr *var) const {
     m_table->addSymbol(var->getToken()->getValue<std::string>(), var);
   }
 
@@ -49,8 +49,8 @@ class SymbolTable {
     }
 
     const AST::VarExpr *findSymbol(const std::string &name) const {
-      if (auto search = m_info.find(name); search != m_info.end()) {
-        return search->second;
+      if (const auto it = m_info.find(name); it != m_info.end()) {
+        return it->second;
       }
       if (m_parentScope) {
         return m_parentScope->findSymbol(name);
