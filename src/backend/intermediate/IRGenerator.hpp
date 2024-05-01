@@ -16,6 +16,7 @@
 
 namespace Wisnia {
 class Instruction;
+enum class Operation;
 
 class IRGenerator final : public Visitor {
   using TokenPtr = std::shared_ptr<Basic::Token>;
@@ -123,6 +124,7 @@ class IRGenerator final : public Visitor {
 
  private:
   std::stack<AST::Root *> m_stack;
+  std::stack<Operation> m_comparisonOp;
   InstructionList m_instructions;
   TemporaryVariableList m_tempVars;
   bool m_allocateRegisters; // We wish to skip register allocation in some unit tests

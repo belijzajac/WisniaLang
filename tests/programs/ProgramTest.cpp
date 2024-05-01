@@ -767,6 +767,58 @@ TEST_F(ProgramTest, PrintFunctionReturnVariableWithArgumentExpression) {
 // Conditional expressions
 // ----------------------------------------------------
 
+TEST_F(ProgramTest, ConditionalIntLiteralTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    if (5) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalIntLiteralFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    if (0) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanLiteralTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    if (true) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanLiteralFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    if (false) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
 TEST_F(ProgramTest, ConditionalIntTrue) {
   constexpr auto program = R"(
   fn main() {
@@ -1001,24 +1053,4 @@ TEST_F(ProgramTest, ConditionalBooleanNested) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetruetrue");
-}
-
-TEST_F(ProgramTest, ConditionalOptimizationRemoveElseBranch) {
-  constexpr auto program = R"(
-  fn main() {
-    if (5)    { print("true"); } else { print("false"); }
-    if (true) { print("true"); } else { print("false"); }
-  })"sv;
-  SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetrue");
-}
-
-TEST_F(ProgramTest, ConditionalOptimizationRemoveIfBranch) {
-  constexpr auto program = R"(
-  fn main() {
-    if (0)     { print("true"); } else { print("false"); }
-    if (false) { print("true"); } else { print("false"); }
-  })"sv;
-  SetUp(program);
-  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "falsefalse");
 }

@@ -211,15 +211,27 @@ void IRGenerator::visit(BooleanExpr &node) {
 }
 
 void IRGenerator::visit(EqExpr &node) {
-  node.lhs()->accept(*this);
-  node.rhs()->accept(*this);
-  createBinaryExpression(node.getToken()->getType());
+  const auto comparisonOp = getOperationForBinaryExpression(node.getToken()->getType(), false);
+  m_comparisonOp.push(comparisonOp);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::CMP,
+    nullptr,
+    node.lhs()->getToken(),
+    node.rhs()->getToken()
+  ));
 }
 
 void IRGenerator::visit(CompExpr &node) {
-  node.lhs()->accept(*this);
-  node.rhs()->accept(*this);
-  createBinaryExpression(node.getToken()->getType());
+  const auto comparisonOp = getOperationForBinaryExpression(node.getToken()->getType(), false);
+  m_comparisonOp.push(comparisonOp);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::CMP,
+    nullptr,
+    node.lhs()->getToken(),
+    node.rhs()->getToken()
+  ));
 }
 
 void IRGenerator::visit(AddExpr &node) {
@@ -369,7 +381,6 @@ void IRGenerator::visit(VarDeclStmt &node) {
 void IRGenerator::visit(VarAssignStmt &node) {
   node.getVariable()->accept(*this);
   node.getValue()->accept(*this);
-
   const auto &[token, _] = getExpression(*node.getValue());
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::MOV,
@@ -717,60 +728,26 @@ void IRGenerator::visit(IfStmt &node) {
   };
 
   node.getCondition()->accept(*this);
-  const auto &[token, _] = getExpression(*node.getCondition(), false);
 
-  if (token->isLiteralType()) {
-    // compile-time optimization
-
-    bool canElseBranchBeRemoved;
-    switch (token->getType()) {
-      case TType::LIT_INT:
-        canElseBranchBeRemoved = token->getValue<int>() > 0;
-        break;
-      case TType::KW_TRUE:
-        canElseBranchBeRemoved = true;
-        break;
-      case TType::KW_FALSE:
-        canElseBranchBeRemoved = false;
-        break;
-      default:
-        throw InstructionError{fmt::format("Unsupported expression in if statement in {}:{}",
-                                           token->getPosition().getFileName(),
-                                           token->getPosition().getLineNo())};
-    }
-
-    if (canElseBranchBeRemoved) {
-      node.getBody()->accept(*this);
-    } else {
-      for (const auto &stmt : node.getElseStatements()) {
-        stmt->accept(*this);
-      }
-    }
-
-    return;
-  }
-
-  const Operation comparisonOp = m_instructions.back().get()->getOperation();
+  const auto comparisonOp = m_comparisonOp.empty() ? Operation::NOP : m_comparisonOp.top();
+  if (!m_comparisonOp.empty()) m_comparisonOp.pop();
   Operation jumpOp;
-  TokenPtr number;
 
   if (comparisonToJump.contains(comparisonOp)) {
     // if (register <op> number)
+    // the visitor pattern goes through either the EqExpr or CompExpr case
     jumpOp = comparisonToJump[comparisonOp];
-    number = m_instructions.back().get()->getArg1();
-    m_instructions.pop_back();
   } else {
     // if (register) ==> if (register > 0)
     jumpOp = Operation::JE;
-    number = std::make_shared<Token>(TType::LIT_INT, 0);
+    const auto &[token, _] = getExpression(*node.getCondition());
+    m_instructions.emplace_back(std::make_unique<Instruction>(
+      Operation::CMP,
+      nullptr,
+      token,
+      std::make_shared<Token>(TType::LIT_INT, 0)
+    ));
   }
-
-  m_instructions.emplace_back(std::make_unique<Instruction>(
-    Operation::CMP,
-    nullptr,
-    token,
-    number
-  ));
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     jumpOp,
