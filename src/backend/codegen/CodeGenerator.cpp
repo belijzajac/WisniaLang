@@ -342,10 +342,43 @@ void CodeGenerator::emitCmp(const InstructionPtr &instruction) {
   const auto &argTwo = instruction->getArg2();
 
   // cmp reg, number
-  if (argOne->getType() == TType::REGISTER) {
+  if (argOne->getType() == TType::REGISTER && argTwo->isLiteralIntegerType()) {
     const auto bytes = MachineCodeTable<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
     m_textSection.putBytes(bytes);
     m_textSection.putValue<uint32_t>(argTwo->getValue<int>());
+    return;
+  }
+
+  // cmp reg1, reg2
+  if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER) {
+    const auto [dst, src] = assignRegisters(argOne->getValue<Basic::register_t>(), argTwo->getValue<Basic::register_t>());
+    assert((src > -1 && dst > -1) && "Failed to look up registers for cmp instruction");
+
+    // cmp       rax       ...       r15
+    // rax   <byte_0000>   ...   <byte_0015>
+    // ...       ...       ...       ...
+    // r15   <byte_1500>   ...   <byte_1515>
+    if (dst < RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
+      // top left
+      m_textSection.putBytes(std::byte{0x48}, std::byte{0x39});
+    } else if (dst < RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
+      // top right
+      m_textSection.putBytes(std::byte{0x4c}, std::byte{0x39});
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src < RegisterAllocator::getHalfRegisters()) {
+      // bottom left
+      m_textSection.putBytes(std::byte{0x49}, std::byte{0x39});
+    } else if (dst >= RegisterAllocator::getHalfRegisters() && src >= RegisterAllocator::getHalfRegisters()) {
+      // bottom right
+      m_textSection.putBytes(std::byte{0x4d}, std::byte{0x39});
+    } else {
+      assert(0 && "Unknown table entry for cmp instruction");
+    }
+
+    const auto result =
+        0xc0 + (RegisterAllocator::getHalfRegisters() * (src % RegisterAllocator::getHalfRegisters())) +
+        (dst % RegisterAllocator::getHalfRegisters());
+    assert(result <= 255 && "Result value is out of range");
+    m_textSection.putBytes(std::byte(result));
     return;
   }
 
@@ -395,8 +428,6 @@ void CodeGenerator::emitJmp(const InstructionPtr &instruction) {
   const auto &label = instruction->getArg1()->getValue<std::string>();
   const auto offset = m_textSection.size();
   m_jumps.emplace_back(Label{label, offset});
-
-  // Empty displacement
   m_textSection.putBytes(std::byte{0x00});
 }
 
