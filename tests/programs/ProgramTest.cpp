@@ -465,7 +465,7 @@ TEST_F(ProgramTest, AddVariables) {
     int num8  = 10000000;
     int num9  = 100000000;
     int num10 = 1000000000;
-    int sum = num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9 + num10;
+    int sum   = num1 + num2 + num3 + num4 + num5 + num6 + num7 + num8 + num9 + num10;
     print(sum);
   })"sv;
   SetUp(program);
@@ -504,7 +504,7 @@ TEST_F(ProgramTest, MultiplyVariables) {
     int num8  = 16;
     int num9  = 18;
     int num10 = 20;
-    int prod = num1 * num2 * num3 * num4 * num5 * num6 * num7 * num8 * num9 * num10;
+    int prod  = num1 * num2 * num3 * num4 * num5 * num6 * num7 * num8 * num9 * num10;
     print(prod);
   })"sv;
   SetUp(program);
@@ -1379,4 +1379,68 @@ TEST_F(ProgramTest, ConditionalBooleanNested) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "truetruetrue");
+}
+
+// ----------------------------------------------------
+// For loops
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, ForLoopPrintStrings) {
+  constexpr auto program = R"(
+  fn main() {
+    for (int i = 1; i <= 3; i = i + 1) {
+      print("hello");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hellohellohello");
+}
+
+TEST_F(ProgramTest, ForLoopPrintIncrement) {
+  constexpr auto program = R"(
+  fn main() {
+    for (int i = 1; i < 65; i = i * 2) {
+      print(i);
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1248163264");
+}
+
+TEST_F(ProgramTest, ForLoopFactorial) {
+  constexpr auto program = R"(
+  fn factorial(n: int) -> int {
+    int res = 1;
+    for (int i = 2; i <= n; i = i + 1) {
+      res = res * i;
+    }
+    return res;
+  }
+  fn main() {
+    print(factorial(12));
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "479001600");
+}
+
+TEST_F(ProgramTest, ForLoopFibonacci) {
+  constexpr auto program = R"(
+  fn fibonacci(n: int) -> int {
+    if (n <= 1) {
+      return n;
+    }
+    int prev = 0;
+    int current = 1;
+    for (int i = 2; i <= n; i = i + 1) {
+      int next = prev + current;
+      prev = current;
+      current = next;
+    }
+    return current;
+  }
+  fn main() {
+    print(fibonacci(19));
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4181");
 }
