@@ -415,8 +415,9 @@ void CodeGenerator::emitJmp(const InstructionPtr &instruction) {
         return std::byte{0xeb};
       case Operation::JE:
       case Operation::JZ:
-      case Operation::JLE:
         return std::byte{0x74};
+      case Operation::JLE:
+        return std::byte{0x7e};
       case Operation::JG:
         return std::byte{0x7f};
       case Operation::JNE:
