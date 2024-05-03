@@ -84,17 +84,17 @@ void IRGenerator::createBinaryExpression(const TType expressionType) {
   const auto &rhs = popNode();
   const auto &lhs = popNode();
 
+  const auto rhsType = rhs.getToken()->getType();
+  const bool isFloat = rhsType == TType::LIT_FLT || rhsType == TType::IDENT_FLOAT;
+  const Operation op = getOperationForBinaryExpression(expressionType, isFloat);
+
   auto varToken = std::make_shared<Token>(
-    getIdentForLiteralType(rhs.getToken()->getType()),
+    getIdentForLiteralType(rhsType),
     "_t" + std::to_string(m_tempVars.size())
   );
 
   m_tempVars.emplace_back(std::make_unique<VarExpr>(varToken));
   m_stack.push(m_tempVars.back().get());
-
-  const bool isFloat = rhs.getToken()->getType() == TType::LIT_FLT ||
-                 rhs.getToken()->getType() == TType::IDENT_FLOAT;
-  const Operation op = getOperationForBinaryExpression(expressionType, isFloat);
 
   // _tx = a <op> b rewritten as
   //    _tx = a
@@ -109,6 +109,45 @@ void IRGenerator::createBinaryExpression(const TType expressionType) {
     varToken,       // _tx
     rhs.getToken()  // b
   ));
+}
+
+std::unordered_map<Operation, Operation> jumpConditionMap1 = {
+  {Operation::IGT, Operation::JLE},
+  {Operation::IGE, Operation::JL },
+  {Operation::ILT, Operation::JGE},
+  {Operation::ILE, Operation::JG },
+  {Operation::IEQ, Operation::JNE},
+  {Operation::INE, Operation::JE },
+};
+
+std::unordered_map<Operation, Operation> jumpConditionMap2 = {
+  {Operation::IGT, Operation::JG },
+  {Operation::IGE, Operation::JGE},
+  {Operation::ILT, Operation::JL },
+  {Operation::ILE, Operation::JLE},
+  {Operation::IEQ, Operation::JE },
+  {Operation::INE, Operation::JNE},
+};
+
+Operation IRGenerator::createJumpOpFromCondition(Root &node, const bool opposite) {
+  const auto comparisonOp = m_comparisonOp.empty() ? Operation::NOP : m_comparisonOp.top();
+  if (!m_comparisonOp.empty()) m_comparisonOp.pop();
+
+  if (opposite ? jumpConditionMap1.contains(comparisonOp) : jumpConditionMap2.contains(comparisonOp)) {
+    // if (register <op> number)
+    // the visitor pattern goes through either the EqExpr or CompExpr case
+    return opposite ? jumpConditionMap1[comparisonOp] : jumpConditionMap2[comparisonOp];
+  }
+
+  // if (register) ==> if (register > 0)
+  const auto &[token, _] = getExpression(node);
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::CMP,
+    nullptr,
+    token,
+    std::make_shared<Token>(TType::LIT_INT, 0)
+  ));
+  return Operation::JE;
 }
 
 std::tuple<IRGenerator::TokenPtr, TType> IRGenerator::getExpression(Root &node, const bool createVariableForLiteral) {
@@ -693,12 +732,35 @@ void IRGenerator::visit(WhileLoop &node) {
 
 void IRGenerator::visit(ForLoop &node) {
   node.getInitial()->accept(*this);
-  node.getCondition()->accept(*this);
-  node.getIncrement()->accept(*this);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JMP,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, ".L2")
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, ".L1")
+  ));
+
   node.getBody()->accept(*this);
-  throw NotImplementedError{fmt::format("For loops are not supported in {}:{}",
-                                        node.getToken()->getPosition().getFileName(),
-                                        node.getToken()->getPosition().getLineNo())};
+  node.getIncrement()->accept(*this);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, ".L2")
+  ));
+
+  node.getCondition()->accept(*this);
+  const auto jumpOp = createJumpOpFromCondition(*node.getCondition(), false);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    jumpOp,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, ".L1")
+  ));
 }
 
 void IRGenerator::visit(ForEachLoop &node) {
@@ -713,41 +775,13 @@ void IRGenerator::visit(ForEachLoop &node) {
 void IRGenerator::visit(IfStmt &node) {
   m_labelCount++;
 
-  std::unordered_map<Operation, Operation> comparisonToJump = {
-    {Operation::IGT, Operation::JLE},
-    {Operation::IGE, Operation::JL },
-    {Operation::ILT, Operation::JGE},
-    {Operation::ILE, Operation::JG },
-    {Operation::IEQ, Operation::JNE},
-    {Operation::INE, Operation::JE },
-  };
-
   const std::array labels {
     ".L" + std::to_string(m_labelCount) + "_false",
     ".L" + std::to_string(m_labelCount) + "_end",
   };
 
   node.getCondition()->accept(*this);
-
-  const auto comparisonOp = m_comparisonOp.empty() ? Operation::NOP : m_comparisonOp.top();
-  if (!m_comparisonOp.empty()) m_comparisonOp.pop();
-  Operation jumpOp;
-
-  if (comparisonToJump.contains(comparisonOp)) {
-    // if (register <op> number)
-    // the visitor pattern goes through either the EqExpr or CompExpr case
-    jumpOp = comparisonToJump[comparisonOp];
-  } else {
-    // if (register) ==> if (register > 0)
-    jumpOp = Operation::JE;
-    const auto &[token, _] = getExpression(*node.getCondition());
-    m_instructions.emplace_back(std::make_unique<Instruction>(
-      Operation::CMP,
-      nullptr,
-      token,
-      std::make_shared<Token>(TType::LIT_INT, 0)
-    ));
-  }
+  const auto jumpOp = createJumpOpFromCondition(*node.getCondition(), true);
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     jumpOp,
@@ -762,7 +796,6 @@ void IRGenerator::visit(IfStmt &node) {
     nullptr,
     std::make_shared<Token>(TType::IDENT_VOID, labels[1])
   ));
-
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,

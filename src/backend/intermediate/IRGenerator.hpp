@@ -116,6 +116,7 @@ class IRGenerator final : public Visitor {
  private:
   AST::Root &popNode();
   void createBinaryExpression(Basic::TType expressionType);
+  Operation createJumpOpFromCondition(AST::Root &node, bool opposite);
 
   // In general, we want literal types to be associated with variables, but in the case of
   // "AST::WriteStmt", we perform a compile-time optimization to prevent loading modules for
