@@ -349,6 +349,14 @@ void CodeGenerator::emitCmp(const InstructionPtr &instruction) {
     return;
   }
 
+  // cmp reg, bool
+  if (argOne->getType() == TType::REGISTER && (argTwo->getType() == TType::KW_TRUE || argTwo->getType() == TType::KW_FALSE)) {
+    const auto bytes = MachineCodeTable<uint32_t>::getCmpMachineCode(argOne->getValue<Basic::register_t>());
+    m_textSection.putBytes(bytes);
+    m_textSection.putValue<uint32_t>(argTwo->getValue<bool>() ? 1 : 0);
+    return;
+  }
+
   // cmp reg1, reg2
   if (argOne->getType() == TType::REGISTER && argTwo->getType() == TType::REGISTER) {
     const auto [dst, src] = assignRegisters(argOne->getValue<Basic::register_t>(), argTwo->getValue<Basic::register_t>());

@@ -1123,11 +1123,40 @@ TEST_F(ProgramTest, ConditionalIntEqualTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalBooleanEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value = true;
+    if (value == true) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntVariablesEqualTrue) {
   constexpr auto program = R"(
   fn main() {
     int value1 = 6;
     int value2 = 6;
+    if (value1 == value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanVariablesEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value1 = true;
+    bool value2 = true;
     if (value1 == value2) {
       print("true");
     } else {
@@ -1152,11 +1181,40 @@ TEST_F(ProgramTest, ConditionalIntEqualFalse) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
 }
 
+TEST_F(ProgramTest, ConditionalBooleanEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value = true;
+    if (value == false) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
 TEST_F(ProgramTest, ConditionalIntVariablesEqualFalse) {
   constexpr auto program = R"(
   fn main() {
     int value1 = 7;
     int value2 = 6;
+    if (value1 == value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanVariablesEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value1 = true;
+    bool value2 = false;
     if (value1 == value2) {
       print("true");
     } else {
@@ -1181,11 +1239,40 @@ TEST_F(ProgramTest, ConditionalIntNotEqualTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalBooleanNotEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value = true;
+    if (value != false) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntVariablesNotEqualTrue) {
   constexpr auto program = R"(
   fn main() {
     int value1 = 5;
     int value2 = 6;
+    if (value1 != value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanVariablesNotEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value1 = true;
+    bool value2 = false;
     if (value1 != value2) {
       print("true");
     } else {
@@ -1210,11 +1297,40 @@ TEST_F(ProgramTest, ConditionalIntNotEqualFalse) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
 }
 
+TEST_F(ProgramTest, ConditionalBooleanNotEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value = true;
+    if (value != true) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
 TEST_F(ProgramTest, ConditionalIntVariablesNotEqualFalse) {
   constexpr auto program = R"(
   fn main() {
     int value1 = 6;
     int value2 = 6;
+    if (value1 != value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalBooleanVariablesNotEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    bool value1 = true;
+    bool value2 = true;
     if (value1 != value2) {
       print("true");
     } else {
