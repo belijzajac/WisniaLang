@@ -376,7 +376,7 @@ TEST_F(ProgramTest, CalculateProduct) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "3715891200");
 }
 
-TEST_F(ProgramTest, CalculateExpression) {
+TEST_F(ProgramTest, CalculateExpression1) {
   constexpr auto program = R"(
   fn main() {
     int expr = ((1 + 2) * 3 + 4 * 5) - 6 * 7 + 13;
@@ -384,6 +384,36 @@ TEST_F(ProgramTest, CalculateExpression) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "0");
+}
+
+TEST_F(ProgramTest, CalculateExpression2) {
+  constexpr auto program = R"(
+  fn main() {
+    int expr = 0;
+    print(expr + 1 + 1 + expr + expr + 1 + expr + 1 + expr + 1 + 1);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "6");
+}
+
+TEST_F(ProgramTest, CalculateExpression3) {
+  constexpr auto program = R"(
+  fn main() {
+    int expr = 0;
+    print(expr + 1 * 1 + expr + expr + 1 + expr * 1 + expr + 1 + 1);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4");
+}
+
+TEST_F(ProgramTest, CalculateExpression4) {
+  constexpr auto program = R"(
+  fn main() {
+    int expr = 5;
+    print(expr + 1 * 1 + expr + expr + 1 + expr * 1 + expr + 1 + 1);
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "29");
 }
 
 TEST_F(ProgramTest, PrintSum) {
@@ -861,11 +891,41 @@ TEST_F(ProgramTest, ConditionalIntGreaterThanTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalIntVariablesGreaterThanTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 7;
+    int value2 = 6;
+    if (value1 > value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntGreaterThanFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 6;
     if (value > 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntVariablesGreaterThanFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 6;
+    int value2 = 6;
+    if (value1 > value2) {
       print("true");
     } else {
       print("false");
@@ -889,11 +949,41 @@ TEST_F(ProgramTest, ConditionalIntGreaterThanOrEqualTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalIntVariableGreaterThanOrEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 6;
+    int value2 = 6;
+    if (value1 >= value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntGreaterThanOrEqualFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 5;
     if (value >= 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntVariablesGreaterThanOrEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 5;
+    int value2 = 6;
+    if (value1 >= value2) {
       print("true");
     } else {
       print("false");
@@ -917,11 +1007,41 @@ TEST_F(ProgramTest, ConditionalIntLessTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalIntVariablesLessTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 5;
+    int value2 = 6;
+    if (value1 < value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntLessFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 7;
     if (value < 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntVariablesLessFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 7;
+    int value2 = 6;
+    if (value1 < value2) {
       print("true");
     } else {
       print("false");
@@ -945,11 +1065,41 @@ TEST_F(ProgramTest, ConditionalIntLessOrEqualTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalIntVariablesLessOrEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 6;
+    int value2 = 6;
+    if (value1 <= value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntLessOrEqualFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 10;
     if (value <= 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntVariablesLessOrEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 10;
+    int value2 = 6;
+    if (value1 <= value2) {
       print("true");
     } else {
       print("false");
@@ -973,11 +1123,41 @@ TEST_F(ProgramTest, ConditionalIntEqualTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalIntVariablesEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 6;
+    int value2 = 6;
+    if (value1 == value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntEqualFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 7;
     if (value == 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntVariablesEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 7;
+    int value2 = 6;
+    if (value1 == value2) {
       print("true");
     } else {
       print("false");
@@ -1001,11 +1181,41 @@ TEST_F(ProgramTest, ConditionalIntNotEqualTrue) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
 }
 
+TEST_F(ProgramTest, ConditionalIntVariablesNotEqualTrue) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 5;
+    int value2 = 6;
+    if (value1 != value2) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "true");
+}
+
 TEST_F(ProgramTest, ConditionalIntNotEqualFalse) {
   constexpr auto program = R"(
   fn main() {
     int value = 6;
     if (value != 6) {
+      print("true");
+    } else {
+      print("false");
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "false");
+}
+
+TEST_F(ProgramTest, ConditionalIntVariablesNotEqualFalse) {
+  constexpr auto program = R"(
+  fn main() {
+    int value1 = 6;
+    int value2 = 6;
+    if (value1 != value2) {
       print("true");
     } else {
       print("false");
