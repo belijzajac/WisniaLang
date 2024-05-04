@@ -131,7 +131,8 @@ class IRGenerator final : public Visitor {
   bool m_allocateRegisters; // We wish to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
   IROptimization irOptimization{};
-  size_t m_labelCount{0};
+  size_t m_ifLabelCount{0};
+  size_t m_loopLabelCount{0};
 };
 
 }  // namespace Wisnia

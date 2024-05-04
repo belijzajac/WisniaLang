@@ -731,17 +731,24 @@ void IRGenerator::visit(WhileLoop &node) {
 }
 
 void IRGenerator::visit(ForLoop &node) {
+  m_loopLabelCount++;
+
+  const std::array labels {
+    ".L" + std::to_string(m_loopLabelCount) + "_loop_body",
+    ".L" + std::to_string(m_loopLabelCount) + "_loop_check",
+  };
+
   node.getInitial()->accept(*this);
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JMP,
     nullptr,
-    std::make_shared<Token>(TType::IDENT_VOID, ".L2")
+    std::make_shared<Token>(TType::IDENT_VOID, labels[1])
   ));
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Token>(TType::IDENT_VOID, ".L1")
+    std::make_shared<Token>(TType::IDENT_VOID, labels[0])
   ));
 
   node.getBody()->accept(*this);
@@ -750,7 +757,7 @@ void IRGenerator::visit(ForLoop &node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::LABEL,
     nullptr,
-    std::make_shared<Token>(TType::IDENT_VOID, ".L2")
+    std::make_shared<Token>(TType::IDENT_VOID, labels[1])
   ));
 
   node.getCondition()->accept(*this);
@@ -759,7 +766,7 @@ void IRGenerator::visit(ForLoop &node) {
   m_instructions.emplace_back(std::make_unique<Instruction>(
     jumpOp,
     nullptr,
-    std::make_shared<Token>(TType::IDENT_VOID, ".L1")
+    std::make_shared<Token>(TType::IDENT_VOID, labels[0])
   ));
 }
 
@@ -773,11 +780,11 @@ void IRGenerator::visit(ForEachLoop &node) {
 }
 
 void IRGenerator::visit(IfStmt &node) {
-  m_labelCount++;
+  m_ifLabelCount++;
 
   const std::array labels {
-    ".L" + std::to_string(m_labelCount) + "_false",
-    ".L" + std::to_string(m_labelCount) + "_end",
+    ".L" + std::to_string(m_ifLabelCount) + "_if_false",
+    ".L" + std::to_string(m_ifLabelCount) + "_if_end",
   };
 
   node.getCondition()->accept(*this);

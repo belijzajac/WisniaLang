@@ -1407,6 +1407,24 @@ TEST_F(ProgramTest, ForLoopPrintIncrement) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1248163264");
 }
 
+TEST_F(ProgramTest, ForLoopFollowup) {
+  constexpr auto program = R"(
+  fn main() {
+    for (int i = 0; i < 3; i = i + 1) {
+      print("i=", i);
+    }
+    for (int j = 0; j < 3; j = j + 1) {
+      print("j=", j);
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "i=0" "i=1" "i=2"
+    "j=0" "j=1" "j=2"
+  );
+}
+
 TEST_F(ProgramTest, ForLoopFactorial) {
   constexpr auto program = R"(
   fn factorial(n: int) -> int {
