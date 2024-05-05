@@ -132,8 +132,9 @@ class IRGenerator final : public Visitor {
   RegisterAllocator registerAllocator{};
   IROptimization irOptimization{};
   size_t m_ifLabelCount{0};
-  size_t m_loopLabelCount{0};
+  size_t m_forLabelCount{0};
   size_t m_whileLabelCount{0};
+  std::stack<std::string> m_breakLabel;
 };
 
 }  // namespace Wisnia

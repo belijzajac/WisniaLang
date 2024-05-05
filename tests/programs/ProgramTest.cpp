@@ -1463,6 +1463,21 @@ TEST_F(ProgramTest, ForLoopFibonacci) {
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4181");
 }
 
+TEST_F(ProgramTest, ForLoopBreak) {
+  constexpr auto program = R"(
+  fn main() {
+    for (int i = 0; i < 1000000; i = i + 1) {
+      print(i);
+      if (i == 5) {
+        print("yay!");
+        break;
+      }
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "012345yay!");
+}
+
 // ----------------------------------------------------
 // While loops
 // ----------------------------------------------------
@@ -1555,4 +1570,21 @@ TEST_F(ProgramTest, WhileLoopFibonacci) {
   })"sv;
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4181");
+}
+
+TEST_F(ProgramTest, WhileLoopBreak) {
+  constexpr auto program = R"(
+  fn main() {
+    int i = 0;
+    while (i < 1000000) {
+      print(i);
+      if (i == 5) {
+        print("yay!");
+        break;
+      }
+      i = i + 1;
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "012345yay!");
 }

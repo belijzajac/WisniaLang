@@ -395,10 +395,14 @@ void IRGenerator::visit(ReturnStmt &node) {
   ));
 }
 
-void IRGenerator::visit(BreakStmt &node) {
-  throw NotImplementedError{fmt::format("Break statements are not supported in {}:{}",
-                                        node.getToken()->getPosition().getFileName(),
-                                        node.getToken()->getPosition().getLineNo())};
+void IRGenerator::visit(BreakStmt &) {
+  const auto breakLabel = m_breakLabel.top();
+  m_breakLabel.pop();
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JMP,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, breakLabel)
+  ));
 }
 
 void IRGenerator::visit(ContinueStmt &node) {
@@ -728,7 +732,10 @@ void IRGenerator::visit(WhileLoop &node) {
   const std::array labels {
     ".L" + std::to_string(m_whileLabelCount) + "_while_body",
     ".L" + std::to_string(m_whileLabelCount) + "_while_check",
+    ".L" + std::to_string(m_whileLabelCount) + "_while_end",
   };
+
+  m_breakLabel.emplace(labels[2]);
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
     Operation::JMP,
@@ -757,16 +764,23 @@ void IRGenerator::visit(WhileLoop &node) {
     nullptr,
     std::make_shared<Token>(TType::IDENT_VOID, labels[0])
   ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, labels[2])
+  ));
 }
 
 void IRGenerator::visit(ForLoop &node) {
-  m_loopLabelCount++;
+  m_forLabelCount++;
 
   const std::array labels {
-    ".L" + std::to_string(m_loopLabelCount) + "_loop_body",
-    ".L" + std::to_string(m_loopLabelCount) + "_loop_check",
+    ".L" + std::to_string(m_forLabelCount) + "_for_body",
+    ".L" + std::to_string(m_forLabelCount) + "_for_check",
+    ".L" + std::to_string(m_forLabelCount) + "_for_end",
   };
 
+  m_breakLabel.emplace(labels[2]);
   node.getInitial()->accept(*this);
 
   m_instructions.emplace_back(std::make_unique<Instruction>(
@@ -796,6 +810,11 @@ void IRGenerator::visit(ForLoop &node) {
     jumpOp,
     nullptr,
     std::make_shared<Token>(TType::IDENT_VOID, labels[0])
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, labels[2])
   ));
 }
 
