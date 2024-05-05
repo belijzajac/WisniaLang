@@ -16,6 +16,7 @@
 
 namespace Wisnia {
 class Instruction;
+enum class Operation;
 
 class IRGenerator final : public Visitor {
   using TokenPtr = std::shared_ptr<Basic::Token>;
@@ -115,6 +116,7 @@ class IRGenerator final : public Visitor {
  private:
   AST::Root &popNode();
   void createBinaryExpression(Basic::TType expressionType);
+  Operation createJumpOpFromCondition(AST::Root &node, bool opposite);
 
   // In general, we want literal types to be associated with variables, but in the case of
   // "AST::WriteStmt", we perform a compile-time optimization to prevent loading modules for
@@ -123,12 +125,16 @@ class IRGenerator final : public Visitor {
 
  private:
   std::stack<AST::Root *> m_stack;
+  std::stack<Operation> m_comparisonOp;
   InstructionList m_instructions;
   TemporaryVariableList m_tempVars;
   bool m_allocateRegisters; // We wish to skip register allocation in some unit tests
   RegisterAllocator registerAllocator{};
   IROptimization irOptimization{};
-  size_t m_labelCount{0};
+  size_t m_ifLabelCount{0};
+  size_t m_forLabelCount{0};
+  size_t m_whileLabelCount{0};
+  std::stack<std::string> m_breakLabel;
 };
 
 }  // namespace Wisnia
