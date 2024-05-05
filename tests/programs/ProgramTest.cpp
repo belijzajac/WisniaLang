@@ -1462,3 +1462,97 @@ TEST_F(ProgramTest, ForLoopFibonacci) {
   SetUp(program);
   EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4181");
 }
+
+// ----------------------------------------------------
+// While loops
+// ----------------------------------------------------
+
+TEST_F(ProgramTest, WhileLoopPrintStrings) {
+  constexpr auto program = R"(
+  fn main() {
+    int i = 1;
+    while (i <= 3) {
+      print("hello");
+      i = i + 1;
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "hellohellohello");
+}
+
+TEST_F(ProgramTest, WhileLoopPrintIncrement) {
+  constexpr auto program = R"(
+  fn main() {
+    int i = 1;
+    while (i < 65) {
+      print(i);
+      i = i * 2;
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "1248163264");
+}
+
+TEST_F(ProgramTest, WhileLoopFollowup) {
+  constexpr auto program = R"(
+  fn main() {
+    int i = 0;
+    while (i < 3) {
+      print("i=", i);
+      i = i + 1;
+    }
+    int j = 0;
+    while (j < 3) {
+      print("j=", j);
+      j = j + 1;
+    }
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(
+    exec("./a.out"),
+    "i=0" "i=1" "i=2"
+    "j=0" "j=1" "j=2"
+  );
+}
+
+TEST_F(ProgramTest, WhileLoopFactorial) {
+  constexpr auto program = R"(
+  fn factorial(n: int) -> int {
+    int res = 1;
+    int i = 2;
+    while (i <= n) {
+      res = res * i;
+      i = i + 1;
+    }
+    return res;
+  }
+  fn main() {
+    print(factorial(12));
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "479001600");
+}
+
+TEST_F(ProgramTest, WhileLoopFibonacci) {
+  constexpr auto program = R"(
+  fn fibonacci(n: int) -> int {
+    if (n <= 1) {
+      return n;
+    }
+    int prev = 0;
+    int current = 1;
+    int i = 2;
+    while (i <= n) {
+      int next = prev + current;
+      prev = current;
+      current = next;
+      i = i + 1;
+    }
+    return current;
+  }
+  fn main() {
+    print(fibonacci(19));
+  })"sv;
+  SetUp(program);
+  EXPECT_PROGRAM_OUTPUT(exec("./a.out"), "4181");
+}

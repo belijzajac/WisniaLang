@@ -133,6 +133,7 @@ class IRGenerator final : public Visitor {
   IROptimization irOptimization{};
   size_t m_ifLabelCount{0};
   size_t m_loopLabelCount{0};
+  size_t m_whileLabelCount{0};
 };
 
 }  // namespace Wisnia

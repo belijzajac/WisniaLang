@@ -723,11 +723,40 @@ void IRGenerator::visit(ClassDef &node) {
 }
 
 void IRGenerator::visit(WhileLoop &node) {
-  node.getCondition()->accept(*this);
+  m_whileLabelCount++;
+
+  const std::array labels {
+    ".L" + std::to_string(m_whileLabelCount) + "_while_body",
+    ".L" + std::to_string(m_whileLabelCount) + "_while_check",
+  };
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::JMP,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, labels[1])
+  ));
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, labels[0])
+  ));
+
   node.getBody()->accept(*this);
-  throw NotImplementedError{fmt::format("While loops are not supported in {}:{}",
-                                        node.getToken()->getPosition().getFileName(),
-                                        node.getToken()->getPosition().getLineNo())};
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    Operation::LABEL,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, labels[1])
+  ));
+
+  node.getCondition()->accept(*this);
+  const auto jumpOp = createJumpOpFromCondition(*node.getCondition(), false);
+
+  m_instructions.emplace_back(std::make_unique<Instruction>(
+    jumpOp,
+    nullptr,
+    std::make_shared<Token>(TType::IDENT_VOID, labels[0])
+  ));
 }
 
 void IRGenerator::visit(ForLoop &node) {
