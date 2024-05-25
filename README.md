@@ -33,10 +33,12 @@ Can be found in [tests/programs/ProgramTest.cpp](tests/programs/ProgramTest.cpp)
 
 ## Benchmarks
 
-[![benchmarks](docs/benchmark-results.png)](https://belijzajac.dev/wisnialang-compiler-project/)
+[![benchmarks](docs/benchmark-1.png)](https://belijzajac.dev/wisnialang-compiler-project/)
 
 > [!NOTE]
-> However, it’s important to acknowledge that the runtime range for WisniaLang was 84.0 µs to 736.3 µs over 1000 program runs, indicating ambiguous results due to benchmarking a program of less than 20 lines of code. In the real world, to accurately assess a compiler backend’s performance, one would need to run benchmarks on millions of lines of code.
+> The runtime range for WisniaLang was from 84.0 µs to 736.3 µs over 1000 program runs, indicating ambiguous results due to benchmarking a 17-line program that executes 3 lines of code 45 times. However, this does demonstrate the speed at which we can compile small programs.
+
+[![benchmarks](docs/benchmark-2.png)](https://belijzajac.dev/wisnialang-compiler-project/)
 
 ## License
 
