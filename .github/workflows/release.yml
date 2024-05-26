@@ -20,11 +20,9 @@ jobs:
         # remove old symlinks
         sudo rm /usr/bin/gcc
         sudo rm /usr/bin/g++
-        sudo rm /usr/bin/gcov
         # create new symlinks
         sudo ln -s /usr/bin/gcc-12 /usr/bin/gcc
         sudo ln -s /usr/bin/g++-12 /usr/bin/g++
-        sudo ln -s /usr/bin/gcov-12 /usr/bin/gcov
 
     - name: Build project
       run: |
