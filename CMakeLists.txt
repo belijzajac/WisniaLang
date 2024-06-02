@@ -1,7 +1,7 @@
 # Copyright (C) 2019-2024 Tautvydas Povilaitis (belijzajac)
 # SPDX-License-Identifier: GPL-3.0
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.25.1)
 project(WisniaLang)
 
 add_compile_definitions(WISNIA_VERSION="1.0.4-dev")
