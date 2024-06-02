@@ -32,6 +32,11 @@ jobs:
         make -j$(nproc) wisnia
         sudo cp src/wisnia /usr/bin
 
+    - name: Run "fibonacci" benchmark
+      run: |
+        cd benchmarks/fibonacci
+        bash run.sh
+
     - name: Run "29988-lines-of-code" benchmark
       run: |
         cd benchmarks/29988-lines-of-code
