@@ -275,7 +275,7 @@ void CodeGenerator::emitPush(const InstructionPtr &instruction) {
         case R13: return {std::byte{0x41}, std::byte{0x55}};
         case R14: return {std::byte{0x41}, std::byte{0x56}};
         case R15: return {std::byte{0x41}, std::byte{0x57}};
-        default: { assert(0 && "Unknown register for push instruction"); }
+        default: throw CodeGenerationError{"Unknown register for push instruction"};
       }
     };
 
@@ -309,7 +309,7 @@ void CodeGenerator::emitPop(const InstructionPtr &instruction) {
         case R13: return {std::byte{0x41}, std::byte{0x5d}};
         case R14: return {std::byte{0x41}, std::byte{0x5e}};
         case R15: return {std::byte{0x41}, std::byte{0x5f}};
-        default: { assert(0 && "Unknown register for pop instruction"); }
+        default: throw CodeGenerationError{"Unknown register for pop instruction"};
       }
     };
 
@@ -427,9 +427,8 @@ void CodeGenerator::emitJmp(const InstructionPtr &instruction) {
         return std::byte{0x7c};
       case Operation::JGE:
         return std::byte{0x7d};
-      default: {
-        assert(0 && "Unknown jump instruction");
-      }
+      default:
+        throw CodeGenerationError{"Unknown jump instruction"};
     }
   };
 
@@ -463,7 +462,7 @@ void CodeGenerator::emitInc(const InstructionPtr &instruction) {
         case R13: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc5}};
         case R14: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc6}};
         case R15: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xc7}};
-        default: { assert(0 && "Unknown register for inc instruction"); }
+        default: throw CodeGenerationError{"Unknown register for inc instruction"};
       }
     };
 
@@ -497,7 +496,7 @@ void CodeGenerator::emitDec(const InstructionPtr &instruction) {
         case R13: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcd}};
         case R14: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xce}};
         case R15: return {std::byte{0x49}, std::byte{0xff}, std::byte{0xcf}};
-        default: { assert(0 && "Unknown register for dec instruction"); }
+        default: throw CodeGenerationError{"Unknown register for dec instruction"};
       }
     };
 
@@ -683,7 +682,7 @@ void CodeGenerator::emitDiv(const InstructionPtr &instruction) {
         case R13: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf5}};
         case R14: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf6}};
         case R15: return {std::byte{0x49}, std::byte{0xf7}, std::byte{0xf7}};
-        default: { assert(0 && "Unknown register for div instruction"); }
+        default: throw CodeGenerationError{"Unknown register for div instruction"};
       }
     };
 
@@ -722,7 +721,7 @@ void CodeGenerator::emitXor(const InstructionPtr &instruction) {
         case R14: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xf6}};
         case R15: return {std::byte{0x4d}, std::byte{0x31}, std::byte{0xff}};
         case EDX: return {std::byte{0x31}, std::byte{0xd2}};
-        default: { assert(0 && "Unknown register for xor instruction"); }
+        default: throw CodeGenerationError{"Unknown register for xor instruction"};
       }
     };
 
@@ -760,7 +759,7 @@ void CodeGenerator::emitTest(const InstructionPtr &instruction) {
         case R13: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xed}};
         case R14: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xf6}};
         case R15: return {std::byte{0x4d}, std::byte{0x85}, std::byte{0xff}};
-        default: { assert(0 && "Unknown register for test instruction"); }
+        default: throw CodeGenerationError{"Unknown register for test instruction"};
       }
     };
 

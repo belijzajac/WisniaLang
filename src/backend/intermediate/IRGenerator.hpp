@@ -49,7 +49,7 @@ class IRGenerator final : public Visitor {
       case Transformation::INSTRUCTION_OPTIMIZATION:
         return irOptimization.getInstructions();
       default:
-        assert(0 && "Unknown transformation type");
+        throw InstructionError{"Unknown instruction transformation type"};
     }
   }
 

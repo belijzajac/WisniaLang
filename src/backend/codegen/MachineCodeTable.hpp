@@ -7,6 +7,7 @@
 #include <cstdint>
 // Wisnia
 #include "ByteArray.hpp"
+#include "Exceptions.hpp"
 #include "Register.hpp"
 
 namespace Wisnia {
@@ -36,7 +37,7 @@ public:
       case Basic::register_t::R13: return {std::byte{0x41}, std::byte{0x80}, std::byte{0x7d}};
       case Basic::register_t::R14: return {std::byte{0x41}, std::byte{0x80}, std::byte{0x3e}};
       case Basic::register_t::R15: return {std::byte{0x41}, std::byte{0x80}, std::byte{0x3f}};
-      default: { assert(0 && "Unknown register for cmp byte ptr instruction"); }
+      default: throw CodeGenerationError{"Unknown register for cmp byte ptr instruction"};
     }
   }
 };
@@ -63,7 +64,7 @@ public:
       case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc5}};
       case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc6}};
       case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0xc7}, std::byte{0xc7}};
-      default: { assert(0 && "Unknown register for mov instruction"); }
+      default: throw CodeGenerationError{"Unknown register for mov instruction"};
     }
   }
 
@@ -71,7 +72,7 @@ public:
   static constexpr ByteArray getLeaMachineCode(const Basic::register_t reg) {
     switch (reg) {
       case Basic::register_t::EDX: return {std::byte{0x8d}, std::byte{0x94}, std::byte{0x24}};
-      default: { assert(0 && "Unknown register for lea instruction"); }
+      default: throw CodeGenerationError{"Unknown register for lea instruction"};
     }
   }
 
@@ -94,7 +95,7 @@ public:
       case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xfd}};
       case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xfe}};
       case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xff}};
-      default: { assert(0 && "Unknown register for cmp instruction"); }
+      default: throw CodeGenerationError{"Unknown register for cmp instruction"};
     }
   }
 
@@ -118,7 +119,7 @@ public:
       case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xc6}};
       case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xc7}};
       case Basic::register_t::EDX: return {std::byte{0x81}, std::byte{0xc2}};
-      default: { assert(0 && "Unknown register for add instruction"); }
+      default: throw CodeGenerationError{"Unknown register for add instruction"};
     }
   }
 
@@ -141,7 +142,7 @@ public:
       case Basic::register_t::R13: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xed}};
       case Basic::register_t::R14: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xee}};
       case Basic::register_t::R15: return {std::byte{0x49}, std::byte{0x81}, std::byte{0xef}};
-      default: { assert(0 && "Unknown register for sub instruction"); }
+      default: throw CodeGenerationError{"Unknown register for sub instruction"};
     }
   }
 
@@ -164,7 +165,7 @@ public:
       case Basic::register_t::R13: return {std::byte{0x4d}, std::byte{0x69}, std::byte{0xed}};
       case Basic::register_t::R14: return {std::byte{0x4d}, std::byte{0x69}, std::byte{0xf6}};
       case Basic::register_t::R15: return {std::byte{0x4d}, std::byte{0x69}, std::byte{0xff}};
-      default: { assert(0 && "Unknown register for imul instruction"); }
+      default: throw CodeGenerationError{"Unknown register for imul instruction"};
     }
   }
 };
