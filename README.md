@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/belijzajac/WisniaLang/branch/master/graph/badge.svg?token=SN5094ZY23)](https://codecov.io/gh/belijzajac/WisniaLang)
 [![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-## Dependencies
+## Prerequisites
 
 * C++20 compatible compiler
 * CMake
