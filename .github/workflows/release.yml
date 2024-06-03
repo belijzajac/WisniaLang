@@ -8,21 +8,11 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
 
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Install packages
-      run: |
-        sudo apt install gcc-12 g++-12
-        # remove old symlinks
-        sudo rm /usr/bin/gcc
-        sudo rm /usr/bin/g++
-        # create new symlinks
-        sudo ln -s /usr/bin/gcc-12 /usr/bin/gcc
-        sudo ln -s /usr/bin/g++-12 /usr/bin/g++
 
     - name: Build project
       run: |
