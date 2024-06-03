@@ -1,0 +1,33 @@
+name: Benchmarks
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install packages
+      run: |
+        sudo apt install hyperfine
+
+    - name: Build project
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make -j$(nproc) wisnia
+        sudo cp src/wisnia /usr/bin
+
+    - name: Run "fibonacci" benchmark
+      run: |
+        cd benchmarks/fibonacci
+        bash run.sh
+
+    - name: Run "29988-lines-of-code" benchmark
+      run: |
+        cd benchmarks/29988-lines-of-code
+        python main.py --wisnia --cpp --rust 2000
+        bash run.sh

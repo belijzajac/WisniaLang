@@ -414,12 +414,12 @@ class IntExpr final : public ConstExpr {
   }
 
   std::string kind() const override {
-    const auto getType = [&]() {
+    const auto getType = [&] {
       switch (m_token->getType()) {
         case Basic::TType::LIT_INT:
           return "int";
         default:
-          assert(0 && "Unknown integer type");
+          throw WisniaError{"Unknown integer type in IntExpr"};
       }
     };
     return fmt::format("IntExpr (value={}, type={})", m_token->getASTValueStr(), getType());
