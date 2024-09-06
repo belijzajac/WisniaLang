@@ -1,8 +1,9 @@
 # WisniaLang
 
-[![Tests](https://github.com/belijzajac/WisniaLang/actions/workflows/tests.yml/badge.svg)](https://github.com/belijzajac/WisniaLang/actions/workflows/tests.yml)
+[![tests](https://github.com/belijzajac/WisniaLang/actions/workflows/tests.yml/badge.svg)](https://github.com/belijzajac/WisniaLang/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/belijzajac/WisniaLang/branch/master/graph/badge.svg?token=SN5094ZY23)](https://codecov.io/gh/belijzajac/WisniaLang)
 [![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![online](https://img.shields.io/badge/try_it_online-ryugod.com-pink)](https://ryugod.com/pages/ide/wisnia)
 
 ## Prerequisites
 
@@ -29,7 +30,9 @@ make -j$(nproc) wisnia
 
 ## Example programs
 
-Can be found in [tests/programs/ProgramTest.cpp](tests/programs/ProgramTest.cpp) file.
+You can find example programs in the [tests/programs/ProgramTest.cpp](tests/programs/ProgramTest.cpp) file.
+
+Alternatively, [try them online](https://ryugod.com/pages/ide/wisnia) (please note that the compiler binary may not be the latest version).
 
 ## Benchmarks
 
